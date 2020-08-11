@@ -1,9 +1,9 @@
 Options +MultiViews
 {% if cfg.site.redirect301 -%}
-	{%- for fromf in cfg.site.redirect301 %}
-Redirect 301 {{fromf}} {{ctx.qualify(fromf)}}
-	{% endfor -%}
-{%- endif %}
+	{%- for fromf,tof in cfg.site.redirect301 %}
+Redirect 301 {{fromf}} {{ctx.qualify(tof)}}
+	{%- endfor -%}
+{% endif %}
 RewriteEngine On 
 RewriteBase /
 RewriteCond %{REQUEST_URI} !^/[0-9]+\..+\.cpaneldcv$
