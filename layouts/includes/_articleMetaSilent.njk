@@ -1,0 +1,8 @@
+{% import 'macros/meta.njk' as meta %}
+<span class="meta">
+    {%- if post.author -%}
+        {{meta.authorsSilent(post.author)}}
+    {%- endif -%}
+    <meta name="dt-published" content="{{post.dates.published.iso}}" />
+    <meta name="dt-modified" content="{{post.dates.modified.iso}}" />
+</span>

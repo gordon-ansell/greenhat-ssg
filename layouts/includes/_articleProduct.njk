@@ -1,0 +1,107 @@
+<dl>
+    <dt>Name:</dt><dd><strong>{{prod.name}}</strong></dd>
+
+    {%- if prod.url -%}
+        <dt>URL:</dt><dd>{{prod.urlStr}}</dd>
+    {%- endif -%}
+
+    {%- if prod.description -%}
+        <dt>Description:</dt><dd>{{prod.description}}</dd>
+    {%- endif -%}
+
+    {%- if prod.brand -%}
+        <dt>Brand:</dt><dd>{{prod.brandLink}}</dd>
+    {%- endif -%}
+
+    {%- if prod.model -%}
+        <dt>Model:</dt><dd>{{prod.model}}</dd>
+    {%- endif -%}
+
+    {%- if prod.category -%}
+        <dt>Category:</dt><dd>{{prod.categoryStr}}</dd>
+    {%- endif -%}
+
+    {%- if prod.type == 'SoftwareApplication' -%}
+        {%- if prod.os -%}
+            <dt>OS:</dt><dd>{{prod.osStr}}</dd>
+        {%- endif -%}
+        {%- if prod.version -%}
+            <dt>Version:</dt><dd>{{prod.versionStr}}</dd>
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if prod.type == 'MusicRecording' or prod.type == 'MusicAlbum' -%}
+        {%- if prod.artist -%}
+            <dt>Artist:</dt><dd>{{prod.artist}}</dd>
+        {%- endif -%}
+        {%- if prod.album -%}
+            <dt>In Album:</dt><dd>{{prod.album}}</dd>
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if prod.type == 'LocalBusiness' -%}
+        {%- if prod.openingHours -%}
+            <dt>Opening Hours:</dt><dd>{{prod.openingHours}}</dd>
+        {%- endif -%}
+        {%- if prod.telephone -%}
+            <dt>Telephone:</dt><dd>{{prod.telephone}}</dd>
+        {%- endif -%}
+        {%- if prod.email -%}
+            <dt>Email:</dt><dd>{{prod.email}}</dd>
+        {%- endif -%}
+        {%- if prod.address -%}
+            <dt>Address:</dt><dd>{{prod.address}}</dd>
+        {%- endif -%}
+        {%- if prod.map -%}
+            <dt>Map:</dt><dd>{{prod.mapLink}}</dd>
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if prod.type == 'Movie' or prod.type == 'TVSeries' -%}
+        {%- if prod.actors -%}
+            <dt>Actors:</dt><dd>{{prod.actorsStr}}</dd>
+        {%- endif -%}
+        {%- if prod.directors -%}
+            <dt>Directors:</dt><dd>{{prod.directorsStr}}</dd>
+        {%- endif -%}
+        {%- if prod.duration -%}
+            <dt>Duration:</dt><dd>{{prod.durationObj.txt}}</dd>
+        {%- endif -%}
+        {%- if prod.sameAs -%}
+            <dt>More Info:</dt><dd>{{prod.sameAsStr}}</dd>
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if prod.type == 'Event' -%}
+        {%- if prod.startDate -%}
+            <dt>Starts</dt><dd>{{prod.startDate}}</dd>
+        {%- endif -%}
+        {%- if prod.endDate -%}
+            <dt>Ends</dt><dd>{{prod.endDate}}</dd>
+        {%- endif -%}
+        {%- if prod.location -%}
+            <dt>Location</dt><dd>{{prod.location}}</dd>
+        {%- endif -%}
+        {%- if prod.performer -%}
+            <dt>Performer</dt><dd>{{prod.performer}}</dd>
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if ctx.reviews[prod.key] -%}
+        {%- set rev = ctx.reviews[prod.key] -%}
+        {%- if rev.rating != null and rev.rating != undefined -%}
+            <dt>My Rating:</dt><dd>{{rev.ratingStr}}</dd>
+        {%- endif -%}
+        {%- if rev.description -%}
+            <dt>My Opinion:</dt><dd>{{rev.description}}</dd>
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if prod.reviewUrl -%}
+        <dt>Review:</dt><dd>{{ctx.link("Read the review.", prod.reviewUrl)}}</dd>
+    {%- endif -%}
+
+    {%- if prod.offers -%}
+        <dt>Offers:</dt><dd>{{prod.offersStr}}</dd> 
+    {%- endif -%}
+</dl>

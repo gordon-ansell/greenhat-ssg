@@ -1,0 +1,24 @@
+{%- macro themecolours(colours) -%}
+    --col-bg-primary: {{colours['bg-primary']}};
+    --col-bg-secondary: {{colours['bg-secondary']}};
+    --col-text-primary: {{colours['text-primary']}};
+    --col-text-secondary: {{colours['text-secondary']}};
+    --col-text-secondary-offset: {{colours['text-secondary-offset']}};
+    --col-border: {{colours['border']}};
+    --col-muted: {{colours['muted']}};
+    --col-code-bg: {{colours['code-bg']}};
+    --col-code-text: {{colours['code-text']}};
+    --col-bq-text: {{colours['bq-text']}};
+{%- endmacro -%}
+{%- set themeDefault = cfg.themes[cfg.site.theme.default] -%}
+{%- set themeDark = cfg.themes[cfg.site.theme.dark] -%}
+<style>
+    :root {
+        {{themecolours(themeDefault.colours)}}
+    }
+    @media(prefers-color-scheme: dark) {
+        :root {
+            {{themecolours(themeDark.colours)}}
+        }
+    }
+</style>

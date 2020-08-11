@@ -1,0 +1,49 @@
+<!--@
+late: true
+sitemap: true
+@-->
+{% set bodyclass = 'taxonomy' %}
+{% extends 'includes/_base.njk' %}
+{% block main %}
+<div class="h-entry">
+    {%- if article.breadcrumbs -%}
+        <div class="breadcrumbs">{{article.breadcrumbs}}</div>
+    {%- endif -%}
+    <h1 class="p-name">{{article.title}}</h1>
+    {%- set post = article -%}{%- include 'includes/_articleMetaSilent.njk' -%}
+    <section class="e-content">
+        {{article.description}}
+    <section>
+    <section class="collection">
+        <ul>
+            {% for item in ctx.getTaxonomy(article.taxonomyType, article.taxonomy).getArticles() %}
+                <li>
+                    <article class="h-entry">
+                        <header>
+                            <h2>
+                                <a class="u-url" href="{{item.url}}" title="Read this post.">
+                                    <span class="p-name">{{item.title}}</span>
+                                </a>
+                            </h2>
+                            {%- set post = item %}{% include 'includes/_articleMeta.njk' %}
+                        </header>
+                        {%- if post.reviews -%}
+                            {%- set rev = post.firstReview() -%}
+                            {%- if rev.ratingStars -%}
+                                <div class="reviewStars" title="Review rating.">{{rev.ratingStars}}</div>
+                            {%- endif -%}
+                        {%- endif -%}
+                        <div class="p-summary">
+                            {% if item.description %}
+                                {{item.description}}
+                            {% else %}
+                                {{item.content.text | truncate(300)}}
+                            {% endif %}
+                        </div>
+                    </article>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+</div>
+{% endblock %}

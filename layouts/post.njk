@@ -1,0 +1,94 @@
+<!--@
+sitemap: true
+@-->
+{% set bodyclass = 'post' %}
+{% extends 'includes/_article.njk' %}
+{%- block beforeArticleContent -%}
+    {%- if article.reviews -%}
+        {%- set rev = article.firstReview() -%}
+        {%- if rev.ratingStars -%}
+            <div class="reviewStars" title="Review rating">{{rev.ratingStars}}</div>
+        {%- endif -%}
+    {%- endif -%}
+    {%- if article.summary -%}
+        <section class="summary" title="Summary.">
+            {%- if article.imageFuncs and article.imageFuncs.summary -%}
+                {{ctx.imgBasic({src: article.imageFuncs.summary})}}
+            {%- endif -%}
+            {{ article.summary.html }}
+        </section>
+    {%- endif -%}
+{%- endblock -%}
+{%- block articleAside -%}
+    {%- if article.citation -%}
+        <aside class="citation">
+            <h6>Citations</h6>
+            <ul>
+                {%- for cite in article.citationList -%}
+                    <li>{{cite.txt}}</li>
+                {%- endfor -%}
+            </ul>
+        </aside>
+    {%- endif -%}    
+    {%- if article.products -%}
+        {%- for id,prod in article.products -%}
+            <aside class="product">
+                {%- include 'includes/_articleProduct.njk' -%}
+            </aside>
+        {%- endfor -%}
+    {%- endif -%}
+    {%- if article.productRefs -%}
+        {%- for id,prod in article.productRefs -%}
+            <aside class="product">
+                {%- include 'includes/_articleProduct.njk' -%}
+            </aside>
+        {%- endfor -%}
+    {%- endif -%}
+    {% if article.wmentions %}
+        <div class="webmentions">
+            <h6>Webmentions:</h6>
+            <ol id="webmentions">
+                {% for mention in article.wmentions %}
+                    {% set wmention = mention %}
+                    <li class="webmention-item" id="webmention-{{wmention['wm-id']}}">
+                        {% include 'includes/_webMention.njk' %}
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    {% endif %}
+{%- endblock -%}
+{%- block articleFooter -%}
+    <footer>
+        {%- if ctx.hasPlugin('socialShares') -%}
+            <div class="share-links">
+                {{ctx.getShareLinks(article)}}
+            </div>
+        {%- endif -%}
+        {%- if article.relatedPosts -%}
+            <div class="related-posts">
+                <h6>You might also be interested in:</h6>
+                <ul>
+                    {%- for item in article.relatedPosts -%}
+                        <li>{{ctx.link(item.title, item.url, item.description)}}</li>
+                    {%- endfor -%}
+                </ul>
+            </div>
+        {%- endif -%}
+        {%- if article.prev or article.next -%}
+            <nav class="prevnext">
+                <span class="prev">
+                    {%- if article.prev -%}
+                        &larr; {{ctx.link(article.prev.title, article.prev.url, "Go to the previous (older) post.")}}
+                    {%- endif -%}
+                </span>
+                <span class="next">
+                    {%- if article.next -%}
+                        {{ctx.link(article.next.title, article.next.url, "Go to the next (newer) post.")}} &rarr;
+                    {%- endif -%}
+                </span>
+            </nav>
+        {%- endif -%}
+    </footer>
+{%- endblock -%}
+

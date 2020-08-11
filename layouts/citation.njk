@@ -1,0 +1,12 @@
+<!--@
+@-->
+{% extends 'post.njk' %}
+{%- block articleHeaderTitle -%}
+    <h1>{{article.firstCitationLink()}}</h1>
+    <meta name="p-name" content="{{article.title}}" />
+    <meta name="u-url" content="{{article.url}}" />
+{%- endblock -%}
+{%- block articleHeaderMeta -%}
+    <p class="meta">Comments by me and a link to the external article (above).</p>
+    {%- set post = article -%}{%- include 'includes/_articleMeta.njk' -%}
+{%- endblock -%}

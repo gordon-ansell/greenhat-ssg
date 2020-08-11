@@ -1,0 +1,14 @@
+{%- if cfg.menus.bottom -%}
+    <nav>
+    <ul class="menu-plain">
+        {%- for item in cfg.menus.bottom -%}
+        <li><a href="{{ item.url }}"{% if item.description %} title="{{ item.description }}"{% endif %}>
+            {{ item.title }}</a></li>
+        {%- endfor -%}
+    </ul>
+    </nav>
+{%- endif -%}{%- if cfg.site.copyright -%}
+<div>
+    {{cfg.site.copyright}}
+</div>
+{%- endif -%}

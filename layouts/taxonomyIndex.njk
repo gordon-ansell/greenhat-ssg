@@ -1,0 +1,27 @@
+<!--@
+late: true
+sitemap: true
+@-->
+{% set bodyclass = 'taxonomyIndex' %}
+{% extends 'includes/_base.njk' %}
+{% block main %}
+    {%- if article.breadcrumbs -%}
+        <div class="breadcrumbs">{{article.breadcrumbs}}</div>
+    {%- endif -%}
+    <article class="h-entry">
+        <header>
+            <h1 class="p-name">{{article.title}}</h1>
+            {%- set post = article -%}{%- include 'includes/_articleMetaSilent.njk' -%}
+        </header>
+        <section class="e-content">
+            {{article.content.html}}
+        </section>
+        <section class="collection">
+            <ul>
+                {% for item,data in ctx.getTaxonomyType(article.taxonomyType) %}
+                    <li>{{data.getLink()}} ({{data.count}})</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </article>
+{% endblock %}

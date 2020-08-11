@@ -1,0 +1,50 @@
+{
+	"name": "greenhat-ssg",
+	"version": "0.1.0",
+	"description": "GreenHat Static Site Generator",
+	"homepage": "https://gordonansell.com/greenhat-ssg",
+	"license": "MIT",
+	"minimum-stability": "dev",
+	"main": "./src/GreenHatSSG.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gordon-ansell/greenhat-ssg"
+	},
+	"authors": [
+		{
+			"name": "Gordon Ansell",
+			"email": "contact@gordonansell.com",
+			"url": "https://gordonansell.com"
+		}
+	],
+	"bin": "./index.js",
+	"dependencies": {
+		"autoprefixer": "^9.8.6",
+		"chalk": "*",
+		"dateformat": "*",
+		"deasync": "*",
+		"debug": "*",
+		"deepmerge": "*",
+		"greenhat-base": "^0.1.0",
+		"image-size": "*",
+		"is-plain-object": "^4.1.1",
+		"js-beautify": "*",
+		"lodash": "*",
+		"md5": "^2.3.0",
+		"minimist": "*",
+		"node-fetch": "*",
+		"node-sass": "*",
+		"nunjucks": "^3.2.2",
+		"please-upgrade-node": "*",
+		"postcss": "*",
+		"sanitize-html": "*",
+		"send-webmention": "*",
+		"sharp": "*",
+		"showdown": "*",
+		"striptags": "*",
+		"yaml": "*"
+	},
+	"engines": {
+		"node": ">=12.16"
+	}
+}

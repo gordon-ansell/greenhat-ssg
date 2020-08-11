@@ -1,0 +1,21 @@
+<span>
+    <a class="plain" href="/" title="Go to the home page.">
+        {%- if cfg.site.headerLogo -%}
+            {{ctx.imgBasic(cfg.site.headerLogo, "Go to the home page.")}}
+        {%- endif -%}
+        <span>Gordy's Discourse</span>
+    </a>
+</span>
+
+{%- if cfg.menus.top -%}
+    <nav>
+    <input type="checkbox" id="menu-btn" />
+    <label for="menu-btn"><span class="navicon"></span></label>
+    <ul class="menu">
+        {%- for item in cfg.menus.top -%}
+        <li><a href="{{ item.url }}"{% if item.description %} title="{{ item.description }}"{% endif %}>
+            {{ item.title }}</a></li>
+        {%- endfor -%}
+    </ul>
+    </nav>
+{%- endif -%}

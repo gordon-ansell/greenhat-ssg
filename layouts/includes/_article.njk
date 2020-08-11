@@ -1,0 +1,33 @@
+{% extends 'includes/_base.njk' %}
+{%- block main -%}
+    <article class="h-entry">
+        {%- block breadcrumbs -%}
+            {%- if article.breadcrumbs -%}
+                <div class="breadcrumbs">{{article.breadcrumbs}}</div>
+            {%- endif -%}
+        {%- endblock -%}
+        {%- block articleHeader -%}
+            <header>
+                {%- block articleHeaderTitle -%}
+                    <h1 class="p-name">{{article.title}}</h1>
+                {%- endblock -%}
+                {%- block articleHeaderMeta -%}
+                    {%- set post = article -%}{%- include 'includes/_articleMeta.njk' -%}
+                {%- endblock -%}
+            </header>
+        {%- endblock -%}
+        {%- block beforeArticleContent -%}
+        {%- endblock -%}
+        {%- block articleContent -%}
+            <section class="e-content">
+                {{article.content.html}}
+            </section>
+        {%- endblock -%}
+        {%- block articleAside -%}
+        {%- endblock -%}
+        {%- block articleFooter -%}
+            <footer>
+            </footer>
+        {%- endblock -%}
+    </article>
+{%- endblock -%}

@@ -1,0 +1,11 @@
+{% import 'macros/meta.njk' as meta %}
+<div class="meta">
+    {% if post.author %}
+        {{meta.authors(post.author)}}<span class="dot"></span>
+    {% endif %}
+    <time class="dt-published" datetime="{{post.dates.published.iso}}">{{post.dates.published.dispDt}}</time>
+    <meta name="dt-modified" content="{{post.dates.modified.iso}}" />
+    {% if post.tags %}
+        <span class="dot"></span><span class="taxlinks">{{ctx.tagLinks(post)}}</span>
+    {% endif %}
+</div>

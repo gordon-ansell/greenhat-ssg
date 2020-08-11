@@ -1,0 +1,90 @@
+<!--@
+@-->
+<?xml version="1.0" encoding="UTF-8"?>
+<rss 
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+    xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+    xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:webfeeds="http://webfeeds.org/rss/1.0"
+    xmlns:media="http://search.yahoo.com/mrss/" 
+    version="2.0"
+>
+    <channel>
+	<title>{{cfg.site.title}}</title>
+	<description>By {{ctx.getFirstAuthor().name}}</description>
+	<link>{{ctx.qualify('/')}}</link>
+	<atom:link rel="self" type="application/atom+xml" href="{{ctx.qualify(article.url)}}"/>
+    {% if cfg.site.publisher.logo %}
+        <webfeeds:logo>{{ctx.asset(cfg.site.publisher.logo, true)}}</webfeeds:logo>
+        <webfeeds:cover image="{{ctx.asset(cfg.site.publisher.logo, true)}}"/>
+    {% elif cfg.site.publisher.image %}
+        <webfeeds:logo>{{ctx.asset(cfg.site.publisher.image, true)}}</webfeeds:logo>
+        <webfeeds:cover image="{{ctx.asset(cfg.site.publisher.image, true)}}"/>
+    {% endif %}
+    {%- if cfg.site.googleAnalytics and ctx.mode != 'dev' -%}
+        <webfeeds:analytics id="{{cfg.site.googleAnalytics}}" engine="GoogleAnalytics"/>
+    {%- endif %}
+    <webfeeds:related layout="card" target="browser"/>
+	<lastBuildDate>{{article.dates.modified.utc}}</lastBuildDate>
+    <sy:updatePeriod>hourly</sy:updatePeriod>
+    <sy:updateFrequency>1</sy:updateFrequency>
+	{%- for post in ctx.getArticles(ctx.config.site.homePagePostType) -%}
+        {% if post.sitemap and post.feed and post.published and loop.index < cfg.site.postsInFeed and not post.robots.includes('noindex') %}
+            <item>
+                <title>{{post.title}}</title>
+                <link>{{ctx.qualify(post.url)}}</link>
+                <guid isPermaLink="true">{{ctx.qualify(post.url)}}</guid>
+                <pubDate>{{post.dates.published.utc}}</pubDate>
+                {%- if post.imageFuncs.rssIcon %}
+                    <webfeeds:icon>{{ctx.asset(post.imageFuncs.rssIcon, true)}}</webfeeds:icon>
+                {%- endif -%}
+                {%- if post.imageFuncs.rss %}
+                    <webfeeds:cover image="{{ctx.asset(post.imageFuncs.rss, true)}}" />
+                    <media:content medium="image" url="{{ctx.asset(post.imageFuncs.rss, true)}}" />
+                {%- endif %}
+                <dc:creator>{{ctx.getFirstAuthor().name}}</dc:creator>
+                {%- if article.isFullFeed or post.layout == 'citation' or post.layout == 'briefly' -%}
+                {%- if post.excerptRss %}
+                <description>
+                    <![CDATA[
+                        {{post.excerptRss.html}}
+                    ]]>
+                </description>
+                {%- elif post.excerpt %}
+                <description>
+                    <![CDATA[
+                        {{post.excerpt.html}}
+                    ]]>
+                </description>
+                {%- else %}
+                <description>{{post.description}}</description>
+                {%- endif %}
+                <content:encoded>
+                    <![CDATA[
+                        {{post.contentRss.html}}
+                    ]]>
+                </content:encoded>
+                {%- else %}
+                <description>{{post.description}}</description>
+                {%- if post.excerptRss %}
+                <content:encoded>
+                    <![CDATA[
+                        {{post.excerptRss.html}}
+                    ]]>
+                </content:encoded>
+                {%- else %}
+                <content:encoded>
+                    <![CDATA[
+                        {{post.excerpt.html}}
+                    ]]>
+                </content:encoded>
+                {%- endif -%}
+                {%- endif %}
+            </item>
+        {% endif %}
+	{% endfor %}
+    </channel>
+</rss>

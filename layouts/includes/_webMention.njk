@@ -1,0 +1,41 @@
+{% if wmention.author.photo %}
+    <div class="webmention-authorphoto">
+        {% if cfg.site.lazyload %}
+            <img class="u-photo {{cfg.site.lazyclass}}" data-src="{{wmention.author.photo}}" alt="" />
+        {% else %}
+            <img class="u-photo" src="{{wmention.author.photo}}" alt="" />
+        {% endif %}
+    </div>
+{% endif %}
+<div class="webmention-data{% if ctx.isOwnWebmention(wmention) %} webmention-own{% endif %}">
+    <span class="webmention-meta">
+        {% if wmention.author %}
+            <a class="h-card u-url"{% if wmention.url %} href="{{wmention.url}}" {% endif %}target="_blank" 
+                rel="noopener noreferer">
+                <strong class="p-name">{{wmention.author.name}}</strong>
+            </a>
+        {% else %}
+            <strong>Anonymous</strong>
+        {% endif %} 
+        {% if wmention.published %}
+            <time class="dt-published" datetime="{{wmention.published}}">
+                {{ ctx.convertDate(wmention.published) }}
+            </time>    
+        {% endif %}
+    </span>
+    <span class="webmention-content p-content">
+        {{wmention.content.value | safe}}
+    </span>
+</div>
+{% if cfg.webmentionsSpec.typeIcons %}
+    <div class="webmention-typeicon">
+        {% set ticon = '/images/webmention/' + wmention['wm-property'] + '.png' %}
+        {% if ws.lazyload %}
+            <img data-src="{{ctx.asset(ticon)}}" alt="{{wmention['wm-property']}}" 
+                title="{{wmention['wm-property']}}" class="typeicon {{ws.imagesSpec.lazyClass}}" />
+        {% else %}
+            <img src="{{ctx.asset(ticon)}}" alt="{{wmention['wm-property']}}" title="{{wmention['wm-property']}}" 
+                class="typeicon" />
+        {% endif %}
+    </div>
+{% endif %}
