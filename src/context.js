@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { Html, slugify, replaceAll } = require('greenhat-base');
+const { Html } = require('greenhat-base');
 const urlp = require('url');
 const path = require('path');
 const { makeArray } = require('greenhat-base/src/utils/array');
@@ -210,7 +210,7 @@ class Context
      */ 
     slugify(str, opts = {lower: true, strict: true, replacement: '-'})
     {
-        return slugify(str, opts);
+        return str.slugify(opts);
     }
 
     /**
@@ -268,7 +268,7 @@ class Context
      */
     taxonomyLink(name, taxonomy)
     {
-        let dir = path.join(path.sep, taxonomy, this.slugify(name), path.sep);
+        let dir = path.join(path.sep, taxonomy, name.slugify(), path.sep);
         let html = new Html('a');
         html.addParam('href', dir);
         return html.resolve(name);
@@ -300,7 +300,7 @@ class Context
                 let taxEnts = makeArray(article[tax]);
 
                 for (let ent of taxEnts) {
-                    let dir = path.join(path.sep, tax, this.slugify(ent), path.sep);
+                    let dir = path.join(path.sep, tax, ent.slugify(), path.sep);
                     let html = new Html('a');
                     html.addParam('href', dir);
                     result.push(html.resolve(ent));
@@ -360,16 +360,16 @@ class Context
     
             let link = spec.linkDefs[item];
     
-            link = replaceAll(link, '[URL]', this.qualify(article.url));
-            link = replaceAll(link, '[TITLE]', encodeURI(article.title));
-            link = replaceAll(link, '[WSURL]', escape(this.qualify('/')));
-            link = replaceAll(link, '[WSTITLE]', encodeURI(this.config.site.title));
+            link = link.replaceAll('[URL]', this.qualify(article.url))
+                .replaceAll('[TITLE]', encodeURI(article.title))
+                .replaceAll('[WSURL]', escape(this.qualify('/')))
+                .replaceAll('[WSTITLE]', encodeURI(this.config.site.title));
 
             if (item == 'email') {
                 if (!this.config.site.publisher.email) {
                     syslog.warning("Publisher email is requited for 'email' share.");
                 } else {
-                    link = replaceAll(link, '[EMAIL]', this.config.site.publisher.email);
+                    link = link.replaceAll('[EMAIL]', this.config.site.publisher.email);
                 }
             }
     

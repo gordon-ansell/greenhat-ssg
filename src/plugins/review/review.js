@@ -9,7 +9,7 @@
 'use strict';
 
 const { syslog } = require("greenhat-base/src/logger");
-const { makeArray, merge, Duration, slugify } = require("greenhat-base");
+const { makeArray, merge, Duration } = require("greenhat-base");
 
 /**
  * Called after config processing.
@@ -208,7 +208,7 @@ function _processReview(key, article)
 
         if (this.ctx.config.reviewSpec.ratings.alts && this.ctx.config.reviewSpec.ratings.alts[rev.rating]) {
             let rs = this.ctx.config.reviewSpec.ratings.alts[rev.rating];
-            let cls = 'rating-string ' + slugify(rs);
+            let cls = 'rating-string ' + rs.slugify();
             rev.ratingStr += ': <span class="' + cls + '">' + rs + '</span>';
         }
 

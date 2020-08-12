@@ -9,7 +9,7 @@
 'use strict';
 
 const path = require('path');
-const { syslog, merge, Html, replaceAll } = require("greenhat-base"); 
+const { syslog, merge, Html } = require("greenhat-base"); 
 
 /**
  * Called after config processing.

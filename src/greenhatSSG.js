@@ -9,7 +9,7 @@
 'use strict';
 
 const { syslog, checkTypes, YamlFile, deleteFolderRecursive, mkdirRecurse, cleanDir,
-    FileSystemParser, merge, makeArray, ConsoleApp, copyFile, replaceAll, slugify } = require('greenhat-base');
+    FileSystemParser, merge, makeArray, ConsoleApp, copyFile} = require('greenhat-base');
 const path = require('path');
 const fs = require('fs');
 const ArticleParser = require('./article/articleParser');
@@ -465,15 +465,15 @@ class GreenhatSSG extends ConsoleApp
             let end = start + perPage - 1;
 
             let fileData = dummy;
-            fileData = replaceAll(fileData, '-page-', page);
-            fileData = replaceAll(fileData, '-title-', this.ctx.config.site.title);
-            fileData = replaceAll(fileData, '-description-', this.ctx.config.site.description);
-            fileData = replaceAll(fileData, '-start-', start);
-            fileData = replaceAll(fileData, '-end-', end);
+            fileData = fileData.replaceAll('-page-', page)
+                .replaceAll('-title-', this.ctx.config.site.title)
+                .replaceAll('-description-', this.ctx.config.site.description)
+                .replaceAll('-start-', start)
+                .replaceAll('-end-', end);
 
             // Define a file name and write to it.
             let fileName = path.join(this.ctx.sitePath, this.ctx.config.dirs.temp, 
-                'homePlus', slugify(String(page)) + '.html');
+                'homePlus', String(page).slugify() + '.html');
             let dir = path.dirname(fileName);
             if (!fs.existsSync(dir)) {
                 mkdirRecurse(dir);
@@ -527,12 +527,12 @@ class GreenhatSSG extends ConsoleApp
             taxonomyNames.forEach(async taxonomyName => {
                 // Set up the dummy file.
                 let fileData = dummy;
-                fileData = replaceAll(fileData, '-taxonomy-', taxonomyName);
-                fileData = replaceAll(fileData, '-taxonomyType-', taxType);
+                fileData = fileData.replaceAll('-taxonomy-', taxonomyName)
+                    .replaceAll('-taxonomyType-', taxType);
 
                 // Define a file name and write to it.
                 let fileName = path.join(this.ctx.sitePath, this.ctx.config.dirs.temp, 
-                    'taxonomies', taxType, slugify(taxonomyName) + '.html');
+                    'taxonomies', taxType, taxonomyName.slugify() + '.html');
                 let dir = path.dirname(fileName);
                 if (!fs.existsSync(dir)) {
                     mkdirRecurse(dir);

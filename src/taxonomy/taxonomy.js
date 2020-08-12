@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { Html, slugify } = require("greenhat-base");
+const { Html } = require("greenhat-base");
 const path = require('path');
 
 /**
@@ -87,7 +87,7 @@ class Taxonomy
     getLink()
     {
         let html = new Html('a');
-        let url = path.join(path.sep, this.type, slugify(this.name), path.sep);
+        let url = path.join(path.sep, this.type, this.name.slugify(), path.sep);
         html.addParam('href', url);
         return html.resolve(this.name);
     }

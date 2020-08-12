@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { slugify, syslog, makeArray, merge, Duration } = require("greenhat-base");
+const { syslog, makeArray, merge, Duration } = require("greenhat-base");
 const path = require('path');
 
 /**
@@ -40,7 +40,7 @@ class ArticleSchema
      */
     _id(name)
     {
-        return path.sep + '#' + slugify(name);
+        return path.sep + '#' + name.slugify();
     }
 
     /**
@@ -52,7 +52,7 @@ class ArticleSchema
     _idref(name)
     {
         return {
-            '@id': path.sep + '#' + slugify(name)
+            '@id': path.sep + '#' + name.slugify()
         };
     }
 
@@ -640,7 +640,7 @@ class ArticleSchema
 
                 } else {
 
-                    let keystart = 'aimg-' + slugify(key) + '-';
+                    let keystart = 'aimg-' + key.slugify() + '-';
 
                     for (let subKey of imgObj.subs.keys()) {
 
@@ -810,7 +810,7 @@ class ArticleSchema
                         result.itemListElement.push({
                             '@type': 'ListItem',
                             'item': {
-                                '@id': '/tags/' + slugify(this.article['tags'][0]) + '/',
+                                '@id': '/tags/' + this.article['tags'][0].slugify() + '/',
                                 '@type': 'WebPage',
                                 'name': this.article['tags'][0],
                             },
@@ -824,7 +824,7 @@ class ArticleSchema
                         result.itemListElement.push({
                             '@type': 'ListItem',
                             'item': {
-                                '@id': '/tags/' + slugify(this.article['tags'][1]) + '/',
+                                '@id': '/tags/' + this.article['tags'][1].slugify() + '/',
                                 '@type': 'WebPage',
                                 'name': this.article['tags'][1],
                             },
@@ -895,7 +895,7 @@ class ArticleSchema
 
             let result = {
                 '@type': 'Person',
-                '@id': this._id('author-' + slugify(authorKey)),
+                '@id': this._id('author-' + authorKey.slugify()),
                 '@context': ArticleSchema.context,
             }
 
