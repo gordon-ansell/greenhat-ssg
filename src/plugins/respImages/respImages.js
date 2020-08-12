@@ -32,6 +32,7 @@ function AfterConfig()
         defaultLink: 'self',
         useFirstResizableAsFeatured: true,
         useFirstAnyAsFeatured: false,
+        licencePage: null,
     };
 
     if (this.ctx.config.imageSpec) {

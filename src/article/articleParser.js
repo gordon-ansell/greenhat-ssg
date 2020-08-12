@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const GreenhatSSGError = require('../greenhatSSGError');
 const ArticleSchema = require('./articleSchema');
+const { articleDefault } = require('../defaultConfig');
 
 class GreenhatSSGArticleError extends GreenhatSSGError {};
 
@@ -68,6 +69,8 @@ class ArticleParser
         this._processReferences();
         this._processAuthors();
         this._processTitle();
+        this._processSummary();
+        this._processMetaDescription();
         this._processCitations();
         this._processBreadcrumbs();
         //this._processSchema();
@@ -289,6 +292,44 @@ class ArticleParser
         }
 
         this._article.citationList = citationList;
+    }
+
+    /**
+     * Process meta description.
+     */
+    _processMetaDescription()
+    {
+        this._article.metaDescription = this._article.description;
+
+        if (this._config.site.cleverDescriptions) {
+            if (this._article.summary && !this._article.summaryIsList) {
+                this._article.metaDescription = this._article.summary.text;
+            } else {
+                if (this._article.products) {
+                    let pkeys = Object.keys(this._article.products);
+                    if (pkeys.length == 1) {
+                        let firstKey = pkeys[0];
+                        if (this._article.reviews && this._article.reviews[firstKey]) {
+                            this._article.metaDescription = this._article.reviews[firstKey].description;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Process the summary.
+     */
+    _processSummary()
+    {
+        if (!this._article.summary) {
+            return false;
+        }
+
+        if (Array.isArray(this._article.summary.md)) {
+            this._article.summaryIsList = true;
+        }
     }
 
     /**

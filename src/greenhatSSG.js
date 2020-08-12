@@ -95,7 +95,7 @@ class GreenhatSSG extends ConsoleApp
     _checkConfig()
     {
         if (this.ctx.mode == 'prod') {
-            if (!this.ctx.confif.site.prodUrl) {
+            if (!this.ctx.config.site.prodUrl) {
                 throw new GreenhatSSGError("Site spec needs a 'prodUrl' setting.")
             }
         }

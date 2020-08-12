@@ -594,6 +594,8 @@ class ArticleSchema
             return;
         }
 
+        let spec = this.ctx.config.imageSpec;
+
         for (let arr of ['images', 'imageRefs']) {
 
             if (!this.article[arr]) {
@@ -617,6 +619,10 @@ class ArticleSchema
                         'width': imgObj.width,
                         'height': imgObj.height,
                         'representativeOfPage': true,
+                    }
+
+                    if (spec.licencePage) {
+                        result['acquireLicensePage'] = spec.licencePage;
                     }
 
                     if (obj.caption) {
@@ -654,6 +660,10 @@ class ArticleSchema
                                 'url': imgObj.smallest.relPath 
                             },
                         }    
+
+                        if (spec.licencePage) {
+                            result['acquireLicensePage'] = spec.licencePage;
+                        }
 
                         if (obj.caption) {
                             result['caption'] = obj.caption;

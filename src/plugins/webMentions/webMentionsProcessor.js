@@ -13,6 +13,7 @@ const fs = require('fs');
 const sanitizeHTML = require('sanitize-html');
 const wmsend = require('send-webmention')
 const { syslog, GreenhatError } = require("greenhat-base");
+const { mkdirRecurse } = require('greenhat-base/src/utils/filesystem');
 
 /**
  * Webmentions processing class.
@@ -328,6 +329,7 @@ class WebMentionsProcessor
         this.mentionsSent.unshift(line);    
         let fnt = (test) ? this.spec.sentFileTest : this.spec.sentFile;
         let fn = path.join(this.ctx.sitePath, this.spec.wmDir, fnt);
+        mkdirRecurse(path.dirname(fn));
         fs.writeFileSync(fn, JSON.stringify(this.mentionsSent, null, 1));
         this.mentionsSent = null;   
     }

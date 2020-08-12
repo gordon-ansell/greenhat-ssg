@@ -23,7 +23,9 @@
             {%- endif -%}
         {%- else -%}
             <title>{{article.headline}}</title>
-            {%- if article.description -%}
+            {%- if article.metaDescription -%}
+                <meta name="description" content="{{article.metaDescription}}" />
+            {%- elif article.description -%}
                 <meta name="description" content="{{article.description}}" />
             {%- endif -%}
             {%- if article.keywords -%}

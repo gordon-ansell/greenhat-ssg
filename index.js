@@ -31,6 +31,8 @@
 
 const pkg = require('./package.json');
 const { syslog } = require('greenhat-base');
+const GreenhatSSG = require('./src/greenhatSSG');
+
 
 try {
     // Unhandled rejections.
@@ -54,9 +56,6 @@ try {
 
     // Get the command line arguments.
     const args = require("minimist")(process.argv);
-
-    // Set up the main class.
-    const GreenhatSSG = require('./src/greenHatSSG');
 
     // Get cracking.
     let gh = new GreenhatSSG(args);
