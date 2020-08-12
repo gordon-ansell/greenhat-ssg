@@ -86,10 +86,10 @@
     {% endblock %}
 
     {% block webMentions -%}
-        {%- if cfg.site.webMentions and cfg.webMentions.id -%}
+        {%- if cfg.site.webMentions and cfg.webmentionsSpec.id -%}
             <!-- Webmentions -->
-            <link rel="webmention" href="https://webmention.io/{{cfg.webMentions.id}}/webmention" />
-            <link rel="pingback" href="https://webmention.io/{{cfg.webMentions.id}}/xmlrpc" />
+            <link rel="webmention" href="https://webmention.io/{{cfg.webmentionsSpec.id}}/webmention" />
+            <link rel="pingback" href="https://webmention.io/{{cfg.webmentionsSpec.id}}/xmlrpc" />
         {%- endif -%}
     {% endblock %}
 
