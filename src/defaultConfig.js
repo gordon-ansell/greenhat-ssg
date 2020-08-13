@@ -85,7 +85,7 @@ module.exports = {
             page: {
                 permalink: ":path/:fn",
             }
-        }
+        },
     },
 
     // Article default spec.
@@ -94,7 +94,8 @@ module.exports = {
         feed: true,
         published: true,
         late: false,
-        robots: 'index, follow, NOODP'
+        robots: 'index, follow, NOODP',
+        wantEffort: false,
     },
 
     // SCSS spec.

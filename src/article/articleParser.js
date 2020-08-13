@@ -73,6 +73,7 @@ class ArticleParser
         this._processMetaDescription();
         this._processCitations();
         this._processBreadcrumbs();
+        this._processEffort();
         //this._processSchema();
 
         return this._article;
@@ -86,6 +87,36 @@ class ArticleParser
         let parser = new ArticleSchema(this._ctx, this._article);
         parser.parse();
         this._article.schema = JSON.stringify(parser.schema);
+    }
+
+    /**
+     * Process effort.
+     */
+    _processEffort()
+    {
+        let wpm = (this._config.site.wpm) ? this._config.site.wpm : 250;
+
+        let words = 0;
+        
+        if (this._article.content && this._article.content.text) {
+            words += this._article.content.text.countwords();
+        }
+
+        if (this._article.summary && this._article.summary.text) {
+            words += this._article.summary.text.countwords();
+        }
+
+        this._ctx.counts.words += words;
+
+        this._article.words = words;
+
+        if (words > 0) {
+            this._article.readingTime = words / wpm;
+            this._article.readingTimeRounded = Math.round(this._article.readingTime);
+        } else {
+            this._article.readingTime = 0;
+            this._article.readingTimeRounded = 0;
+        }
     }
 
     /**
@@ -112,6 +143,25 @@ class ArticleParser
                         home.addParam('href', path.sep);
                         if (bcStr != '') bcStr += spec.sep;
                         bcStr += home.resolve('Home');
+                        break;
+                    case ':dir':
+                        let dirname = this._article.dirname;
+                        if (dirname[0] == path.sep) dirname = dirname.substr(1);
+                        let sp = dirname.split(path.sep);
+                        let link = '';
+                        let sofar = '';
+                        for (let sl of sp) {
+                            sofar = path.join(sofar, sl);
+                            if (link != '') {
+                                link += spec.sep;
+                            }
+                            if (sofar.substr(-1) == path.sep) {
+                                sofar = sofar.substr(0, sofar.length - 1);
+                            }
+                            link += this._ctx.link(sl.ucfirst(), sofar);
+                        }
+                        if (bcStr != '') bcStr += spec.sep;
+                        bcStr += link;
                         break;
                     case 'tags':
                         let tags = new Html('a');
@@ -643,6 +693,7 @@ class ArticleParser
     {
         data.relPath = this._filePath.replace(this._sitePath, '');
         data.basename = path.basename(data.relPath);
+        data.dirname = path.dirname(data.relPath);
 
         if (data.type) {
             return;

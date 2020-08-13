@@ -109,7 +109,7 @@ class Context
             }
             let aspec = this.config.articleSpec;
             if (aspec.terminateUrl) {
-                if (url[-1] != aspec.terminateUrl) {
+                if (url.substr(-1) != aspec.terminateUrl) {
                     url += aspec.terminateUrl;
                 }
             }

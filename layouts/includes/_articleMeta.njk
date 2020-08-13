@@ -8,4 +8,9 @@
     {% if post.tags %}
         <span class="dot"></span><span class="taxlinks">{{ctx.tagLinks(post)}}</span>
     {% endif %}
+    {% if post.wantEffort %}
+        {% if post.words and post.words > 0 %}
+            <span class="dot"></span><span class="effort">{{post.words}} words.</span>
+        {% endif %}
+    {% endif %}
 </div>

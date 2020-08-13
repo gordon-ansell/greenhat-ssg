@@ -83,6 +83,7 @@ class GreenhatSSG extends ConsoleApp
         this.ctx.counts = {
             articles: 0,
             posts: 0,
+            words: 0,
         }
 
         // Emit the afterConfig event.
