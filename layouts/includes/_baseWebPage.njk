@@ -37,12 +37,17 @@
                 {%- endif -%}
             {%- endif -%}
         {%- endif -%}
-    {%- endblock -%}
+    {%- endblock %}
 
     {%- block headFavIcons %}
-    {%- endblock -%}
+    {%- endblock %}
 
     {%- block headFeeds %}
+        <!-- Feeds -->
+        <link rel="alternate" type="application/rss+xml" title="{{cfg.site.title}} - Standard Feed" 
+            href="{{ctx.qualify('/feed.xml')}}" />        
+        <link rel="alternate" type="application/rss+xml" title="{{cfg.site.title}} - Full Feed" 
+            href="{{ctx.qualify('/feedfull.xml')}}" />        
     {%- endblock %}
 
     <!-- Canonical URL. -->
