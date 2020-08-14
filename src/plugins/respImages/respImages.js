@@ -244,8 +244,10 @@ async function PreRenderArticle(article)
 
             if (m) {
                 if (article.images[m[1]]) {
-                    html = html.replace(m[0], preRenderer.getHtml(m[1]));
-                    htmlRss = htmlRss.replace(m[0], preRenderer.getHtml(m[1]), false);
+                    let l1 = preRenderer.getHtml(m[1]);
+                    let l2 = this.ctx.qualify(preRenderer.getHtml(m[1], false));
+                    html = html.replace(m[0], l1);
+                    htmlRss = htmlRss.replace(m[0], l2);
                 } else {
                     syslog.error("Could not find an image with ID '" + m[0] + "'.", article.relPath);
                 }

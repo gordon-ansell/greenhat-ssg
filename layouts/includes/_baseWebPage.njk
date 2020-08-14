@@ -147,7 +147,7 @@
         {%- endif -%}
         <meta name="twitter:url" content="{{ ctx.qualify(article.url) }}" />
         {%- if article.imageFuncs.twitter %}
-            <meta property="twitter:image" content="{{ctx.asset(article.imageFuncs.twitter, true)}}" />
+            <meta name="twitter:image" content="{{ctx.asset(article.imageFuncs.twitter, true)}}" />
         {% endif %}
     {%- endblock %}
 

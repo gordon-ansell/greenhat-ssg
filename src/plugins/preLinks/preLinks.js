@@ -29,13 +29,15 @@ async function PreRenderArticle(article)
         if (m) {
             if (m[2].includes('|')) {
                 let sp = m[2].split('|');
-                let l = this.ctx.link(m[1], sp[0], sp[1]);
-                html = html.replace(m[0], l);
-                htmlRss = htmlRss.replace(m[0], l);
+                let l1 = this.ctx.link(m[1], sp[0], sp[1]);
+                let l2 = this.ctx.qualify(l1);
+                html = html.replace(m[0], l1);
+                htmlRss = htmlRss.replace(m[0], l2);
             } else {
-                let l = this.ctx.link(m[1], m[2]);
-                html = html.replace(m[0], l);
-                htmlRss = htmlRss.replace(m[0], l);
+                let l1 = this.ctx.link(m[1], m[2]);
+                let l2 = this.ctx.qualify(l1);
+                html = html.replace(m[0], l1);
+                htmlRss = htmlRss.replace(m[0], l2);
             }
         }
     }

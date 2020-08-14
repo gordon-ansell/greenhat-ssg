@@ -648,7 +648,7 @@ class ArticleParser
 
         // Limited?
         let ltd = false;
-        if (this._filePath.includes('htaccess')) {
+        if (this._filePath.includes('htaccess') || data.limited) {
             ltd = true;
         }
 
