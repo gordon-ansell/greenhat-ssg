@@ -61,9 +61,9 @@ wantEffort: true
 {%- endblock -%}
 {%- block articleFooter -%}
     <footer>
-        {%- if ctx.hasPlugin('.socialShares.js') -%}
+        {%- if ctx.hasPlugin('socialShares') -%}
             <div class="share-links">
-                {{ctx.getShareLinks(article)}}
+                {{ctx.callable('getSocialShareLinks', article)}}
             </div>
         {%- endif -%}
         {%- if article.relatedPosts -%}
