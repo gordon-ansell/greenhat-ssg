@@ -273,14 +273,22 @@ class ImagePrerenderer
                 }
                 ss += url + ' ' + size + 'w';
                 if (size == defaultSize) {
-                    gotDef = url;
+                    if (qualify) {
+                        gotDef = this.ctx.qualify(url);
+                    } else {
+                        gotDef = url;
+                    }
                 }
             }
             html.addParam(srcsetName, ss);
             if (gotDef) {
                 html.addParam(srcName, gotDef);
             } else {
-                html.addParam(srcName, cdata.biggest.relPath);
+                if (qualify) {
+                    html.addParam(srcName, this.ctx.qualify(cdata.biggest.relPath));
+                } else {
+                    html.addParam(srcName, cdata.biggest.relPath);
+                }
             }
 
             html.addParam('width', max);

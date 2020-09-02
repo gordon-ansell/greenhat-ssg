@@ -18,11 +18,19 @@
     {% if site.publisher.logo %}
         <webfeeds:logo>{{ctx.asset(site.publisher.logo, true)}}</webfeeds:logo>
         <webfeeds:cover image="{{ctx.asset(site.publisher.logo, true)}}"/>
-        <image><url>{{ctx.asset(site.publisher.logo, true)}}</url></image>
+        <image>
+            <title>{{site.title}}</title>
+            <link>{{ctx.qualify('/')}}</link>
+            <url>{{ctx.asset(site.publisher.logo, true)}}</url>
+        </image>
     {% elif site.publisher.image %}
         <webfeeds:logo>{{ctx.asset(site.publisher.image, true)}}</webfeeds:logo>
         <webfeeds:cover image="{{ctx.asset(site.publisher.image, true)}}"/>
-        <image><url>{{ctx.asset(site.publisher.image, true)}}</url></image>
+        <image>
+            <title>{{site.title}}</title>
+            <link>{{ctx.qualify('/')}}</link>
+            <url>{{ctx.asset(site.publisher.image, true)}}</url>
+        </image>
     {% endif %}
     {%- if site.googleAnalytics and ctx.mode != 'dev' -%}
         <webfeeds:analytics id="{{site.googleAnalytics}}" engine="GoogleAnalytics"/>
