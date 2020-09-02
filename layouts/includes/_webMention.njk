@@ -1,7 +1,7 @@
 {% if wmention.author.photo %}
     <div class="webmention-authorphoto">
-        {% if cfg.site.lazyload %}
-            <img class="u-photo {{cfg.site.lazyclass}}" data-src="{{wmention.author.photo}}" alt="" />
+        {% if site.lazyload %}
+            <img class="u-photo {{site.lazyclass}}" data-src="{{wmention.author.photo}}" alt="" />
         {% else %}
             <img class="u-photo" src="{{wmention.author.photo}}" alt="" />
         {% endif %}

@@ -8,49 +8,31 @@
 'use strict';
 
 module.exports = {
-    // Directories.
-    dirs: {
-        site: '_site',
-        config: '_config',
-        layouts: '_layouts',
-        sysLayouts: 'layouts',
-        plugins: '_plugins',
-        sysPlugins: 'src/plugins',
-        cache: '_cache',
-        temp: '_temp',
-    },
 
-   // Site spec.
+    // Site defaults.
     site: {
-        title: "The title of your site.",
-        lang: "en",
-        dev: {
-            addr: '127.0.0.1', 
-            port: 8081
-        },
-        lazyload: true,
+        title: "Your site title.",
+        description: "Your site description",
+        lang: "en_GB",
+        lazyload: false,
         lazyclass: 'lazyload',
-        articlesPerPage: 20,
-        postsInFeed: 30,
-        homePagePostType: 'post',
-        breadcrumbSpec: {
-            format: [':home', ':tags0', ':tags1', ':title'],
-            sep: ' &rarr; '
-        },
-        externalLinkIcon: '/assets/images/external-link.png',
         cache: false,
         cacheCssJsMax: "86400",
         cacheImagesMax: "2592000",
-        webMentions: false,
     },
 
-    // Template spec.
-    templateSpec: {
-        type: 'nunjucks',
-        nunjucks: {
-            ext: '.njk',
-            opts: {autoescape: false, throwOnUndefined: true, lstripBlocks: true},
-        }
+    // Various locations.
+    locations: {
+        layouts: "_layouts",
+        sysLayouts: "layouts",
+        site: "_site",
+        temp: "_temp",
+        cache: "_cache",
+        config: "_config",
+        data: "_data",
+        plugins: "_plugins",
+        sysPlugins: "src/plugins",
+        posts: ["_posts"]
     },
 
     // Filesystem parsing.
@@ -61,47 +43,60 @@ module.exports = {
         ignoreExts: ['sh', 'json', 'code-workspace'],
     },
 
-    // Article spec.
-    articleSpec: {
-        articleExts: ['md', 'html'],
-        taxonomies: ['tags'],
-        outputMode: 'directory',
-        terminateUrl: '/',
-        indexFn: 'index.html',
-        outputExt: '.html',
-        posts: {
-            postFnStart: "^\\d{4}-\\d{2}-\\d{2}-",
-            postFnGrabLen: 10,
-            postDirs: ['/_posts'],
-            postCombineTest: 'or',
-        },
-        dispDate: "dS mmmm yyyy",
-        dispTime: "HH:MM",
-        multiFormat: ['content', 'contentRss', 'excerpt', 'summary'],
-        types: {
-            post: {
-                permalink: ":fn",
+    // Image spec.
+    imageSpec: {
+        imageExts: ['gif', 'ico', 'jpg', 'jpeg', 'png', 'svg', 'webp'],
+    },
+
+    // Template spec.
+    templateSpec: {
+        defaultType: 'njk',
+        njk: {
+            opts: {autoescape: false, throwOnUndefined: true, lstripBlocks: true},
+        }
+    },
+
+    // Taxonomy spec.
+    taxonomySpec: {
+        tags: {
+            path: '/tags',
+        } 
+    },
+
+    // Parsers.
+    parsers: {
+    },
+    earlyParse: [],
+
+    // Renderers.
+    renderers: {
+    },
+
+    // Language strings.
+    langStrs: {
+        en: {
+            on: 'on',
+            by: 'by',
+            home: 'home',
+            and: 'and',
+        }
+    },
+
+    // Config checks.
+    cfgChk: {
+        site: {
+            _compulsory: ['prodDomain'],
+            _advisory: ['title', 'description', 'publisher', 'authors'],
+
+            publisher: {
+                _compulsory: ['name', 'url'],
             },
-            page: {
-                permalink: ":path/:fn",
+
+            authors: {
+                _each: {
+                    _compulsory: ['name', 'url'],
+                }
             }
-        },
-    },
-
-    // Article default spec.
-    articleDefault: {
-        sitemap: true,
-        feed: true,
-        published: true,
-        late: false,
-        robots: 'index, follow, NOODP',
-        wantEffort: false,
-    },
-
-    // SCSS spec.
-    scssSpec: {
-        scssExt: 'scss',
-        outputStyle: "compressed",
-        autoPrefix: true,
+        }
     },
 }

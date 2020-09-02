@@ -6,7 +6,7 @@ sitemap: true
 {% extends 'includes/_base.njk' %}
 {% block main %}
     {%- if article.breadcrumbs -%}
-        <div class="breadcrumbs">{{article.breadcrumbs}}</div>
+        <div class="breadcrumbs">{{article.bcStr}}</div>
     {%- endif -%}
     <article class="h-entry">
         <header>

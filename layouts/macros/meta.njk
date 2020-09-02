@@ -1,7 +1,7 @@
 {%- macro authors(auths) -%}
-    {%- for ind,item in auths -%}
+    {%- for item in auths -%}
         {%- if loop.index != 1 -%}
-            {%- if loop.index == loop.length -%}&nbsp;and&nbsp;{%- else -%},&nbsp;{%- endif -%}
+            {%- if loop.index == loop.length -%}&nbsp;{{ctx.x('and')}}&nbsp;{%- else -%},&nbsp;{%- endif -%}
         {%- endif -%}
         {%- if item.url -%}
             <span class="p-author h-card vcard">
@@ -22,7 +22,7 @@
 {%- endmacro -%}
 
 {%- macro authorsSilent(auths) -%}
-    {%- for ind,item in auths -%}
+    {%- for item in auths -%}
         {%- if item.url -%}
             <span class="p-author h-card vcard">
                 <meta name="u-url url" content="{{item.url}}" />

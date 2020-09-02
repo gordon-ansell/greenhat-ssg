@@ -11,26 +11,26 @@
     version="2.0"
 >
     <channel>
-	<title>{{cfg.site.title}}</title>
+	<title>{{site.title}}</title>
 	<description>By {{ctx.getFirstAuthor().name}}</description>
 	<link>{{ctx.qualify('/')}}</link>
 	<atom:link rel="self" type="application/atom+xml" href="{{ctx.qualify(article.url)}}"/>
-    {% if cfg.site.publisher.logo %}
-        <webfeeds:logo>{{ctx.asset(cfg.site.publisher.logo, true)}}</webfeeds:logo>
-        <webfeeds:cover image="{{ctx.asset(cfg.site.publisher.logo, true)}}"/>
-    {% elif cfg.site.publisher.image %}
-        <webfeeds:logo>{{ctx.asset(cfg.site.publisher.image, true)}}</webfeeds:logo>
-        <webfeeds:cover image="{{ctx.asset(cfg.site.publisher.image, true)}}"/>
+    {% if site.publisher.logo %}
+        <webfeeds:logo>{{ctx.asset(site.publisher.logo, true)}}</webfeeds:logo>
+        <webfeeds:cover image="{{ctx.asset(site.publisher.logo, true)}}"/>
+    {% elif site.publisher.image %}
+        <webfeeds:logo>{{ctx.asset(site.publisher.image, true)}}</webfeeds:logo>
+        <webfeeds:cover image="{{ctx.asset(site.publisher.image, true)}}"/>
     {% endif %}
-    {%- if cfg.site.googleAnalytics and ctx.mode != 'dev' -%}
-        <webfeeds:analytics id="{{cfg.site.googleAnalytics}}" engine="GoogleAnalytics"/>
+    {%- if site.googleAnalytics and ctx.mode != 'dev' -%}
+        <webfeeds:analytics id="{{site.googleAnalytics}}" engine="GoogleAnalytics"/>
     {%- endif %}
     <webfeeds:related layout="card" target="browser"/>
 	<lastBuildDate>{{article.dates.modified.utc}}</lastBuildDate>
     <sy:updatePeriod>hourly</sy:updatePeriod>
     <sy:updateFrequency>1</sy:updateFrequency>
-	{%- for post in ctx.getArticles(ctx.config.site.homePagePostType) -%}
-        {% if post.sitemap and post.feed and post.published and loop.index < cfg.site.postsInFeed and not post.robots.includes('noindex') %}
+	{%- for post in ctx.articles.type.post.desc().values() -%}
+        {% if post.sitemap and post.feed and post.published and loop.index < site.postsInFeed and not post.robots.includes('noindex') %}
             <item>
                 <title>{{post.title}}</title>
                 <link>{{ctx.qualify(post.url)}}</link>
@@ -45,41 +45,31 @@
                 {%- endif %}
                 <dc:creator>{{ctx.getFirstAuthor().name}}</dc:creator>
                 {%- if article.isFullFeed or post.layout == 'citation' or post.layout == 'briefly' -%}
-                {%- if post.excerptRss %}
-                <description>
-                    <![CDATA[
-                        {{post.excerptRss.html}}
-                    ]]>
-                </description>
-                {%- elif post.excerpt %}
-                <description>
-                    <![CDATA[
-                        {{post.excerpt.html}}
-                    ]]>
-                </description>
+                    {%- if post.excerptRss %}
+                        <description>
+                            <![CDATA[{{post.excerptRss.html | safe}}]]>
+                        </description>
+                    {%- elif post.excerpt %}
+                        <description>
+                            <![CDATA[{{post.excerpt.html | safe}}]]>
+                        </description>
+                    {%- else %}
+                        <description>{{post.description}}</description>
+                    {%- endif %}
+                    <content:encoded>
+                        <![CDATA[{{post.contentRss.html | safe}}]]>
+                    </content:encoded>
                 {%- else %}
-                <description>{{post.description}}</description>
-                {%- endif %}
-                <content:encoded>
-                    <![CDATA[
-                        {{post.contentRss.html}}
-                    ]]>
-                </content:encoded>
-                {%- else %}
-                <description>{{post.description}}</description>
-                {%- if post.excerptRss %}
-                <content:encoded>
-                    <![CDATA[
-                        {{post.excerptRss.html}}
-                    ]]>
-                </content:encoded>
-                {%- else %}
-                <content:encoded>
-                    <![CDATA[
-                        {{post.excerpt.html}}
-                    ]]>
-                </content:encoded>
-                {%- endif -%}
+                    <description>{{post.description}}</description>
+                    {%- if post.excerptRss %}
+                        <content:encoded>
+                            <![CDATA[{{post.excerptRss.html | safe}}]]>
+                        </content:encoded>
+                    {%- else %}
+                        <content:encoded>
+                            <![CDATA[{{post.excerpt.html | safe}}]]>
+                        </content:encoded>
+                    {%- endif -%}
                 {%- endif %}
             </item>
         {% endif %}

@@ -29,22 +29,22 @@
  
 'use strict';
 
-const pkg = require('./package.json');
-const { syslog } = require('greenhat-base');
-const GreenhatSSG = require('./src/greenhatSSG');
-
+const { syslog } = require("greenhat-util/syslog");
+const SSG = require("./src/ssg");
 
 try {
-    // Unhandled rejections.
+
+    // Unhandled promise rejections.
     process.on("unhandledRejection", (error, promise) => {
-        syslog.error(`Unhandled rejection in promise: (${error.message}).`);
-        syslog.inspect(error, "error", "Error object");
+        syslog.fatal("Unhandled promise rejection.");
+        syslog.exception(error, "fatal");
+        process.exitCode = 1;
     });
 
     // Uncaught exception.
     process.on("uncaughtException", error => {
-        syslog.fatal("Uncaught exception: " + error.message);
-        syslog.inspect(error, "error", "Error object");
+        syslog.fatal("Uncaught exception.");
+        syslog.exception(error, "fatal");
         process.exitCode = 1;
     });
 
@@ -54,17 +54,13 @@ try {
         syslog.inspect(promise, "warning", "Promise object");
     });    
 
-    // Get the command line arguments.
-    const args = require("minimist")(process.argv);
-
-    // Get cracking.
-    let gh = new GreenhatSSG(args);
-    return gh.init().then(function() {
-        return gh.run();
+    let ssg = new SSG("trace", true);
+    return ssg.init().then(function() {
+        return ssg.run();
     });
 
 } catch (err) {
-    syslog.fatal("GreenHatSSG fatal error: " + err.message);
-    syslog.inspect(err, "fatal", "Error object");
+    syslog.fatal(`Fatal error. Black hole. Call interplanetary help.`);
+    syslog.exception(err, "fatal");
     process.exitCode = 1;
 }

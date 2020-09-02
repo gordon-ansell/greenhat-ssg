@@ -5,7 +5,7 @@ wantEffort: true
 {% set bodyclass = 'post' %}
 {% extends 'includes/_article.njk' %}
 {%- block beforeArticleContent -%}
-    {%- if article.reviews -%}
+    {%- if article.reviews and site.reviews -%}
         {%- set rev = article.firstReview() -%}
         {%- if rev.ratingStars -%}
             <div class="reviewStars" title="Review rating">{{rev.ratingStars}}</div>
@@ -14,7 +14,7 @@ wantEffort: true
     {%- if article.summary -%}
         <section class="summary" title="Summary.">
             {%- if article.imageFuncs and article.imageFuncs.summary -%}
-                {{ctx.imgBasic({src: article.imageFuncs.summary})}}
+                {{ctx.img({src: article.imageFuncs.summary})}}
             {%- endif -%}
             {{ article.summary.html }}
         </section>
@@ -31,14 +31,14 @@ wantEffort: true
             </ul>
         </aside>
     {%- endif -%}    
-    {%- if article.products -%}
+    {%- if article.products and site.products -%}
         {%- for id,prod in article.products -%}
             <aside class="product">
                 {%- include 'includes/_articleProduct.njk' -%}
             </aside>
         {%- endfor -%}
     {%- endif -%}
-    {%- if article.productRefs -%}
+    {%- if article.productRefs and site.products -%}
         {%- for id,prod in article.productRefs -%}
             <aside class="product">
                 {%- include 'includes/_articleProduct.njk' -%}
@@ -61,7 +61,7 @@ wantEffort: true
 {%- endblock -%}
 {%- block articleFooter -%}
     <footer>
-        {%- if ctx.hasPlugin('socialShares') -%}
+        {%- if ctx.hasPlugin('.socialShares.js') -%}
             <div class="share-links">
                 {{ctx.getShareLinks(article)}}
             </div>
@@ -92,4 +92,5 @@ wantEffort: true
         {%- endif -%}
     </footer>
 {%- endblock -%}
+
 

@@ -1,5 +1,5 @@
 /**
- * @file        GreenHat template context.
+ * @file        GreenHat SSG context.
  * @module      Context
  * @author      Gordon Ansell   <contact@gordonansell.com> 
  * @copyright   Gordon Ansell, 2020.
@@ -8,31 +8,39 @@
 
 'use strict';
 
-const { Html } = require('greenhat-base');
-const urlp = require('url');
+const { syslog } = require("greenhat-util/syslog");
+const EventManager = require('greenhat-util/event');
+const GreenHatSSGError = require('./ssgError');
+const Html = require("greenhat-util/html");
 const path = require('path');
-const { makeArray } = require('greenhat-base/src/utils/array');
-const GreenhatSSGError = require('./greenhatSSGError');
-const { syslog } = require('greenhat-base/src/logger');
-const { config } = require('process');
-const dateformat = require('dateformat');
+const urlp = require("url");
+const dateformat = require("dateformat");
 
-class GreenhatSSGContextError extends GreenhatSSGError {}
+require("greenhat-util/array");
+
+class GreenHatSSGContextError extends GreenHatSSGError {}
 
 /**
  * Context class.
  * 
- * @property    {string}    appPath         Application path.
- * @property    {object}    args            Command line arguments.
- * @property    {object}    articles        The articles.
- * @property    {object}    config          Configuration.
- * @property    {string[]}  filesProcessed  From the filesystem parser.
- * @property    {string[]}  filesToProcess  From the filesystem parser.
- * @property    {string}    mode            Run mode.
- * @property    {string}    sitePath        Path to the site.             
+ * @property    {object}    args    Command line args.
+ * @property    {object}    cfg     Configs.        
+ * 
  */
-class Context
+class Context extends EventManager
 {
+    // Callables.
+    callables = {};
+
+    /**
+     * Constructor.
+     */
+    constructor()
+    {
+        super();
+        this.renderQueue = [];
+    }
+
     /**
      * Get the first author.
      * 
@@ -40,84 +48,175 @@ class Context
      */
     getFirstAuthor()
     {
-        if (!this.config.site.authors) {
+        if (!this.cfg.site.authors) {
             syslog.warning("You must define at lease one author.");
             return null;
         }
 
-        return this.config.site.authors[Object.keys(this.config.site.authors)[0]];
+        return this.cfg.site.authors[Object.keys(this.cfg.site.authors)[0]];
     }
 
     /**
-     * Get the various articles.
+     * Add an article callable.
      * 
-     * @param   {string}    type    Type of articles to get.
-     * @return  {object[]}          Articles for request type. 
+     * @param   {function}  func    Function to be called.
      */
-    getArticles(type)
+    addCallable(func)
     {
-        if (this.articles[type]) {
-            return this.articles[type].values();
-        }
-        return [];
+        this.callables[func.name] = func;
     }
 
     /**
-     * Get the taxonomy type.
+     * Do an article call.
      * 
-     * @param   {string}    type    Type of articles to get.
-     * @return  {object[]}          Taxonomy type. 
+     * @param   {string}    func        Name of the function.
+     * @param   {any}       args        Arguments.
+     * @return  {any}                   Whatever.
      */
-    getTaxonomyType(type)
+    callable(func, ...args)
     {
-        if (this.articles.taxonomy[type]) {
-            return this.articles.taxonomy[type].items;
+        if (!this.callables[func]) {
+            throw new GreenHatSSGContextError(`No article callable with name '${func}' found.`);
         }
-        return [];
+
+        return this.callables[func].call(this, ...args);
     }
 
     /**
-     * Get the articles for a taxonomy.
+     * Translate.
      * 
-     * @param   {string}    type    Type of articles to get.
-     * @param   {string}    tax     Taxonomy name.
-     * @return  {object[]}          Articles for request type. 
+     * @param   {string}    key     Key to translate.
+     * @param   {number}    count   Count.
+     * @return  {string}            Translated string. 
      */
-    getTaxonomy(type, name)
+    x(key, count = 1)
     {
-        if (this.articles.taxonomy[type] && this.articles.taxonomy[type].hasTaxonomy(name)) {
-            return this.articles.taxonomy[type].getTaxonomy(name);
+        if (!this.xlator) {
+            throw new GreenHatSSGContextError("No language translations defined.");
         }
-        return [];
+        return this.xlator.x(key, count);
+    }
+
+    /**
+     * Set an extension parser.
+     * 
+     * @param   {string|string[]}   exts        Extension(s).
+     * @param   {callable}          parser      Parser function to call.
+     * @return  {callable|string}               Previous parser.
+     */
+    setExtensionParser(exts, parser)
+    {
+        let saved = null;
+        exts = Array.makeArray(exts);
+        for (let ext of exts) {
+            if (typeof parser != 'function') {
+                syslog.error(`Invalid parser for extension '${ext}'. It will be ignored.`);
+                continue;
+            }
+
+            syslog.trace('Context:setExtensionParser', `Setting extension parser for '${ext}'.`);
+
+            if (this.cfg.parsers[ext]) { 
+                syslog.warning(`There is already a parser for extension '${ext}': ${this.cfg.parsers[ext].name}. We'll overwrite it.`);
+                saved = this.cfg.parsers[ext];
+            }
+            this.cfg.parsers[ext] = parser;
+        }
+
+        return saved;
+    }
+
+    /**
+     * Set an extension renderer.
+     * 
+     * @param   {string|string[]}   exts        Extension(s).
+     * @param   {callable}          renderer    Renderer function to call.
+     * @return  {callable|string}               Previous renderer.
+     */
+    setExtensionRenderer(exts, renderer)
+    {
+        let saved = null;
+        exts = Array.makeArray(exts);
+        for (let ext of exts) {
+            if (typeof renderer != 'function') {
+                syslog.error(`Invalid renderer for extension '${ext}'. It will be ignored.`);
+                continue;
+            }
+            if (this.cfg.renderers[ext]) { 
+                syslog.warning(`There is already a renderer for extension '${ext}'. We'll overwrite it.`);
+                saved = this.cfg.renderers[ext];
+            }
+            this.cfg.renderers[ext] = renderer;
+        }
+
+        return saved;
+    }
+
+    /**
+     * Queue something to be rendered.
+     * 
+     * @param   {any}       obj         Item to be rendered. 
+     * @param   {string}    renderExt   Render extension.
+     */
+    queueForRender(obj, renderExt)
+    {
+        this.renderQueue.push({obj: obj, renderExt: renderExt});
     }
 
     /**
      * Generate a link.
      * 
-     * @param   {string}    txt     Link text.
-     * @param   {string}    url     Link URL.
-     * @param   {string}    title   Link title (optional).
-     * @return  {string}            Link HTML. 
+     * @param   {string}            txt     Link text.
+     * @param   {string|object}     url     Link URL or object with all fields.
+     * @param   {string}            title   Link title (optional).
+     * @param   {string}            cls     Class (optional).
+     * @return  {string}                    Link HTML. 
      */
-    link(txt, url, title)
+    link(txt, url, title, cls)
     {
         let html = new Html('a');
 
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            if (!url.startsWith(path.sep)) {
-                url = path.sep + url;
+        let href;
+
+        if (typeof url == "object") {
+            if (!url.url && !url.href) {
+                throw new GreenHatSSGContextError("Link needs an 'href' or 'url' specification.");
+            } else if (url.url) {
+                href = url.url;
+                delete url.url;
+            } else if (url.href) {
+                href = url.href;
+                delete uel.href;
             }
-            let aspec = this.config.articleSpec;
+        } else {
+            href = url;
+        }
+
+        if (!href.startsWith('http://') && !href.startsWith('https://')) {
+            if (!href.startsWith(path.sep)) {
+                href = path.sep + href;
+            }
+            let aspec = this.cfg.articleSpec;
             if (aspec.terminateUrl) {
-                if (url.substr(-1) != aspec.terminateUrl) {
-                    url += aspec.terminateUrl;
+                if (href.substr(-1) != aspec.terminateUrl) {
+                    href += aspec.terminateUrl;
                 }
             }
         }
 
-        html.addParam('href', url);
+        html.addParam('href', href);
+
+        if (typeof url == "object") {
+            for (let key in url) {
+                html.addParam(key, url[key]);
+            }
+        }
+
         if (title) {
             html.addParam('title', title);
+        }
+        if (cls) {
+            html.addParam('class', cls);
         }
         return html.resolve(txt);
     }
@@ -134,7 +233,7 @@ class Context
             return url;
         }
 
-        return urlp.resolve(this.config.site.url, url);
+        return urlp.resolve(this.cfg.site.url, url);
     }
 
     /**
@@ -150,7 +249,7 @@ class Context
             return asset;
         }
 
-        let assetsUrl = this.config.site.assetsUrl;
+        let assetsUrl = this.cfg.site.assetsUrl;
 
         if (!asset.startsWith(path.sep)) {
             asset = path.sep + asset;
@@ -171,16 +270,15 @@ class Context
      * 
      * @param   {object}    spec    Image spec.
      * @param   {string}    title   Image title (optional).
-     * 
      * @return  {string}            Image html,
      */
-    imgBasic(spec, title)
+    img(spec, title)
     {
         if (title) {
             spec.title = title;
         }
 
-        let srcName = (this.config.site.lazyload) ? 'data-src' : 'src';
+        let srcName = (this.cfg.site.lazyload) ? 'data-src' : 'src';
 
         let html = new Html('img'); 
 
@@ -192,8 +290,8 @@ class Context
             }
         }
 
-        if (this.config.site.lazyload) {
-            let lc = (this.config.site.lazyclass) ? this.config.site.lazyclass : 'lazyload';
+        if (this.cfg.site.lazyload) {
+            let lc = (this.cfg.site.lazyclass) ? this.cfg.site.lazyclass : 'lazyload';
             html.appendParam('class', lc);
         }
 
@@ -201,204 +299,43 @@ class Context
     }
 
     /**
-     * Slugify a string.
-     *
-     * @param   {string}    str     Input string.
-     * @param   {object}    opts    Options.
-     *
-     * @return  {string}            Output string.
-     */ 
-    slugify(str, opts = {lower: true, strict: true, replacement: '-'})
-    {
-        return str.slugify(opts);
-    }
-
-    /**
-     * Get an article's taxomony names array.
+     * See if we have a plugin.
      * 
-     * @param   {object}            article     Article in question.
-     * @param   {string|string[]}   taxonomies  Taxonomies to get links for.
-     * @return  {string[]}                      Array of taxonomies.
-     */
-    taxonomyNamesArray(article, taxonomies)
-    {
-        if (!taxonomies) {
-            taxonomies = this.config.articleSpec.taxonomies;
-        }
-
-        taxonomies = makeArray(taxonomies);
-
-        let result = [];
-
-        for (let tax of taxonomies) {
-            if (!this.config.articleSpec.taxonomies.includes(tax)) {
-                throw new GreenhatSSGContextError(`Invalid taxonomy: ${tax}.`)
-            }
-
-            if (article[tax]) {
-                let taxEnts = makeArray(article[tax]);
-
-                for (let ent of taxEnts) {
-                    result.push(ent);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Get an article's taxomony names.
-     * 
-     * @param   {object}            article     Article in question.
-     * @param   {string|string[]}   taxonomies  Taxonomies to get links for.
-     * @return  {string}                        Comma separated taxonomy links.
-     */
-    taxonomyNames(article, taxonomies)
-    {
-        return this.taxonomyNamesArray(article, taxonomies).join(", ");
-    }
-
-    /**
-     * Get a taxomony link.
-     * 
-     * @param   {string}            name        Name of taxonomy.
-     * @param   {string}            taxonomy    Taxonomies to get link for.
-     * @return  {string}                        Taxonomy link.
-     */
-    taxonomyLink(name, taxonomy)
-    {
-        let dir = path.join(path.sep, taxonomy, name.slugify(), path.sep);
-        let html = new Html('a');
-        html.addParam('href', dir);
-        return html.resolve(name);
-    }
-
-    /**
-     * Get an article's taxomony links.
-     * 
-     * @param   {object}            article     Article in question.
-     * @param   {string|string[]}   taxonomies  Taxonomies to get links for.
-     * @return  {string}                        Comma separated taxonomy links.
-     */
-    taxonomyLinks(article, taxonomies)
-    {
-        if (!taxonomies) {
-            taxonomies = this.config.articleSpec.taxonomies;
-        }
-
-        taxonomies = makeArray(taxonomies);
-
-        let result = [];
-
-        for (let tax of taxonomies) {
-            if (!this.config.articleSpec.taxonomies.includes(tax)) {
-                throw new GreenhatSSGContextError(`Invalid taxonomy: ${tax}.`)
-            }
-
-            if (article[tax]) {
-                let taxEnts = makeArray(article[tax]);
-
-                for (let ent of taxEnts) {
-                    let dir = path.join(path.sep, tax, ent.slugify(), path.sep);
-                    let html = new Html('a');
-                    html.addParam('href', dir);
-                    result.push(html.resolve(ent));
-                }
-            }
-        }
-
-        return result.join(", ");
-    }
-
-    /**
-     * Get an article's tag links.
-     * 
-     * @param   {object}            article     Article in question.
-     * @return  {string}                        Comma separated taxonomy links.
-     */
-    tagLinks(article)
-    {
-        return this.taxonomyLinks(article, 'tags');
-    }
-
-    /**
-     * Get the sharelinks for this article.
-     * 
-     * @param   {object}    article     Article to get links for.
-     * @return  {string}                Share links. 
-     */
-    getShareLinks(article)
-    {
-        if (!this.hasPlugin('socialShares')) {
-            syslog.warning("The 'socialShares' plugin is not loaded.");
-            return;
-        }
-
-        let ret = '';
-
-        let spec = this.config.socialSharesSpec;
-    
-        for (let item of spec.wanted) {
-            if (!spec.linkDefs[item]) {
-                syslog.warning(`No social share definition for ${item}.`, article.relPath);
-                continue;
-            }
-    
-            let img = new Html('img');
-    
-            let srcName = 'src'
-            if (this.config.site.lazyload) {
-                srcName = 'data-src';
-                img.appendParam('class', this.config.site.lazyclass);
-            }
-    
-            let p = path.join(spec.iconLoc, item + spec.iconExt);
-    
-            img.addParam(srcName, p);
-            img.addParam('alt', "Share icon for " + item + ".");
-    
-            let link = spec.linkDefs[item];
-    
-            link = link.replaceAll('[URL]', this.qualify(article.url))
-                .replaceAll('[TITLE]', encodeURI(article.title))
-                .replaceAll('[WSURL]', escape(this.qualify('/')))
-                .replaceAll('[WSTITLE]', encodeURI(this.config.site.title));
-
-            if (item == 'email') {
-                if (!this.config.site.publisher.email) {
-                    syslog.warning("Publisher email is requited for 'email' share.");
-                } else {
-                    link = link.replaceAll('[EMAIL]', this.config.site.publisher.email);
-                }
-            }
-    
-            let a = new Html('a');
-            a.addParam('href', link);
-            if (item == 'permalink') {
-                a.addParam('title', "Permalink for this article.");
-            } else if (item == "email") {
-                a.addParam('title', "Respond to the author of this article via email.");
-            } else {
-                a.addParam('title', "Share on " + item + ".");
-            }
-    
-            ret += '<span class="sharelink">' + a.resolve(img) + '</span>';
-        } 
-
-        return ret;
-    
-    }
-
-    /**
-     * See if we have a particular plugin.
-     * 
-     * @param   {string}    name    Name to check.
-     * @return  {boolean}           True if we do, else false. 
+     * @param   {string}    name    Plugin name.
+     * @return  {boolean}           True if it's loaded.
      */
     hasPlugin(name)
     {
         return this.pluginsLoaded.includes(name);
+    }
+
+    /**
+     * Get the taxonomy type.
+     * 
+     * @param   {string}    type    Type of articles to get.
+     * @return  {object[]}          Taxonomy type. 
+     */
+    getTaxonomyType(type)
+    {
+        if (this.articles.taxonomy[type]) {
+            return this.articles.taxonomy[type].sortByCount().items;
+        }
+        return [];
+    }
+
+    /**
+     * Get the articles for a taxonomy.
+     * 
+     * @param   {string}    type    Type of articles to get.
+     * @param   {string}    tax     Taxonomy name.
+     * @return  {object[]}          Articles for request type. 
+     */
+    getTaxonomy(type, name)
+    {
+        if (this.articles.taxonomy[type] && this.articles.taxonomy[type].hasTaxonomy(name)) {
+            return this.articles.taxonomy[type].getTaxonomy(name);
+        }
+        return [];
     }
 
     /**
@@ -409,8 +346,8 @@ class Context
      */
     isOwnWebmention(webmention)
     {
-        const urls = (this.config.webmentionsSpec.ownUrls) ? (this.config.webmentionsSpec.ownUrls) : 
-            [this.config.site.url];
+        const urls = (this.cfg.webmentionsSpec.ownUrls) ? (this.cfg.webmentionsSpec.ownUrls) : 
+            [this.cfg.site.url];
         const authorUrl = webmention['author'] ? webmention['author']['url'] : null;
         return authorUrl && urls.includes(authorUrl);
     }
@@ -424,10 +361,9 @@ class Context
     convertDate(dt)
     {
         let dobj = new Date(dt);
-        return dateformat(dobj, this.config.articleSpec.dispDate) + ', ' + 
-        dateformat(dobj, this.config.articleSpec.dispTime);
+        return dateformat(dobj, this.cfg.articleSpec.dispDate) + ', ' + 
+        dateformat(dobj, this.cfg.articleSpec.dispTime);
     }
-
 }
 
 module.exports = Context;

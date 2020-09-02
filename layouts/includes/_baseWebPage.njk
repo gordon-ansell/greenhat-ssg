@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="{{ cfg.site.lang }}">
+<html lang="en">
 <head>
-    {%- block headMetaBasics -%}
+    {% block headMetaBasics %}
         <!-- Meta setup -->
         <meta charset="utf-8" />
         <!-- Always force latest IE rendering engine (even in intranet) -->
@@ -10,16 +10,16 @@
         <meta name="MobileOptimized" content="320" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="apple-mobile-web-app-capable" content="yes" />
-    {%- endblock -%}
+    {% endblock %}
 
-    {%- block headMetaArticle -%}
+    {% block headMetaArticle %}
         {%- if article.isHomePage -%}
-            <title>{{cfg.site.title}}</title>
-            {%- if cfg.site.description -%}
-                <meta name="description" content="{{cfg.site.description}}" />
+            <title>{{site.title}}</title>
+            {%- if site.description -%}
+                <meta name="description" content="{{site.description}}" />
             {%- endif -%}
-            {%- if cfg.site.keywords -%}
-                <meta name="keywords" content="{{cfg.site.keywords}}" />
+            {%- if site.keywords -%}
+                <meta name="keywords" content="{{site.keywords}}" />
             {%- endif -%}
         {%- else -%}
             <title>{{article.headline}}</title>
@@ -31,82 +31,82 @@
             {%- if article.keywords -%}
                 <meta name="keywords" content="{{article.keywords}}" />
             {%- else -%}
-                {%- set kw = ctx.taxonomyNames(article) -%}
+                {%- set kw = article.getTaxonomies() -%}
                 {%- if kw != '' -%}
                     <meta name="keywords" content="{{kw}}" />
                 {%- endif -%}
             {%- endif -%}
         {%- endif -%}
-    {%- endblock %}
+    {% endblock %}
 
-    {%- block headFavIcons %}
-    {%- endblock %}
+    {% block headFavIcons %}
+    {% endblock %}
 
-    {%- block headFeeds %}
+    {% block headFeeds %}
         <!-- Feeds -->
-        <link rel="alternate" type="application/rss+xml" title="{{cfg.site.title}} - Standard Feed" 
+        <link rel="alternate" type="application/rss+xml" title="{{site.title}} - Standard Feed" 
             href="{{ctx.qualify('/feed.xml')}}" />        
-        <link rel="alternate" type="application/rss+xml" title="{{cfg.site.title}} - Full Feed" 
+        <link rel="alternate" type="application/rss+xml" title="{{site.title}} - Full Feed" 
             href="{{ctx.qualify('/feedfull.xml')}}" />        
-    {%- endblock %}
+    {% endblock %}
 
     <!-- Canonical URL. -->
     <link rel="canonical" href="{{ctx.qualify(article.url)}}" />
 
-    {%- if (cfg.site.lazyload) %}
-    <!-- Lazy load. -->
+    {% if (site.lazyload) %}
+        <!-- Lazy load. -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.2.2/lazysizes.min.js" async=""></script>    
-    {%- endif %}
-        
-    <!-- Theme switcher. -->
+    {% endif %}
+
     {% block themeSwitcher %}
+        <!-- Theme switcher. -->
         {%- include 'includes/_themes.njk' -%}
     {% endblock %}
 
-    {%- block headGoogleFonts -%}
-    {%- endblock -%}
+    {% block headGoogleFonts %}
+    {% endblock %}
 
-    {%- block headStyleSheets %}
+    {% block headStyleSheets %}
         <!-- Stylesheets. --> 
         <link rel="stylesheet" href="{{ctx.asset('/assets/scss/main.css')}}" />
-    {%- endblock -%}
+    {% endblock %}
 
-    {%- block headRobots %}
-        {%- if article.robots %}
+    {% block headRobots %}
+        {% if article.robots %}
             <!-- Robots. -->
             <meta name="robots" content="{{ article.robots }}" />
             <meta name="googlebot" content="{{ article.robots }}" />
-        {%- else %}
+        {% else %}
             <!-- Robots. -->
             <meta name="robots" content="index, follow, NOODP" />
             <meta name="googlebot" content="index, follow, NOODP" />
-        {%- endif -%}
-    {%- endblock %}
-
-    {% block indieAuth -%}
-        {%- if cfg.site.indieAuth -%}
-            <!-- Indieauth -->
-            <link rel="me" href="{{cfg.site.indieAuth}}" />
-        {%- endif -%}
+        {% endif %}
     {% endblock %}
 
-    {% block webMentions -%}
-        {%- if cfg.site.webMentions and cfg.webmentionsSpec.id -%}
+    {% block indieAuth %}
+        {% if site.indieAuth %}
+            <!-- Indieauth -->
+            <link rel="me" href="{{site.indieAuth}}" />
+        {% endif %}
+    {% endblock %}
+
+    {% block webmentions %}
+        {% if site.webmentions and site.webmentions.id %}
             <!-- Webmentions -->
-            <link rel="webmention" href="https://webmention.io/{{cfg.webmentionsSpec.id}}/webmention" />
-            <link rel="pingback" href="https://webmention.io/{{cfg.webmentionsSpec.id}}/xmlrpc" />
-        {%- endif -%}
+            <link rel="webmention" href="https://webmention.io/{{site.webmentions.id}}/webmention" />
+            <link rel="pingback" href="https://webmention.io/{{site.webmentions.id}}/xmlrpc" />
+        {% endif %}
     {% endblock %}
 
     {% block maths %}
-        {%- if article.maths -%}
+        {% if article.maths %}
             <!-- Maths. -->
             <script type="text/x-mathjax-config">MathJax.Hub.Config({tex2jax: {inlineMath:[['$','$']]}});</script>
             <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=default' async></script>
-        {%- endif -%}    
+        {% endif %}    
     {% endblock %}
-    
-    {%- block headOg %}
+
+    {% block headOg %}
         <!-- Opengraph -->
         {%- set isArticle = false %}
         {% if article.ogType %}
@@ -122,7 +122,7 @@
                 <meta property="og:description" content="{{ article.description }}" />
             {%- endif -%}
             <meta property="og:url" content="{{ctx.qualify(article.url)}}" />
-            <meta property="og:site_name" content="{{cfg.site.title}}" />
+            <meta property="og:site_name" content="{{site.title}}" />
         {%- if article.imageFuncs.og %}
             <meta property="og:image" content="{{ctx.asset(article.imageFuncs.og, true)}}" />
         {% endif %}
@@ -130,15 +130,15 @@
             <meta property="article:published_time" content="{{ article.dates.published.iso }}" />
             <meta property="article:modified_time" content="{{ article.dates.modified.iso }}" />
             {%- if article.tags %}
-                {%- set tags = ctx.taxonomyNamesArray(article, 'tags') -%}
+                {%- set tags = article.getTaxonomies('tags', false, true) -%}
                 {%- for t in tags %}
                     <meta property="article:tag" content="{{ t }}" />
                 {%- endfor -%}
             {% endif %}
         {% endif %}
-    {%- endblock %}
+    {% endblock %}
 
-    {%- block headTwitter %}
+    {% block headTwitter %}
         <!-- Twitter. -->
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="{{ article.title }}" />
@@ -149,20 +149,20 @@
         {%- if article.imageFuncs.twitter %}
             <meta name="twitter:image" content="{{ctx.asset(article.imageFuncs.twitter, true)}}" />
         {% endif %}
-    {%- endblock %}
+    {%-endblock %}
 
-    {% block headGoogleAnalytics -%}
-        {% if cfg.site.googleAnalytics and ctx.mode != 'dev' %}
+    {% block headGoogleAnalytics %}
+        {% if site.googleAnalytics and ctx.mode != 'dev' %}
             <!-- Global site tag (gtag.js) - Google Analytics -->
-            <script async src="https://www.googletagmanager.com/gtag/js?id={{cfg.site.googleAnalytics}}"></script>
+            <script async src="https://www.googletagmanager.com/gtag/js?id={{site.googleAnalytics}}"></script>
             <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){%raw%}{{%endraw%}dataLayer.push(arguments);{%raw%}}{%endraw%}
                 gtag('js', new Date());            
-                gtag('config', '{{cfg.site.googleAnalytics}}');
+                gtag('config', '{{site.googleAnalytics}}');
             </script>
         {% endif %}
-    {%- endblock %}
+    {% endblock %}
 
 </head>
 <body class="{{ bodyclass }}">

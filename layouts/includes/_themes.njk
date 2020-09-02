@@ -10,8 +10,8 @@
     --col-code-text: {{colours['code-text']}};
     --col-bq-text: {{colours['bq-text']}};
 {%- endmacro -%}
-{%- set themeDefault = cfg.themes[cfg.site.theme.default] -%}
-{%- set themeDark = cfg.themes[cfg.site.theme.dark] -%}
+{%- set themeDefault = themes[site.theme.default] -%}
+{%- set themeDark = themes[site.theme.dark] -%}
 <style>
     :root {
         {{themecolours(themeDefault.colours)}}

@@ -7,7 +7,7 @@ sitemap: true
 {% block main %}
 <div class="h-entry">
     {%- if article.breadcrumbs -%}
-        <div class="breadcrumbs">{{article.breadcrumbs}}</div>
+        <div class="breadcrumbs">{{article.bcStr}}</div>
     {%- endif -%}
     <h1 class="p-name">{{article.title}}</h1>
     {%- set post = article -%}{%- include 'includes/_articleMetaSilent.njk' -%}
@@ -16,7 +16,7 @@ sitemap: true
     <section>
     <section class="collection">
         <ul>
-            {% for item in ctx.getTaxonomy(article.taxonomyType, article.taxonomy).getArticles() %}
+            {% for item in ctx.getTaxonomy(article.taxonomyType, article.taxonomy).sortArticlesByDate().getArticles() %}
                 <li>
                     <article class="h-entry">
                         <header>
@@ -25,10 +25,10 @@ sitemap: true
                                     <span class="p-name">{{item.title}}</span>
                                 </a>
                             </h2>
-                            {%- set post = item %}{% include 'includes/_articleMeta.njk' %}
+                            {%- set post = item -%}{% include 'includes/_articleMeta.njk' %}
                         </header>
-                        {%- if post.reviews -%}
-                            {%- set rev = post.firstReview() -%}
+                        {%- if site.reviews and item.reviews -%}
+                            {%- set rev = item.firstReview() -%}
                             {%- if rev.ratingStars -%}
                                 <div class="reviewStars" title="Review rating.">{{rev.ratingStars}}</div>
                             {%- endif -%}

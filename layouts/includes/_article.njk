@@ -2,8 +2,8 @@
 {%- block main -%}
     <article class="h-entry">
         {%- block breadcrumbs -%}
-            {%- if article.breadcrumbs -%}
-                <div class="breadcrumbs">{{article.breadcrumbs}}</div>
+            {%- if article.bcStr -%}
+                <div class="breadcrumbs">{{article.bcStr}}</div>
             {%- endif -%}
         {%- endblock -%}
         {%- block articleHeader -%}

@@ -6,92 +6,85 @@ sitemap: true
 {%- block main -%}
 {%- if article.page and article.page != 1 -%}
     {%- if article.breadcrumbs -%}
-        <div class="breadcrumbs">{{article.breadcrumbs}}</div>
+        <div class="breadcrumbs">{{article.bcStr}}</div>
     {%- endif -%}
 {%- endif -%}
 <section class="collection">
-    {%- set perPage = ctx.config.site.articlesPerPage -%}
-
+    {% set rmimg = ctx.img({src: '/assets/images/read-more.png', alt: 'Read more icon.'}) %}
     {%- set page = 1 -%}
     {%- if article.page -%}{%- set page = article.page -%}{%- endif -%}
-    {%- set start = 1 -%}
-    {%- if article.start -%}{%- set start = article.start -%}{%- endif -%}
-    {%- set end = start + perPage - 1 -%}
-    {%- if article.end -%}{%- set end = article.end -%}{%- endif -%}
-    
-    {%- for post in ctx.getArticles(ctx.config.site.homePagePostType) -%}
 
-        {%- if loop.index >= start and loop.index <= end -%}
+    {%- for post in article.posts.page(page) -%}
 
-            {%- set ac = 'h-entry' -%}
-            {%- if post.layout == 'briefly' -%}
-                {%- set ac = ac + ' briefly' -%}
-            {%- endif -%}
-            <article class="{{ac}}">
-                <header>
-                    <h2>
-                        {%- if post.layout == 'citation' -%}
-                            {{post.firstCitationLink()}}
-                            <meta name="p-name" content="{{post.title}}" />
-                            <meta name="u-url" content="{{post.url}}" />
-                        {%- elif post.layout == 'briefly' -%}
-                            <span class="briefly p-name">Briefly: {{post.title}}</span>
-                            <meta name="u-url" content="{{post.url}}" />
-                        {%- else -%}
-                            <a class="u-url" href="{{post.url}}" title="Read this post.">
-                                <span class="p-name">{{post.title}}</span>
-                            </a>
-                        {%- endif -%}
-                    </h2>
-                    {%- if post.layout == "citation" -%}
-                        <p class="meta">Comments by me and a link to the external article (above).</p>
-                    {%- endif -%}
-                    {% include 'includes/_articleMeta.njk' %}
-                </header>
-                {%- if post.reviews -%}
-                    {%- set rev = post.firstReview() -%}
-                    {%- if rev.ratingStars -%}
-                        <div class="reviewStars" title="Review rating.">{{rev.ratingStars}}</div>
-                    {%- endif -%}
-                {%- endif -%}
-                {%- if post.layout == 'citation' or post.layout == 'briefly' -%}
-                    <div class="e-content">
-                        {% if post.imageFuncs and post.imageFuncs.icon %}
-                            <a href="{{post.url}}" title="Read this post.">
-                                {{ctx.imgBasic({src: post.imageFuncs.icon, alt: 'Icon for this post.', class: 'icon'})}}
-                            </a>
-                        {% endif %}
-                        {{post.content.html}}
-                    </div>
-                {%- else -%}
-                    <div class="p-summary">
-                        {% if post.imageFuncs and post.imageFuncs.icon %}
-                            <a href="{{post.url}}" title="Read this post.">
-                                {{ctx.imgBasic({src: post.imageFuncs.icon, alt: 'Icon for this post.', class: 'icon'})}}
-                            </a>
-                        {% endif %}
-                        {% if post.excerpt %}
-                            {{post.excerpt.html}}
-                        {% else %}
-                            {{post.content.text | truncate(300)}}
-                        {% endif %}
-                    </div>
-                {%- endif -%}
-                <footer>
-                    {%- if ctx.hasPlugin('socialShares') -%}
-                        <div class="share-links">
-                            {{ctx.getShareLinks(post)}}
-                        </div>
-                    {%- endif -%}
-                </footer>
-            </article>
+        {%- set ac = 'h-entry' -%}
+        {%- if post.layout == 'briefly' -%}
+            {%- set ac = ac + ' briefly' -%}
         {%- endif -%}
+        <article class="{{ac}}">
+            <header>
+                <h2>
+                    {%- if post.layoutName == 'citation' -%}
+                        {{post.firstCitationLink()}}
+                        <meta name="p-name" content="{{post.title}}" />
+                        <meta name="u-url" content="{{post.url}}" />
+                    {%- elif post.layoutName == 'briefly' -%}
+                        <span class="briefly p-name">Briefly: {{post.title}}</span>
+                        <meta name="u-url" content="{{post.url}}" />
+                    {%- else -%}
+                        <a class="u-url" href="{{post.url}}" title="Read this post.">
+                            <span class="p-name">{{post.title}}</span>
+                        </a>
+                    {%- endif -%}
+                </h2>
+                {%- if post.layoutName == "citation" -%}
+                    <p class="meta">Comments by me and a link to the external article (above).</p>
+                {%- endif -%}
+                {% include 'includes/_articleMeta.njk' %}
+            </header>
+            {%- if post.reviews and site.reviews -%}
+                {%- set rev = post.firstReview() -%}
+                {%- if rev.ratingStars -%}
+                    <div class="reviewStars" title="Review rating.">{{rev.ratingStars}}</div>
+                {%- endif -%}
+            {%- endif -%}
+            {%- if post.layoutName == 'citation' or post.layoutName == 'briefly' -%}
+                <div class="e-content">
+                    {% if post.imageFuncs and post.imageFuncs.icon %}
+                        <a href="{{post.url}}" title="Read this post.">
+                            {{ctx.img({src: post.imageFuncs.icon, alt: 'Icon for this post.', class: 'icon'})}}
+                        </a>
+                    {% endif %}
+                    {{post.content.html}}
+                </div>
+            {%- else -%}
+                <div class="p-summary">
+                    {% if post.imageFuncs and post.imageFuncs.icon %}
+                        <a href="{{post.url}}" title="Read this post.">
+                            {{ctx.img({src: post.imageFuncs.icon, alt: 'Icon for this post.', class: 'icon'})}}
+                        </a>
+                    {% endif %}
+                    {% if post.excerpt %}
+                        {{post.excerpt.html}}
+                    {% else %}
+                        {{post.content.text | truncate(300)}}
+                    {% endif %}
+                    {{ctx.link(rmimg, post.url, 'Read this post in full.', 'readmore')}}
+                </div>
+            {%- endif -%}
+            <footer>
+                {%- if ctx.hasPlugin('socialShares') -%}
+                    <div class="share-links">
+                        {{ctx.callable('getSocialShareLinks', post)}}
+                    </div>
+                {%- endif -%}
+            </footer>
+        </article>
 
     {%- endfor -%}
 </section>
-{%- if ctx.pager and ctx.pager > 1 -%}
+{%- if article.posts and article.posts.totalPages > 1 -%}
     <nav class="pager">
-        {%- for i in range(1, ctx.pager + 1) -%}
+        {%- for i in range(1, article.posts.totalPages + 1) -%}
             {%- if i == page -%}
                 <span class="pager-item current">{{i}}</span>
             {%- else -%}
