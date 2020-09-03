@@ -80,6 +80,8 @@ function parse(file)
 
     this.inlineCss[rel] = css;
 
+    this.counts['scss compiles']++;
+
 }
 
 /**
@@ -98,4 +100,6 @@ module.exports = ctx => {
 
     // Set the scss parser.
     ctx.setExtensionParser('scss', parse);
+
+    ctx.counts['scss compiles'] = 0;
 }

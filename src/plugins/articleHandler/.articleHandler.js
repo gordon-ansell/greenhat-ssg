@@ -23,7 +23,15 @@ async function parse(file)
     if (articleParserClass == null) {
         articleParserClass = new ArticleParser(this);
     }
-    return await articleParserClass.parse(file);
+    let ret = await articleParserClass.parse(file);
+    this.counts.articles++;
+    if (ret.type == 'post') {
+        this.counts.posts++;
+    } else {
+        this.counts.pages++;
+    }
+    this.counts.words += ret.words;
+    return ret;
 }
 
 /**
@@ -96,4 +104,9 @@ module.exports = ctx => {
 
     // Set the article renderer.
     ctx.setExtensionRenderer('njk', render);
+
+    ctx.counts.articles = 0;
+    ctx.counts.posts = 0;
+    ctx.counts.pages = 0;
+    ctx.counts.words = 0;
 }

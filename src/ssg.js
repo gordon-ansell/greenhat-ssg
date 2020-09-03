@@ -26,7 +26,6 @@ const XLator = require("greenhat-util/xlate");
 const os = require('os');
 const http = require('http');
 const Paginate = require("./paginate");
-const { exit } = require("process");
 
 /**
  * Main SSG class.
@@ -85,6 +84,8 @@ class SSG
             'AFTER_ARTICLE_PARSER_RUN',
             'ARTICLE_PRERENDER',
         ]);
+
+        this.ctx.counts = {};
 
         this.ctx.cfg = new Config(require('./defaultConfig'));
 
@@ -350,7 +351,18 @@ class SSG
 
         //this.ctx.articles.all.dump();
 
+        let countsMsg = '';
+        if (this.ctx.counts) {
+            for (let key in this.ctx.counts) {
+                if (countsMsg != '') countsMsg += ', ';
+                countsMsg += key + ': ' + this.ctx.counts[key]; 
+            } 
+        }
+
         syslog.notice(`GreenHat SSG completed in ${(Date.now() - this.#startTime) / 1000} seconds.`);
+        if (countsMsg != '') {
+            syslog.info('Counts - ' + countsMsg);
+        }
         syslog.notice("=".repeat(50));
 
 
@@ -499,6 +511,7 @@ class SSG
     async _processLeftovers()
     {
         syslog.notice("Processing (just copying) leftover files.")
+        this.ctx.counts['simple copies'] = 0;
         
         let difference = this.ctx.filesToProcess.filter(x => !this.ctx.filesProcessed.includes(x));
         await Promise.all(difference.map(async item => {
@@ -508,6 +521,7 @@ class SSG
                 let to = path.join(this.ctx.sitePath, this.ctx.cfg.locations.site, rel)
                 syslog.trace("GreenhatSSG:_processLeftovers", `Leftover: ${from} >> ${to}`);
                 copyFile(from, to);
+                this.ctx.counts['simple copies']++;
             }
         }));
     }

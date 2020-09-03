@@ -23,6 +23,7 @@ async function parse(file)
 {
     let c = new ImageParser(file, this);
     await c.parse();
+    this.counts.images++;
 }
 
 /**
@@ -43,6 +44,8 @@ async function articlePrerender(article)
 async function beforeParseEarly()
 {
     syslog.trace('.imageHandler:beforeParseEarly', 'Event intercepted.');
+
+    this.counts.images = 0;
 
     let cacheChk = (this.args.noImageCacheCheck === true) ? false : true;
 
