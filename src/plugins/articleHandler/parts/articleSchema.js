@@ -403,7 +403,7 @@ class ArticleSchema
                 if (prod.images) {
                     let imgs = [];
                     for (let ikey of prod.images) {
-                        imgs = Object.datamerge(imgs, this.articleImagesByTag[ikey]);
+                        imgs = Object.merge(imgs, this.articleImagesByTag[ikey]);
                     }
                     result['image'] = imgs;
                 } else {
