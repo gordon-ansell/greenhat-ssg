@@ -210,7 +210,7 @@ async function afterArticleParserRun(article)
 /**
  * Load.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
     syslog.trace('.imageHandler', 'Initialising plugin.');
 
     // Load some configs.
@@ -240,4 +240,5 @@ module.exports = ctx => {
     ctx.on('AFTER_PARSE_EARLY', afterParseEarly);
     ctx.on('AFTER_ARTICLE_PARSER_RUN', afterArticleParserRun);
     ctx.on('ARTICLE_PRERENDER', articlePrerender);
+
 }

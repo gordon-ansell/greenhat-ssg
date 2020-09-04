@@ -1,0 +1,13 @@
+{%- if ctx.menus.bottom -%}
+    <nav class="menu-bottom">
+        <ul class="menu-bottom__items">
+            {%- for item in ctx.menus.bottom -%}
+                <li class="menu-bottom__item">
+                    <a href="{{ item.url }}"{% if item.description %} title="{{ item.description }}"{% endif %}>
+                        {{ item.title }}
+                    </a>
+                </li>
+            {%- endfor -%}
+        </ul>
+    </nav>
+{%- endif -%}

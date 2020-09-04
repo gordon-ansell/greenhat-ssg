@@ -51,7 +51,7 @@ async function render(article)
 /**
  * Initialisation.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
 
     syslog.trace('.articleHandler', 'Initialising plugin.');
 

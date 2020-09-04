@@ -15,11 +15,11 @@
  * @param   {object}    article     Article to get the links for.
  * @return  {string}                Share links. 
  */
-function getSocialShareLinks(article)
+function getSocialShareLinks(ctx, article)
 {
     let ret = '';
 
-    let spec = this.cfg.socialSharesSpec;
+    let spec = ctx.cfg.socialSharesSpec;
 
     for (let item of spec.wanted) {
         if (!spec.linkDefs[item]) {
@@ -30,9 +30,9 @@ function getSocialShareLinks(article)
         let img = new Html('img');
 
         let srcName = 'src'
-        if (this.cfg.site.lazyload) {
+        if (ctx.cfg.site.lazyload) {
             srcName = 'data-src';
-            img.appendParam('class', this.cfg.site.lazyclass);
+            img.appendParam('class', ctx.cfg.site.lazyclass);
         }
 
         let p = path.join(spec.iconLoc, item + spec.iconExt);
@@ -42,16 +42,16 @@ function getSocialShareLinks(article)
 
         let link = spec.linkDefs[item];
 
-        link = link.replaceAll('[URL]', this.qualify(article.url))
+        link = link.replaceAll('[URL]', ctx.qualify(article.url))
             .replaceAll('[TITLE]', encodeURI(article.title))
-            .replaceAll('[WSURL]', escape(this.qualify('/')))
-            .replaceAll('[WSTITLE]', encodeURI(this.cfg.site.title));
+            .replaceAll('[WSURL]', escape(ctx.qualify('/')))
+            .replaceAll('[WSTITLE]', encodeURI(ctx.cfg.site.title));
 
         if (item == 'email') {
-            if (!this.cfg.site.publisher.email) {
+            if (!ctx.cfg.site.publisher.email) {
                 syslog.warning("Publisher email is requited for 'email' share.");
             } else {
-                link = link.replaceAll('[EMAIL]', this.cfg.site.publisher.email);
+                link = link.replaceAll('[EMAIL]', ctx.cfg.site.publisher.email);
             }
         }
 
@@ -74,7 +74,7 @@ function getSocialShareLinks(article)
 /**
  * Initialisation.
  */
-module.exports = ctx => {
+exports.init = ctx => {
 
     syslog.trace('.socialShares', 'Initialising plugin.');
 
@@ -95,8 +95,7 @@ module.exports = ctx => {
     };
 
     ctx.cfg.mergeSect('socialSharesSpec', defaultSocialSharesSpec, true);
-
-    ctx.addCallable(getSocialShareLinks);
-
 }
+
+module.exports.getSocialShareLinks = getSocialShareLinks;
 

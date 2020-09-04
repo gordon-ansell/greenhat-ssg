@@ -76,10 +76,11 @@ async function afterParseLate()
 /**
  * Initialisation.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
 
     syslog.trace('.taxonomyPages', 'Initialising plugin.');
 
     // Set up event responses.
     ctx.on('AFTER_PARSE_LATE', afterParseLate);
+
 }

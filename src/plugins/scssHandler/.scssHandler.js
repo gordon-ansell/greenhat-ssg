@@ -87,7 +87,7 @@ function parse(file)
 /**
  * Load.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
     syslog.trace('.scssHandler', 'Initialising plugin.');
 
     let scfg = {

@@ -65,11 +65,10 @@ async function articlePrerender(article)
 /**
  * Initialisation.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
 
     syslog.trace('.preRenderLinks', 'Initialising plugin.');
     // Set up event responses.
     ctx.on('ARTICLE_PRERENDER', articlePrerender, 100);
-
 }
 

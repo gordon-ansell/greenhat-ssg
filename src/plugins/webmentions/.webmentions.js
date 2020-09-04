@@ -54,7 +54,7 @@ async function afterArticleParserRun(article)
 /**
  * Initialisation.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
 
     syslog.trace('.webmentions', 'Initialising plugin.');
 

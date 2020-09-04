@@ -105,7 +105,7 @@ async function afterParseLate()
 /**
  * Initialisation.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
 
     syslog.trace('.relatedPosts', 'Initialising plugin.');
 

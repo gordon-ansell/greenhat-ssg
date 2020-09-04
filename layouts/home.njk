@@ -74,7 +74,7 @@ sitemap: true
             <footer>
                 {%- if ctx.hasPlugin('socialShares') -%}
                     <div class="share-links">
-                        {{ctx.callable('getSocialShareLinks', post)}}
+                        {{ctx.plugins.socialShares.getSocialShareLinks(ctx, post)}}
                     </div>
                 {%- endif -%}
             </footer>

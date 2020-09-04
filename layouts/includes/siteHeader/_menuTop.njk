@@ -1,20 +1,11 @@
-<span>
-    <a class="plain" href="/" title="Go to the home page.">
-        {%- if site.headerLogo -%}
-            {{ctx.img(site.headerLogo, "Go to the home page.")}}
-        {%- endif -%}
-        <span>Gordy's Discourse</span>
-    </a>
-</span>
-
 {%- if ctx.menus.top -%}
     <nav class="menu-top">
         <input type="checkbox" id="menu-btn" class="menu-top__input" />
         <label for="menu-btn" class="menu-top__label"><span class="menu-top__icon"></span></label>
-        <ul class="menu menu-top__item-list">
+        <ul class="menu menu-top__items">
             {%- for item in ctx.menus.top -%}
                 <li class="menu-top__item">
-                    <a class="menu-top__item-link" href="{{ item.url }}"{% if item.description %} title="{{ item.description }}"{% endif %}>
+                    <a class="menu-top__link" href="{{ item.url }}"{% if item.description %} title="{{ item.description }}"{% endif %}>
                         {{ item.title }}
                     </a>
                 </li>

@@ -168,14 +168,18 @@
 </head>
 <body class="{{ bodyclass }}">
     <div class="wrapper">
-        <header class="header">
-            {%- include 'includes/_siteHeader.njk' -%}
+        <header class="sitehdr">
+            {%- include 'includes/siteHeader/_branding.njk' -%}
+            {%- include 'includes/siteHeader/_menuTop.njk' -%}
         </header>
         <main>
             {%- block main -%}{%- endblock -%}
         </main>
-        <footer>
-            {%- include 'includes/_siteFooter.njk' -%}
+        <footer class="siteftr">
+            {%- include 'includes/siteFooter/_menuBottom.njk' -%}
+            {%- if site.copyright -%}
+                <div>{{site.copyright}}</div>
+            {%- endif -%}
         </footer>
     </div>
 </body>

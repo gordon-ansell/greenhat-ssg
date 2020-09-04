@@ -26,6 +26,7 @@ const XLator = require("greenhat-util/xlate");
 const os = require('os');
 const http = require('http');
 const Paginate = require("./paginate");
+const { SSL_OP_TLS_ROLLBACK_BUG } = require("constants");
 
 /**
  * Main SSG class.
@@ -115,6 +116,7 @@ class SSG
 
         await this._loadSystemPlugins();
         await this._loadUserPlugins();
+        syslog.inspect(this.ctx.plugins);
         await this._loadData();
 
         if (this.ctx.cfg.cfgChk) {
@@ -230,6 +232,7 @@ class SSG
         syslog.notice('Loading system plugins.');
 
         this.ctx.pluginsLoaded = [];
+        this.ctx.plugins = {};
 
         let pluginPath = path.join(this.ctx.appPath, this.ctx.cfg.locations.sysPlugins);
         if (!fs.existsSync(pluginPath)) {

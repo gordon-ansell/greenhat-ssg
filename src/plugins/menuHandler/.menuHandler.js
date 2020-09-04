@@ -77,7 +77,7 @@ async function afterParseLate()
 /**
  * Initialisation.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
 
     syslog.trace('.menuHandler', 'Initialising plugin.');
     // Set up event responses.

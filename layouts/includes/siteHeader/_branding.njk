@@ -1,0 +1,8 @@
+<span class="sitehdr-branding">
+    <a class="sitehdr-branding__link" href="{{site.url}}" title="Go to the home page.">
+        {%- if site.headerLogo -%}
+            {{ctx.img(site.headerLogo, "Go to the home page.", "sitehdr-branding__img")}}
+        {%- endif -%}
+        <span>{{site.title}}</span>
+    </a>
+</span>

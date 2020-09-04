@@ -61,10 +61,12 @@ class Context extends EventManager
      * 
      * @param   {function}  func    Function to be called.
      */
+    /*
     addCallable(func)
     {
         this.callables[func.name] = func;
     }
+    */
 
     /**
      * Do an article call.
@@ -73,6 +75,7 @@ class Context extends EventManager
      * @param   {any}       args        Arguments.
      * @return  {any}                   Whatever.
      */
+    /*
     callable(func, ...args)
     {
         if (!this.callables[func]) {
@@ -81,6 +84,7 @@ class Context extends EventManager
 
         return this.callables[func].call(this, ...args);
     }
+    */
 
     /**
      * Translate.
@@ -270,9 +274,10 @@ class Context extends EventManager
      * 
      * @param   {object}    spec    Image spec.
      * @param   {string}    title   Image title (optional).
+     * @param   {string}    cls     Class (optional),
      * @return  {string}            Image html,
      */
-    img(spec, title)
+    img(spec, title, cls)
     {
         if (title) {
             spec.title = title;
@@ -295,6 +300,10 @@ class Context extends EventManager
             html.appendParam('class', lc);
         }
 
+        if (cls) {
+            html.appendParam('class', cls);
+        }
+
         return html.resolve();
     }
 
@@ -306,7 +315,7 @@ class Context extends EventManager
      */
     hasPlugin(name)
     {
-        return this.pluginsLoaded.includes(name);
+        return (name in this.plugins) ? true : false;
     }
 
     /**
@@ -363,6 +372,14 @@ class Context extends EventManager
         let dobj = new Date(dt);
         return dateformat(dobj, this.cfg.articleSpec.dispDate) + ', ' + 
         dateformat(dobj, this.cfg.articleSpec.dispTime);
+    }
+
+    /**
+     * Inspect.
+     */
+    inspect(thing)
+    {
+        syslog.inspect(thing);
     }
 }
 

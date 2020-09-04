@@ -72,7 +72,7 @@ async function articlePrerender(article)
 /**
  * Initialisation.
  */
-module.exports = ctx => {
+module.exports.init = ctx => {
 
     syslog.trace('.videoLinkHandler', 'Initialising plugin.');
 
