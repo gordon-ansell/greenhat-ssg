@@ -116,7 +116,6 @@ class SSG
 
         await this._loadSystemPlugins();
         await this._loadUserPlugins();
-        syslog.inspect(this.ctx.plugins);
         await this._loadData();
 
         if (this.ctx.cfg.cfgChk) {
