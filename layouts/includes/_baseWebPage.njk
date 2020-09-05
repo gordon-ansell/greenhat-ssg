@@ -177,6 +177,7 @@
         </main>
         <footer class="siteftr">
             {%- include 'includes/siteFooter/_menuBottom.njk' -%}
+            <div>{{ctx.counts.posts}} posts, {{ctx.counts.words}} words.</div>
             {%- if site.copyright -%}
                 <div>{{site.copyright}}</div>
             {%- endif -%}
