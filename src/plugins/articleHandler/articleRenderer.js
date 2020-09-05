@@ -106,7 +106,7 @@ class ArticleRenderer
             switch (article.layoutType) {
                 case 'njk':
                     this.#templateHandlers.njk = new NunjucksTemplate(layoutPaths);
-                    //this.#templateHandlers.njk.setThrowExceptions(true);
+                    this.#templateHandlers.njk.setThrowExceptions(true);
                     break;
                 default:
                     syslog.error(`No support for rendering '${article.layoutType}' files.`)

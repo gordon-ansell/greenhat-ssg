@@ -26,7 +26,6 @@ const XLator = require("greenhat-util/xlate");
 const os = require('os');
 const http = require('http');
 const Paginate = require("./paginate");
-const { SSL_OP_TLS_ROLLBACK_BUG } = require("constants");
 
 /**
  * Main SSG class.
@@ -438,15 +437,33 @@ class SSG
                 await this.ctx.emit('BEFORE_PARSE_LATE');
             }
 
+            let errs = [];
+
             await Promise.all(arr.map(async file => {
                 let ext = path.extname(file).slice(1);
                 syslog.trace('SSG:_parseFiles', `File parser ext: ${ext}, for file ${file}.`);
                 if (this.ctx.cfg.parsers[ext]) {
-                    await this.ctx.cfg.parsers[ext].call(this.ctx, file);
+                    try {
+                        await this.ctx.cfg.parsers[ext].call(this.ctx, file);
+                    } catch (err) {
+                        errs.push(err);
+                    }
                     this.ctx.filesProcessed.push(file);
                 }
             }));
 
+            if (errs.length > 0) {
+                if (this.ctx.cfg.site.showAllErrors && this.ctx.cfg.site.showAllErrors == true) {
+                    syslog.error(`${errs.length} errors encountered in parse. Here they are:`);
+                    for (let err of errs) {
+                        syslog.error(err.message);
+                    }
+                } else {
+                    syslog.error(`${errs.length} errors encountered in parse. Here's the first:`);
+                    syslog.error(errs[0].message);
+                }
+            }
+    
             if (count == 0) {
                 await this.ctx.emit('AFTER_PARSE_EARLY');
             } else {
@@ -495,15 +512,33 @@ class SSG
     {
         syslog.notice(`Rendering files.`);
 
+        let errs = [];
+
         await Promise.all(this.ctx.renderQueue.map(async item => {
             let ext = item.renderExt;
             syslog.trace('SSG:_renderFiles', `File render ext: ${ext}, for item ${item.obj}.`);
             if (this.ctx.cfg.renderers[ext]) {
-                await this.ctx.cfg.renderers[ext].call(this.ctx, item.obj);
+                try {
+                    await this.ctx.cfg.renderers[ext].call(this.ctx, item.obj);
+                } catch (err) {
+                    errs.push(err);
+                }
             } else {
                 syslog.warning(`No renderer found for extenstion '${ext}'.`);
             }
         }));
+
+        if (errs.length > 0) {
+            if (this.ctx.cfg.site.showAllErrors && this.ctx.cfg.site.showAllErrors == true) {
+                syslog.error(`${errs.length} errors encountered in render. Here they are:`);
+                for (let err of errs) {
+                    syslog.error(err.message);
+                }
+            } else {
+                syslog.error(`${errs.length} errors encountered in render. Here's the first:`);
+                syslog.error(errs[0].message);
+            }
+        }
 
     }
 

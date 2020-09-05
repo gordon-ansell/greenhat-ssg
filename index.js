@@ -54,7 +54,7 @@ try {
         syslog.inspect(promise, "warning", "Promise object");
     });    
 
-    let ssg = new SSG("trace", false);
+    let ssg = new SSG("trace", true);
     return ssg.init().then(function() {
         return ssg.run();
     });
