@@ -32,6 +32,9 @@ class Context extends EventManager
     // Callables.
     callables = {};
 
+    // Template filters.
+    tplFilters = {};
+
     /**
      * Constructor.
      */
@@ -39,6 +42,17 @@ class Context extends EventManager
     {
         super();
         this.renderQueue = [];
+    }
+
+    /**
+     * Add a template filter.
+     * 
+     * @param   {string}    name    Filter name.
+     * @param   {function}  func    Callable function.
+     */
+    addTemplateFilter(name, func)
+    {
+        this.tplFilters[name] = func;
     }
 
     /**
@@ -61,12 +75,10 @@ class Context extends EventManager
      * 
      * @param   {function}  func    Function to be called.
      */
-    /*
-    addCallable(func)
+    addContextCallable(func)
     {
         this.callables[func.name] = func;
     }
-    */
 
     /**
      * Do an article call.
@@ -75,7 +87,6 @@ class Context extends EventManager
      * @param   {any}       args        Arguments.
      * @return  {any}                   Whatever.
      */
-    /*
     callable(func, ...args)
     {
         if (!this.callables[func]) {
@@ -84,7 +95,6 @@ class Context extends EventManager
 
         return this.callables[func].call(this, ...args);
     }
-    */
 
     /**
      * Translate.
@@ -375,11 +385,25 @@ class Context extends EventManager
     }
 
     /**
-     * Inspect.
+     * Log.
+     * 
+     * @param   {string}    str     String to log.
+     * @param   {string}    level   Log level.
      */
-    inspect(thing)
+    log(str, level = "info")
     {
-        syslog.inspect(thing);
+        syslog.log(level, str);
+    }
+
+    /**
+     * Inspect.
+     * 
+     * @param   {any}       thing   Thing to inspect.
+     * @param   {string}    level   Level.
+     */
+    inspect(thing, level = "advice")
+    {
+        syslog.inspect(thing, level);
     }
 }
 

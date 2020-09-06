@@ -105,7 +105,7 @@ class ArticleRenderer
 
             switch (article.layoutType) {
                 case 'njk':
-                    this.#templateHandlers.njk = new NunjucksTemplate(layoutPaths);
+                    this.#templateHandlers.njk = new NunjucksTemplate(this.ctx, layoutPaths);
                     this.#templateHandlers.njk.setThrowExceptions(true);
                     break;
                 default:
@@ -113,7 +113,7 @@ class ArticleRenderer
             }
         }
 
-        let output = await this.#templateHandlers[article.layoutType].renderArticle(article, this.ctx);
+        let output = await this.#templateHandlers[article.layoutType].renderArticle(article);
 
         // Copy the article to the output location.
         let opPath = path.join(this.ctx.sitePath, this.ctx.cfg.locations.site, article.outputFileName);

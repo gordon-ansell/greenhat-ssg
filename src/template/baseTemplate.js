@@ -9,7 +9,7 @@
 'use strict';
 
 const { syslog } = require("greenhat-util/syslog");
-const Data = require('../data');
+//const Data = require('../data');
 
 /**
  * Base template class.
@@ -20,19 +20,50 @@ class BaseTemplate
     #data = null;
 
     /**
+     * Constructor.
+     * 
+     * @param   {object}    ctx     Context.
+     */
+    constructor(ctx)
+    {
+        this.ctx = ctx;
+    }
+
+    /**
+     * Cue the common filters.
+     */
+    _cueCommonFilters()
+    {
+        this.ctx.addTemplateFilter('log', function(str, level = "info") {
+            this.env.getGlobal('ctx').log(str, level);
+            return str;
+        });    
+
+        this.ctx.addTemplateFilter('inspect', function(thing, level = "info") {
+            this.env.getGlobal('ctx').inspect(thing, level);
+            return str;
+        });    
+
+        this.ctx.addTemplateFilter('img', function(url, spec = {}, title = null, cls = null) {
+            spec.src = url;
+            return this.env.getGlobal('ctx').img(spec, title, cls);
+        });    
+    }
+
+    /**
      * Render an article.
      * 
      * @param   {object}    article     Article instance to render.
-     * @param   {object}    ctx         Context object.
      * @return  {string}                Rendered string.
      */
-    async renderArticle(article, ctx)
+    async renderArticle(article)
     {
-        await ctx.emit('ARTICLE_PRERENDER', article);
+        await this.ctx.emit('ARTICLE_PRERENDER', article);
 
+        /*
         if (this.#data == null) {
             this.#data = new Data();
-            let ctxTmp = {...ctx};
+            let ctxTmp = {...this.ctx};
             for (let key in ctxTmp.cfg) {
                 this.#data.add(key, ctxTmp.cfg[key]);
             }
@@ -43,13 +74,14 @@ class BaseTemplate
                 }
                 delete ctxTmp.data;
             }
-            this.#data.add('ctx', ctx);
+            this.#data.add('ctx', this.ctx);
         }
+        */
 
-        this.#data.del('article');
-        this.#data.add('article', article);
+        //this.#data.del('article');
+        //this.#data.add('article', article);
 
-        return this._renderArticleHere(article.layoutPath, this.#data.getData(), article.relPath);
+        return this._renderArticleHere(article.layoutPath, {article: article}, article.relPath);
 
         //syslog.inspect(this.#data);
     }
@@ -65,19 +97,6 @@ class BaseTemplate
     _renderArticleHere(layoutPath, data, context)
     {
         syslog.error("You must create a '_renderArticleHere' function for template processors.")
-    }
-
-    /**
-     * Render a file.
-     * 
-     * @param   {string}    file        File to render.
-     * @param   {object}    data        Data to use.
-     * @param   {string}    context     Context. 
-     * @return  {string}                Rendered output.
-     */
-    _renderArticleHere(file, data, context)
-    {
-        syslog.error("You must create a 'renderFile' function for template processors.")
     }
 
 }

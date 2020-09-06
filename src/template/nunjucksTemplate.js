@@ -12,7 +12,6 @@ const BaseTemplate = require('./baseTemplate');
 const nunjucks = require('nunjucks');
 const GreenHatSSGError = require("../ssgError");
 const beautify = require('js-beautify').html;
-const fs = require('fs');
 const { syslog } = require("greenhat-util/syslog");
 
 class GreenhatSSGTemplateError extends GreenHatSSGError {}
@@ -28,14 +27,50 @@ class NunjucksTemplate extends BaseTemplate
     /**
      * Constructor.
      * 
+     * @param   {object}            ctx     Context.    
      * @param   {string|string[]}   paths   Template paths.
      * @param   {object}            opts    Template options.
      */
-    constructor (paths, opts = {autoescape: false, throwOnUndefined: true, lstripBlocks: true, trimBlocks: true})
+    constructor (ctx, paths, opts = {autoescape: false, throwOnUndefined: true, lstripBlocks: true, trimBlocks: true})
     {
-        super();
+        super(ctx);
         let loader = new nunjucks.FileSystemLoader(paths);
         this.engine = new nunjucks.Environment(loader, opts);
+        this._loadGlobals();
+        this._cueCommonFilters();
+        this._loadFilters();
+    }
+
+    /**
+     * Load the globals.
+     */
+    _loadGlobals()
+    {
+        let ctxTmp = {...this.ctx};
+        for (let key in ctxTmp.cfg) {
+            this.engine.addGlobal(key, ctxTmp.cfg[key]);
+        }
+        delete ctxTmp.cfg;
+        if (ctxTmp.data) {
+            for (let key in ctxTmp.data) {
+                this.engine.addGlobal(key, ctxTmp.data[key]);
+            }
+            delete ctxTmp.data;
+        }
+        this.engine.addGlobal('ctx', this.ctx);
+    }
+
+    /**
+     * Load the filters.
+     */
+    _loadFilters()
+    {
+        if (this.ctx.tplFilters) {
+            for (let name in this.ctx.tplFilters) {
+                this.engine.addFilter(name, this.ctx.tplFilters[name]);
+                syslog.info(`Added template filter '${name}'.`);
+            }
+        } 
     }
 
     /**
