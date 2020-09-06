@@ -1,6 +1,6 @@
 {
 	"name": "greenhat-ssg",
-	"version": "0.4.0",
+	"version": "0.6.0",
 	"description": "GreenHat Static Site Generator",
 	"homepage": "https://gordonansell.com/greenhat-ssg",
 	"license": "MIT",
@@ -19,11 +19,11 @@
 	],
 	"bin": "./index.js",
 	"dependencies": {
-		"autoprefixer": "^9.8.6",
+		"autoprefixer": "*",
 		"dateformat": "*",
 		"deasync": "*",
-		"greenhat-util": "^0.1.2",
-		"image-size": "^0.9.1",
+		"greenhat-util": "*",
+		"image-size": "*",
 		"js-beautify": "*",
 		"md5": "*",
 		"minimist": "*",
@@ -32,7 +32,7 @@
 		"postcss": "*",
 		"sanitize-html": "*",
 		"send-webmention": "*",
-		"sharp": "^0.26.0",
+		"sharp": "*",
 		"showdown": "*",
 		"striptags": "*"
 	},
