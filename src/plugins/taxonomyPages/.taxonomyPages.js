@@ -22,17 +22,7 @@ async function afterParseLate()
     let articleSpec = this.cfg.articleSpec;
 
     // Get the dummy.
-    let dummyDirs = [
-        path.join(this.sitePath, this.cfg.locations.layouts, 'dummies', 'taxonomy.html'),
-        path.join(this.appPath, this.cfg.locations.sysLayouts, 'dummies', 'taxonomy.html')
-    ];
-    let fn;
-    for (let p of dummyDirs) {
-        if (fs.existsSync(p)) {
-            fn = p;
-            break;
-        }
-    }
+    let fn = await this.findTemplateDummy('taxonomy.html');
     if (!fn) {
         syslog.error(`Could not find dummy taxonomy layout.`);
         return;

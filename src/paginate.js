@@ -105,18 +105,7 @@ class Paginate
         }
 
         // Get the dummy.
-        let dummyDirs = [
-            path.join(this.ctx.sitePath, this.ctx.cfg.locations.layouts, 'dummies', this.dummy),
-            path.join(this.ctx.appPath, this.ctx.cfg.locations.sysLayouts, 'dummies', this.dummy)
-        ];
-
-        let fn;
-        for (let p of dummyDirs) {
-            if (fs.existsSync(p)) {
-                fn = p;
-                break;
-            }
-        }
+        let fn = await this.ctx.findTemplateDummy(this.dummy);
         if (!fn) {
             syslog.error(`Could not find dummy layout '${this.dummy}'.`);
             return;

@@ -15,6 +15,7 @@ const Html = require("greenhat-util/html");
 const path = require('path');
 const urlp = require("url");
 const dateformat = require("dateformat");
+const fs = require('fs');
 
 require("greenhat-util/array");
 
@@ -35,6 +36,12 @@ class Context extends EventManager
     // Template filters.
     tplFilters = {};
 
+    // Template paths.
+    tplPaths = null;
+
+    // Dummy paths.
+    tplDummies = null;
+
     /**
      * Constructor.
      */
@@ -53,6 +60,104 @@ class Context extends EventManager
     addTemplateFilter(name, func)
     {
         this.tplFilters[name] = func;
+    }
+
+    /**
+     * Add the default template paths.
+     */
+    _addDefaultTemplatePaths()
+    {
+        if (this.tplPaths == null) {
+            this.tplPaths = [];
+            this.tplPaths.push(path.join(this.sitePath, this.cfg.locations.layouts));
+            this.tplPaths.push(path.join(this.appPath, this.cfg.locations.sysLayouts));
+        }
+    }
+
+    /**
+     * Add template path.
+     * 
+     * @param   {string}    path    Path to add.
+     * @param   {boolean}   pre     Prepend?
+     */
+    addTemplatePath(path, pre = false)
+    {
+        this._addDefaultTemplatePaths();
+
+        if (pre) {
+            this.tplPaths.unshift(path);
+        } else {
+            this.tplPaths.push(path);
+        }
+    }
+
+    /**
+     * Get the template paths.
+     * 
+     * @return  {string[]}          Array of template paths.
+     */
+    getTemplatePaths()
+    {
+        this._addDefaultTemplatePaths();
+        return this.tplPaths;
+    }
+
+    /**
+     * Add the default template dummy paths.
+     */
+    async _addDefaultTemplateDummyPaths()
+    {
+        if (this.tplDummies == null) {
+            this.tplDummies = [];
+            this.tplDummies.push(path.join(this.sitePath, this.cfg.locations.layouts, 'dummies'));
+            this.tplDummies.push(path.join(this.appPath, this.cfg.locations.sysLayouts, 'dummies'));
+        }
+    }
+
+    /**
+     * Add template dummy path.
+     * 
+     * @param   {string}    path    Dummy path to add.
+     * @param   {boolean}   pre     Prepend?
+     */
+    async addTemplateDummyPath(path, pre = false)
+    {
+        await this._addDefaultTemplateDummyPaths();
+
+        if (pre) {
+            this.tplDummies.unshift(path);
+        } else {
+            this.tplDummies.push(path);
+        }
+    }
+
+    /**
+     * Get the template dummy paths.
+     * 
+     * @return  {string[]}          Array of template dummy paths.
+     */
+    async getTemplateDummyPaths()
+    {
+        await this._addDefaultTemplateDummyPaths();
+        return this.tplDummies;
+    }
+
+    /**
+     * Find a dummy template.
+     * 
+     * @param   {string}    file    Template file to look for.
+     * @return  {string}            Path to file or null if not found.
+     */
+    async findTemplateDummy(file)
+    {
+        let fn = null;
+        for (let p of await this.getTemplateDummyPaths()) {
+            if (fs.existsSync(path.join(p, file))) {
+                fn = path.join(p, file);
+                break;
+            }
+        }  
+        return fn;  
     }
 
     /**

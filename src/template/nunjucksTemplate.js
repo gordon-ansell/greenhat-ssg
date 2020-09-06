@@ -28,13 +28,12 @@ class NunjucksTemplate extends BaseTemplate
      * Constructor.
      * 
      * @param   {object}            ctx     Context.    
-     * @param   {string|string[]}   paths   Template paths.
      * @param   {object}            opts    Template options.
      */
-    constructor (ctx, paths, opts = {autoescape: false, throwOnUndefined: true, lstripBlocks: true, trimBlocks: true})
+    constructor (ctx, opts = {autoescape: false, throwOnUndefined: true, lstripBlocks: true, trimBlocks: true})
     {
         super(ctx);
-        let loader = new nunjucks.FileSystemLoader(paths);
+        let loader = new nunjucks.FileSystemLoader(ctx.getTemplatePaths());
         this.engine = new nunjucks.Environment(loader, opts);
         this._loadGlobals();
         this._cueCommonFilters();

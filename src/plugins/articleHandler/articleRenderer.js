@@ -98,14 +98,9 @@ class ArticleRenderer
 
         if (!this.#templateHandlers[article.layoutType]) {
 
-            let layoutPaths = [
-                path.join(this.ctx.sitePath, this.ctx.cfg.locations.layouts),
-                path.join(this.ctx.appPath, this.ctx.cfg.locations.sysLayouts)
-            ];
-
             switch (article.layoutType) {
                 case 'njk':
-                    this.#templateHandlers.njk = new NunjucksTemplate(this.ctx, layoutPaths);
+                    this.#templateHandlers.njk = new NunjucksTemplate(this.ctx);
                     this.#templateHandlers.njk.setThrowExceptions(true);
                     break;
                 default:
