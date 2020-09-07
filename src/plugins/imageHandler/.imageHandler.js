@@ -208,6 +208,22 @@ async function afterArticleParserRun(article)
 }
 
 /**
+ * Get all the image URLs.
+ * 
+ * @param   {object}            ctx     Context.
+ * @param   {string}            url     Key URL to get complete URLs for.
+ * @return  {string|string[]}           All URLs. 
+ */
+async function getImageUrls(url)
+{
+    if (!this.images.has(url)) {
+        syslog.warning(`No image object found for '${url}'.`);
+        return url;
+    }
+    return await this.images.get(url).allUrls();
+}
+
+/**
  * Load.
  */
 module.exports.init = ctx => {
@@ -234,6 +250,9 @@ module.exports.init = ctx => {
 
     // Set the image parser.
     ctx.setExtensionParser(ctx.cfg.imageSpec.imageExts, parse);
+
+    // Callable.
+    ctx.addContextCallable(getImageUrls);
 
     // Set up event responses.
     ctx.on('BEFORE_PARSE_EARLY', beforeParseEarly);

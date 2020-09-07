@@ -186,6 +186,20 @@ class Context extends EventManager
     }
 
     /**
+     * See if we have a callable.
+     * 
+     * @param   {string}    name    Callable name.
+     * @return  {boolean}           True if we have it, else false.
+     */
+    hasCallable(name) 
+    {
+        if (this.callables[name]) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Do an article call.
      * 
      * @param   {string}    func        Name of the function.
