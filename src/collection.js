@@ -8,8 +8,6 @@
 
 'use strict';
 
-'use strict';
-
 const { syslog } = require("greenhat-util/syslog");
 
 /**

@@ -97,7 +97,7 @@ class ArticleParser
     {
         let parser = new ArticleSchema(this.ctx, this.article);
         parser.parse();
-        this.article.schema = JSON.stringify(parser.schema);
+        this.article.schema = parser.coll.resolve();
     }
 
     /**

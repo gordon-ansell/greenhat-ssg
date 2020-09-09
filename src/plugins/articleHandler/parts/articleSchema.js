@@ -11,6 +11,11 @@
 const { syslog } = require("greenhat-util/syslog");
 const path = require('path');
 const Duration = require("greenhat-util/duration");
+const Schema = require("../../../schema/schema");
+const SchemaCollection = require("../../../schema/schemaCollection");
+const CreativeWork = require("../../../schema/objects/creativeWork");
+const BaseType = require("../../../schema/baseType");
+require("greenhat-util/string");
 require("greenhat-util/object");
 
 /**
@@ -19,6 +24,8 @@ require("greenhat-util/object");
 class ArticleSchema
 {
     static context = 'https://schema.org';
+
+    coll = null;
 
     /**
      * Constructor.
@@ -31,31 +38,8 @@ class ArticleSchema
         this.ctx = ctx;
         this.cfg = ctx.cfg;
         this.article = article;
-        this.schema = [];
-    }
 
-    /**
-     * Create an ID.
-     * 
-     * @param   {string}    name    Name.
-     * @return  {string}            ID string.
-     */
-    _id(name)
-    {
-        return path.sep + '#' + name.slugify();
-    }
-
-    /**
-     * Get an ID reference.
-     * 
-     * @param   {string}    name    Name.
-     * @return  {string}            ID refernce string.
-     */
-    _idref(name)
-    {
-        return {
-            '@id': path.sep + '#' + name.slugify()
-        };
+        this.coll = new SchemaCollection();
     }
 
     /**
@@ -66,11 +50,13 @@ class ArticleSchema
      */
     _getImageUrls(url)
     {
-        if (this.ctx.images && this.ctx.images.has(url)) {
-            return this.ctx.images.get(url).allUrls();
+        if (this.ctx.hasCallable('getImageUrls')) {
+            if (this.ctx.callable('hasImage', url)) {
+                return this.ctx.callable('getImageUrls', url);
+            }
         }
         return url;
-    }
+   }
 
     /**
      * Process HowTos.
@@ -98,35 +84,31 @@ class ArticleSchema
         }  
 
         let duration = new Duration(this.article.howTo.time);
-        
-        let result = {
-            '@context': ArticleSchema.context,
-            '@type': 'HowTo',
-            'name': this.article.howTo.name,
-            'description': this.article.howTo.description,
-            'totalTime': duration.pt,
-            'supply': this.article.howTo.supply,
-            'tool': this.article.howTo.tool,
-            'isPartOf': this._idref('webpage'),
-        }
 
+        let schema = Schema.howTo()
+            .name(this.article.howTo.name)
+            .description(this.article.howTo.description)
+            .supply(this.article.howTo.supply)
+            .tool(this.article.howTo.tool)
+            .totalTime(duration.pt)
+            .isPartOf(Schema.ref(path.sep + '#webpage'));
+        
         let theSteps = [];
 
         for (let st of this.article.howTo.steps) {
-            let str = {
-                '@type': 'HowToStep',
-                'name': st.name,
-                'text': st.text,
-                'url': path.join(this.article.url, '#' + st.url),
-                'image': this.article.getImageUrlsForTags(st.image),
-            }
 
-            theSteps.push(str);
+            let step = Schema.howToStep()
+                .name(st.name)
+                .text(st.text)
+                .url(path.join(this.article.url, '#' + st.url))
+                .image(this.article.getImageUrlsForTags(st.image));
+
+            theSteps.push(step);
         }
 
-        result['step'] = theSteps;
+        schema.step(theSteps);
 
-        this.schema.push(result);
+        this.coll.add('howto', schema);
     }
 
     /**
@@ -148,36 +130,32 @@ class ArticleSchema
 
                 let rev = this.article[arr][key];
 
-                //syslog.inspect(this.ctx.products);
                 let prod = this.ctx.products[key];
 
-                let result = {
-                    '@type': 'Review',
-                    '@id': this._id('review-' + key),
-                    '@context': ArticleSchema.context,
-                    'name': prod.name,
-                    'description': rev.description,
-                    'reviewRating': {
-                        '@type': 'Rating',
-                        'ratingValue': rev.rating,
-                        'bestRating': rev.bestRating,
-                        'worstRating': rev.worstRating,
-                    },
-                    'mainEntityOfPage': this._idref('article'),
-                    'isPartOf': this._idref('article'),
-                    'publisher': this._idref('publisher'),
-                }
+                let id = 'review-' + key;
+                let fullId = path.sep + '#' + id;
+
+                let schema = Schema.review(fullId)
+                    .description(rev.description)
+                    .name(prod.name)
+                    .mainEntityOfPage(Schema.ref(path.sep + '#' + 'article'))
+                    .isPartOf(Schema.ref(path.sep + '#' + 'article'))
+                    .publisher(Schema.ref(path.sep + '#' + 'publisher'))
+                    .reviewRating(Schema.rating()
+                        .ratingValue(rev.rating)
+                        .bestRating(rev.bestRating)
+                        .worstRating(rev.worstRating)
+                    );
 
                 if (this.article.author) {
-                    //syslog.inspect(this.article.author);
                     let auths = [];
                     for (let key of this.article.author) {
-                        auths.push(this._idref('author-' + key.slugify()));
+                        auths.push(Schema.ref('author-' + key.slugify()));
                     }
-                    result['author'] = auths;
+                    schema.author(auths);
                 }
 
-                this.schema.push(result);
+                this.coll.add(id, schema);
             }
         }
     }
@@ -191,6 +169,7 @@ class ArticleSchema
             return;
         }
 
+
         for (let arr of ['products', 'productRefs']) {
 
             if (!this.article[arr]) {
@@ -201,12 +180,17 @@ class ArticleSchema
 
                 let prod = this.article[arr][key];
 
-                let result = {
-                    '@type': prod.type,
-                    '@id': this._id('product-' + key),
-                    '@context': ArticleSchema.context,
-                    'name': prod.name,
+                let id = 'product-' + key;
+                let fullId = path.sep + '#' + id;
+
+                let t = prod.type;
+                if (t.startsWith('TV')) {
+                    t = 'tv' + t.substring(2);
+                } else {
+                    t = t.lcfirst();
                 }
+
+                let schema = Schema[t](fullId).name(prod.name);
 
                 // Brand.
                 if (prod.brand) {
@@ -222,14 +206,14 @@ class ArticleSchema
                             break;
                     }
 
-                    result[kn] = {
-                        '@type': 'Organization',
-                        'name': prod.brand.name,
-                    }
+                    let org = Schema.organization().name(prod.brand.name);
 
                     if (prod.brand.url) {
-                        result[kn].url = prod.brand.url;
+                        org.url(prod.brand.url);
                     }
+
+                    schema.setProp(kn, org);
+
                 }
 
                 // Category.
@@ -246,27 +230,31 @@ class ArticleSchema
                             break;
                     }
 
-                    result[kn] = prod.category;
+                    //result[kn] = prod.category;
+                    schema.setProp(kn, prod.category);
                 }
 
-                // URL.
-                if (prod.url) {
-                    result['url'] = prod.url;
+                // Simples
+                let simples = ['url', 'description', 'version', 'startDate', 'endDate',
+                    'eventStatus', 'eventAttendanceMode', 'sameAs', 'address', 'email', 'telephone',
+                    'priceRange', 'openingHours']
+
+                for (let simp of simples) {
+                    if (prod[simp]) {
+                        if (!(typeof schema[simp] == "function")) {
+                            syslog.warning(`No function '${simp}' in ${schema.constructor.name}.`);
+                        }
+                        schema[simp](prod[simp]);
+                    }
                 }
 
-                // Description.
-                if (prod.description) {
-                    result['description'] = prod.description;
-                }
-
-                // Version.
-                if (prod.version) {
-                    result['version'] = prod.version;
+                if (prod.date) {
+                    schema.dateCreated(prod.date);
                 }
 
                 // OS.
                 if (prod.os) {
-                    result['operatingSystem'] = prod.os;
+                    schema.operatingSystem(prod.os);
                 }
 
                 // Actors, directors.
@@ -279,125 +267,54 @@ class ArticleSchema
 
                         for (let person of prod[arr]) {
 
-                            let n = {
-                                '@type': 'Person',
-                                'name': person.name,
-                            }
+                            let p = Schema.person().name(person.name);
 
                             if (person.sameAs) {
-                                n['sameAs'] = person.sameAs;
+                                p.sameAs(person.sameAs);
                             }
 
-                            r.push(n);
+                            r.push(p);
                         }
 
-                        result[arr] = r;
+                        schema.setProp(arr.slice(0, -1), r)
                     }
                 }
 
-                // Date.
-                if (prod.date) {
-                    result['dateCreated'] = prod.date;
-                }
-
-                // Start date.
-                if (prod.startDate) {
-                    result['startDate'] = prod.startDate;
-                }
-
-                // End date.
-                if (prod.endDate) {
-                    result['endDate'] = prod.endDate;
-                }
-
-                // Status.
-                if (prod.eventStatus) {
-                    result['eventStatus'] = prod.eventStatus;
-                }
-
-                // Attendance mode.
-                if (prod.eventAttendanceMode) {
-                    result['eventAttendanceMode'] = prod.eventAttendanceMode;
-                }
 
                 // Duration.
                 if (prod.duration) {
-                    result['duration'] = prod.durationObj.pt;
+                    schema.duration(prod.durationObj.pt);
                 }
 
-                // SameAs?
-                if (prod.sameAs) {
-                    result['sameAs'] = prod.sameAs;
-                }
 
                 // Location.
                 if (prod.location) {
-                    result['location'] = {
-                        '@type': 'Place',
-                        'address': prod.location,
-                        'name': prod.name,
-                    }
+                    schema.location(Schema.place().address(prod.location).name(prod.name));
 
                 }
 
                 // Performer.
                 if (prod.performer) {
-                    result['performer'] = {
-                        '@type': 'Person',
-                        'name': prod.performer,
-                    }
+                    schema.performer(Schema.person().name(prod.performer));
                 }
 
                 // Organizer.
                 if (prod.organizer) {
-                    result['organizer'] = {
-                        '@type': 'Organization',
-                        'name': prod.organizer,
-                    }
+                    schema.organizer(Schema.organization().name(prod.organizer));
                 } else if (prod.type == 'Event') {
-                    result['organizer'] = {
-                        '@type': 'Organization',
-                        'name': prod.name,
-                        'url': prod.url,
-                    }
+                    schema.organizer(Schema.organization().name(prod.name).url(prod.url));
                 }
                 
                 // Artist.
                 if (prod.artist) {
-                    let t = 'Person'
+                    let tn = Schema.person();
                     if (prod.isGroup) {
-                        t = 'MusicGroup';
+                        tn = Schema.musicGroup();
                     }
-                    result['byArtist'] = {
-                        '@type': t,
-                        'name': prod.artist
-                    }
+
+                    schema.byArtist(tn.name(prod.artist));
                 }
 
-                // Address.
-                if (prod.address) {
-                    result['address'] = prod.address;
-                }
-
-                // Email.
-                if (prod.email) {
-                    result['email'] = prod.email;
-                }
-
-                // Telephone.
-                if (prod.telephone) {
-                    result['telephone'] = prod.telephone;
-                }
-
-                // Price range.
-                if (prod.priceRange) {
-                    result['priceRange'] = prod.priceRange;
-                }
-
-                // Opening hours.
-                if (prod.openingHours) {
-                    result['openingHours'] = prod.openingHours;
-                }
 
                 // Images.
                 if (prod.images) {
@@ -405,21 +322,21 @@ class ArticleSchema
                     for (let ikey of prod.images) {
                         imgs = Object.merge(imgs, this.articleImagesByTag[ikey]);
                     }
-                    result['image'] = imgs;
+                    schema.image(imgs);
                 } else {
-                    result['image'] = this.articleImages;
+                    schema.image(this.articleImages);
                 }
 
                 // Videos.
-                if (prod.type != 'Product') {
+                if (schema instanceof CreativeWork) {
                     if (prod.videos) {
                         let vids = [];
                         for (let key of prod.videos) {
                             imgs.push(this._idref('avid-' + key));
                         }
-                        result['video'] = vids;
+                        schema.video(vids);
                     } else {
-                        result['video'] = this.articleVideos;
+                        schema.video(this.articleVideos);
                     }
                 }
 
@@ -427,23 +344,28 @@ class ArticleSchema
                 if (this.ctx.reviews[key]) {
                     let rev = this.ctx.reviews[key];
 
-                    result['aggregateRating'] = {
-                        '@type': 'AggregateRating',
-                        'ratingValue': rev.rating,
-                        'bestRating': rev.bestRating,
-                        'worstRating': rev.worstRating,
-                        'reviewCount': rev.reviewCount,
+                    if (!(typeof schema['aggregateRating'] == "function")) {
+                        syslog.warning(`No function 'aggregateRating' in ${schema.constructor.name}.`);
                     }
 
-                    result['review'] = this._idref('review-' + key);
+                    schema.aggregateRating(
+                        Schema.aggregateRating()
+                            .ratingValue(rev.rating)
+                            .bestRating(rev.bestRating)
+                            .worstRating(rev.worstRating)
+                            .reviewCount(rev.reviewCount)
+                    );
 
+                    schema.review(Schema.ref(path.sep + '#review-' + key));
                 }
 
                 // Product numbers.
-                let ids = ['mpn', 'sku'];
-                for (let item of ids) {
-                    if (prod[item]) {
-                        result[item] = prod[item];
+                if (prod.type == 'Product') {
+                    let ids = ['mpn', 'sku'];
+                    for (let item of ids) {
+                        if (prod[item]) {
+                            schema.setProp(item, prod[item]);
+                        }
                     }
                 }
                             
@@ -452,34 +374,20 @@ class ArticleSchema
                     let offers = [];
 
                     if (prod.offers.from || prod.offers.price || prod.offers.url) {
-                        let off = {
-                            '@type': 'Offer',
-                            'price': prod.offers.price,
-                            'url': prod.offers.url,
-                            'availability': prod.offers.availability,
-                            'offeredBy': {
-                                '@type': 'Organization',
-                                'name': prod.offers.from
-                            }
-                        }
 
-                        if (prod.offers.priceCurrency) {
-                            off['priceCurrency'] = prod.offers.priceCurrency.name;
-                        }
+                        let off = Schema.offer()
+                            .price(prod.offers.price)
+                            .url(prod.offers.url)
+                            .availability(prod.offers.availability)
+                            .offeredBy(Schema.organization().name(prod.offers.from))
 
-                            
-                        if (prod.offers.priceValidUntil) {
-                            off['priceValidUntil'] = prod.offers.priceValidUntil;
-                        }
-
-                        if (prod.offers.validFrom) {
-                            off['validFrom'] = prod.offers.validFrom;
-                        }
-
-                        let ids = ['mpn', 'sku'];
-                        for (let item of ids) {
-                            if (prod.offers[item]) {
-                                off[item] = prod.offers[item];
+                        for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
+                            if (prod.offers[bit]) {
+                                if (bit = 'priceCurrency') {
+                                    off.setProp(bit, prod.offers[bit].name);
+                                } else {
+                                    off.setProp(bit, prod.offers[bit]);
+                                }
                             }
                         }
 
@@ -488,33 +396,19 @@ class ArticleSchema
                     } else {
                         for (let k in prod.offers) {
                             let item = prod.offers[k];
-                            let off = {
-                                '@type': 'Offer',
-                                'price': item.price,
-                                'url': item.url,
-                                'availability': item.availability,
-                                'offeredBy': {
-                                    '@type': 'Organization',
-                                    'name': item.from
-                                }
-                            }
+                            let off = Schema.offer()
+                                .price(item.price)
+                                .url(item.url)
+                                .availability(item.availability)
+                                .offeredBy(Schema.organization().name(item.from))
 
-                            if (item.priceCurrency) {
-                                off['priceCurrency'] = item.priceCurrency.name;
-                            }
-                            
-                            if (item.priceValidUntil) {
-                                off['priceValidUntil'] = item.priceValidUntil;
-                            }
-
-                            if (item.validFrom) {
-                                off['validFrom'] = item.validFrom;
-                            }
-
-                            let ids = ['mpn', 'sku'];
-                            for (let i of ids) {
-                                if (item[i]) {
-                                    off[i] = item[i];
+                            for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
+                                if (item[bit]) {
+                                    if (bit = 'priceCurrency') {
+                                        off.setProp(bit, item[bit].name);
+                                    } else {
+                                        off.setProp(bit, item[bit]);
+                                    }
                                 }
                             }
 
@@ -523,12 +417,11 @@ class ArticleSchema
                         }
                     }
 
-                    result['offers'] = offers;
+                    schema.offers(offers);
                 }
 
-
                 // Save it.
-                this.schema.push(result);
+                this.coll.add(id, schema);
 
             }
         }
@@ -553,29 +446,28 @@ class ArticleSchema
 
             for (let key in this.article[arr]) {
 
+                let id = 'avid-' + key;
+                let fullId = path.sep + '#' + id;
+
                 let vidObj = this.article.videoObjs[key];
 
-                let result = {
-                    '@type': 'VideoObject',
-                    '@id': this._id('avid-' + key),
-                    '@context': ArticleSchema.context,
-                    'name': vidObj.title,
-                    'contentUrl': vidObj.contentUrl,
-                    'embedUrl': vidObj.embedUrl,
-                    'thumbnailUrl': vidObj.thumbnailUrl,
-                    'uploadDate': vidObj.uploadDate,
-                }
+                let schema = Schema.videoObject(fullId)
+                    .name(vidObj.title)
+                    .contentUrl(vidObj.contentUrl)
+                    .embedUrl(vidObj.embedUrl)
+                    .thumbnailUrl(vidObj.thumbnailUrl)
+                    .uploadDate(vidObj.uploadDate);
 
                 if (vidObj.caption) {
-                    result['caption'] = vidObj.caption;
+                    schema.caption(vidObj.caption);
                 }
 
                 if (vidObj.description) {
-                    result['description'] = vidObj.description;
+                    schema.description(vidObj.description);
                 }
 
-                this.schema.push(result);
-                this.articleVideos.push(this._idref('avid-' + key));
+                this.coll.add(id, schema);
+                this.articleVideos.push(Schema.ref(fullId));
 
             }
         }
@@ -588,6 +480,10 @@ class ArticleSchema
     {
         this.articleImages = [];
         this.articleImagesByTag = {};
+
+        if (!this.ctx.hasCallable('getImage')) {
+            return;
+        }
 
         if (!this.article.images && !this.article.imageRefs) {
             if (this.ctx.cfg.site.defaultArticleImage) {
@@ -608,37 +504,36 @@ class ArticleSchema
 
                 let obj = this.article[arr][key];
 
-                let imgObj = this.ctx.images.get(obj.url);
+                let imgObj = this.ctx.callable('getImage', obj.url);
 
                 if (!imgObj.hasSubimages()) {
 
-                    let result = {
-                        '@type': 'ImageObject',
-                        '@id': this._id('aimg-' + key),
-                        '@context': ArticleSchema.context,
-                        'url': imgObj.relPath,
-                        'contentUrl': imgObj.relPath,
-                        'width': imgObj.width,
-                        'height': imgObj.height,
-                        'representativeOfPage': true,
-                    }
+                    let id = 'aimg-' + key.slugify();
+                    let fullId = path.sep + '#' + id;
+
+                    let schema = Schema.imageObject(fullId)
+                        .url(imgObj.relPath)
+                        .contentUrl(imgObj.relPath)
+                        .width(imgObj.width)
+                        .height(imgObj.height)
+                        .representativeOfPage(true);
 
                     if (spec.licencePage) {
-                        result['acquireLicensePage'] = spec.licencePage;
+                        schema.acquireLicensePage(spec.licencePage);
                     }
 
                     if (obj.caption) {
-                        result['caption'] = obj.caption;
+                        schema.caption(obj.caption);
                     }
 
-                    this.schema.push(result);
-                    this.articleImages.push(this._idref('aimg-' + key));
+                    this.coll.add(id, schema);
+                    this.articleImages.push(Schema.ref(fullId));
 
                     if (!this.articleImagesByTag[key]) {
                         this.articleImagesByTag[key] = [];
                     }
 
-                    this.articleImagesByTag[key].push(this._idref('aimg-' + key));
+                    this.articleImagesByTag[key].push(Schema.ref(fullId));
 
                 } else {
 
@@ -646,39 +541,35 @@ class ArticleSchema
 
                     for (let subKey of imgObj.subs.keys()) {
 
+                        let id = keystart + subKey;
+                        let fullId = path.sep + '#' + id;
+
                         let subObj = imgObj.subs.get(subKey);
 
-                        let result = {
-                            '@type': 'ImageObject',
-                            '@id': this._id(keystart + subKey),
-                            '@context': ArticleSchema.context,
-                            'url': subObj.relPath,
-                            'contentUrl': subObj.relPath,
-                            'width': subObj.width,
-                            'height': subObj.height,
-                            'representativeOfPage': true,
-                            'thumbnail': { 
-                                '@type': 'ImageObject',
-                                'url': imgObj.smallest.relPath 
-                            },
-                        }    
+                        let schema = Schema.imageObject(fullId)
+                            .url(subObj.relPath)
+                            .contentUrl(subObj.relPath)
+                            .width(subObj.width)
+                            .height(subObj.height)
+                            .representativeOfPage(true)
+                            .thumbnail(Schema.imageObject().url(imgObj.smallest.relPath));
 
                         if (spec.licencePage) {
-                            result['acquireLicensePage'] = spec.licencePage;
+                            schema.acquireLicensePage(spec.licencePage);
                         }
 
                         if (obj.caption) {
-                            result['caption'] = obj.caption;
+                            schema.caption(obj.caption);
                         }
 
-                        this.schema.push(result);
-                        this.articleImages.push(this._idref(keystart + subKey));    
+                        this.coll.add(id, schema);
+                        this.articleImages.push(Schema.ref(fullId));
 
                         if (!this.articleImagesByTag[key]) {
                             this.articleImagesByTag[key] = [];
                         }
     
-                        this.articleImagesByTag[key].push(this._idref(keystart + subKey));
+                        this.articleImagesByTag[key].push(Schema.ref(fullId));
                     }
 
                 }
@@ -694,46 +585,44 @@ class ArticleSchema
         this._processArticleImages();
         this._processArticleVideos();
 
-        let type = 'Article';
+        let schema;
         if (this.article.type == 'post') {
-            let type = 'BlogPosting';
+            schema = Schema.blogPosting();
+        } else {
+            schema = Schema.article();
         }
 
-        let result = {
-            '@type': type,
-            '@id': this._id('article'),
-            '@context': ArticleSchema.context,
-            'name': this.article.title,
-            'headline': this.article.headline,
-            'url': this.article.url,
-            'datePublished': this.article.dates.published.iso,
-            'dateModified': this.article.dates.modified.iso,
-            'mainEntityOfPage': this._idref('webpage'),
-            'publisher': this._idref('publisher'),
-        }
+        schema.id(path.sep + '#article')
+            .name(this.article.title)
+            .headline(this.article.headline)
+            .url(this.article.url)
+            .datePublished(this.article.dates.published.iso)
+            .dateModified(this.article.dates.modified.iso)
+            .mainEntityOfPage(Schema.ref(path.sep + '#webpage'))
+            .publisher(Schema.ref(path.sep + '#publisher'));
+
 
         if (this.article.description) {
-            result['description'] = this.article.description;
+            schema.description(this.article.description);
         }
 
         if (this.article.author) {
-            //syslog.inspect(this.article.author);
             let auths = [];
             for (let key of this.article.author) {
-                auths.push(this._idref('author-' + key.slugify()));
+                auths.push(Schema.ref(path.sep + '#author-' + key.slugify()));
             }
-            result['author'] = auths;
+            schema.author(auths);
         }
 
         if (this.articleImages) {
-            result['image'] = this.articleImages;
+            schema.image(this.articleImages);
         }
 
         if (this.articleVideos) {
-            result['video'] = this.articleVideos;
+            schema.video(this.articleVideos);
         }
 
-        this.schema.push(result);
+        this.coll.add('article', schema);
     }
 
     /**
@@ -741,21 +630,18 @@ class ArticleSchema
      */
     _processWebpage()
     {
-        let result = {
-            '@type': 'WebPage',
-            '@id': this._id('webpage'),
-            '@context': ArticleSchema.context,
-            'name': this.article.title,
-            'url': this.article.url,
-            'isPartOf': this._idref('website'),
-            'breadcrumb': this._idref('breadcrumb'),
-        }
+        let schema = Schema.webPage(path.sep + '#webpage')
+            .name(this.article.title)
+            .url(this.article.url)
+            .isPartOf(Schema.ref(path.sep + '#website'))
+            .breadcrumb(Schema.ref(path.sep + '#breadcrumb'));
+
 
         if (this.article.description) {
-            result['description'] = this.article.description;
+            schema.description(this.article.description);
         }
 
-        this.schema.push(result);
+        this.coll.add('webpage', schema);
     }
 
     /**
@@ -763,13 +649,10 @@ class ArticleSchema
      */
     _processBreadcrumbs()
     {
-        let result = {
-            '@type': 'BreadcrumbList',
-            '@id': this._id('breadcrumb'),
-            '@context': ArticleSchema.context,
-            'name': this.article.title,
-            'itemListElement': [],
-        }
+        let schema = Schema.breadcrumbList(path.sep + '#breadcrumb')
+            .name(this.article.title);
+
+        let items = [];
 
         let bcSpec;
 
@@ -789,6 +672,9 @@ class ArticleSchema
         let pos = 1;
 
         for (let part of bcSpec) {
+
+            let item = Schema.listItem().position(pos);
+
             let extra = null;
             if (part.includes('|')) {
                 let sp = part.split('|');
@@ -798,56 +684,26 @@ class ArticleSchema
 
             switch (part) {
                 case ':home':
-                    result.itemListElement.push({
-                        '@type': 'ListItem',
-                        'item': {
-                            '@id': '/',
-                            '@type': 'WebPage',
-                            'name': 'Home',
-                        },
-                        'position': pos
-                    });
+                
+                    item.item(Schema.webPage().name('Home').id(path.sep));
                     pos++;
                     break;
 
                 case ':fn':
-                    result.itemListElement.push({
-                        '@type': 'ListItem',
-                        'item': {
-                            '@id': this.article.url,
-                            '@type': 'WebPage',
-                            'name': this.article.title,
-                        },
-                        'position': pos
-                    });
+                    item.item(Schema.webPage().name(this.article.title).id(this.article.url));
                     pos++;
                     break;
 
                 case ':path':
                     if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
-                        result.itemListElement.push({
-                            '@type': 'ListItem',
-                            'item': {
-                                '@id': path.join(path.sep, this.article.dirname),
-                                '@type': 'WebPage',
-                                'name': this.article.dirname.trimChar(path.sep).ucfirst(),
-                            },
-                            'position': pos
-                        });
+                        item.item(Schema.webPage().name(this.article.dirname.trimChar(path.sep).ucfirst())
+                            .id(path.join(path.sep, this.article.dirname, path.sep)));
                         pos++;
                     }
                     break;
     
                 case ':taxtype':
-                    result.itemListElement.push({
-                        '@type': 'ListItem',
-                        'item': {
-                            '@id': path.join('/', extra, '/'),
-                            '@type': 'WebPage',
-                            'name': extra.ucfirst(),
-                        },
-                        'position': pos
-                    });
+                    item.item(Schema.webPage().name(extra.ucfirst()).id(path.join(path.sep, extra, path.sep)));
                     pos++;
 
                 default:
@@ -858,23 +714,20 @@ class ArticleSchema
                                 let num = parseInt(sp[1]);
                                 let taxType = sp[0].slice(1);
                                 let tax = this.article[taxType][num];
-                                result.itemListElement.push({
-                                    '@type': 'ListItem',
-                                    'item': {
-                                        '@id': path.join('/', taxType, tax.slugify()),
-                                        '@type': 'WebPage',
-                                        'name': tax,
-                                    },
-                                    'position': pos
-                                });
+                                item.item(Schema.webPage().name(tax)
+                                    .id(path.join(path.sep, taxType, tax.slugify(), path.sep)));
                                 pos++;
                             }
                         }
                     }
             }
+
+            items.push(item);
         }
 
-        this.schema.push(result);
+        schema.itemListElement(items);
+
+        this.coll.add('breadcrumb', schema);
     }
 
     /**
@@ -882,28 +735,24 @@ class ArticleSchema
      */
     _processWebsite()
     {
-        let result = {
-            '@type': 'WebSite',
-            '@id': this._id('website'),
-            '@context': ArticleSchema.context,
-            'name': this.cfg.site.title,
-            'url': '/',
-        }
+        let schema = Schema.webSite(path.sep + '#website')
+            .name(this.cfg.site.name)
+            .url(path.sep);
 
         if (this.cfg.site.description) {
-            result['description'] = this.cfg.site.description;
+            schema.description(this.cfg.site.description);
         }
 
         if (this.cfg.site.publisher.logo) {
-            result['image'] = this.cfg.site.publisher.logo;
+            schema.image(Schema.imageObject().url(this._getImageUrls(this.cfg.site.publisher.logo)));
         }
 
         if (this.cfg.site.keywords) {
-            result['keywords'] = this.cfg.site.keywords;
+            schema.keywords(this.cfg.site.keywords);
         }
 
-        this.schema.push(result);
-    }
+        this.coll.add('website', schema);
+}
 
     /**
      * Process the authors.
@@ -919,24 +768,22 @@ class ArticleSchema
         for (let authorKey in spec) {
             let authorObj = spec[authorKey];
 
-            let result = {
-                '@type': 'Person',
-                '@id': this._id('author-' + authorKey.slugify()),
-                '@context': ArticleSchema.context,
-            }
+            let id = 'author-' + authorKey.slugify();
+
+            let schema = Schema.person(path.sep + '#' + id)
 
             for (let key of ['name', 'url']) {
                 if (authorObj[key]) {
-                    result[key] = authorObj[key]
+                    schema.setProp(key, authorObj[key]);
                 }
             } 
 
             if (authorObj['image']) {
-                result['image'] = this._getImageUrls(authorObj['image']);
+                schema.image(Schema.imageObject().url(this._getImageUrls(authorObj['image'])));
             }
 
-            this.schema.push(result);
-            
+            this.coll.add(id, schema);
+                
         }
     }
 
@@ -951,30 +798,19 @@ class ArticleSchema
 
         let spec = this.cfg.site.publisher;
 
-        let result = {
-            '@type': (spec.type && spec.type == 'person') ? 'Person' : 'Organization',
-            '@id': this._id('publisher'),
-            '@context': ArticleSchema.context,
-        }
+        let schema = Schema.organization(path.sep + '#publisher');
 
         for (let key of ['name', 'url']) {
             if (spec[key]) {
-                result[key] = spec[key];
+                schema.setProp(key, spec[key]);
             }
         }
 
         if (spec.logo) {
-            if (spec.type && spec.type == 'person') {
-                result['image'] = this._getImageUrls(spec['logo']);
-            } else {
-                result['logo'] = {
-                    '@type': 'ImageObject',
-                    'url': this._getImageUrls(spec['logo'])
-                }
-            }
+            schema.logo(Schema.imageObject().url(this._getImageUrls(spec.logo)));
         }
 
-        this.schema.push(result);
+        this.coll.add('publisher', schema);
     }
 
     /**
@@ -982,6 +818,8 @@ class ArticleSchema
      */
     parse()
     {
+        BaseType.setAddContext(false);
+
         this._processPublisher();
         this._processAuthors();
         this._processWebsite();

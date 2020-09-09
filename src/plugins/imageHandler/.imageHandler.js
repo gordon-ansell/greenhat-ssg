@@ -214,13 +214,44 @@ async function afterArticleParserRun(article)
  * @param   {string}            url     Key URL to get complete URLs for.
  * @return  {string|string[]}           All URLs. 
  */
-async function getImageUrls(url)
+function getImageUrls(url)
 {
     if (!this.images.has(url)) {
         syslog.warning(`No image object found for '${url}'.`);
         return url;
     }
-    return await this.images.get(url).allUrls();
+    return this.images.get(url).allUrls();
+}
+
+/**
+ * See if we have an image object.
+ * 
+ * @param   {object}            ctx     Context.
+ * @param   {string}            url     Key URL to test.
+ * @return  {boolean}                   True if we have it. 
+ */
+function hasImage(url)
+{
+    if (!this.images.has(url)) {
+        false;
+    }
+    return true;
+}
+
+/**
+ * Get an the image object.
+ * 
+ * @param   {object}            ctx     Context.
+ * @param   {string}            url     Key URL to get object for.
+ * @return  {object}                    Image object. 
+ */
+function getImage(url)
+{
+    if (!this.images.has(url)) {
+        syslog.warning(`No image object found for '${url}'.`);
+        return url;
+    }
+    return this.images.get(url);
 }
 
 /**
@@ -253,6 +284,8 @@ module.exports.init = ctx => {
 
     // Callable.
     ctx.addContextCallable(getImageUrls);
+    ctx.addContextCallable(getImage);
+    ctx.addContextCallable(hasImage);
 
     // Set up event responses.
     ctx.on('BEFORE_PARSE_EARLY', beforeParseEarly);
