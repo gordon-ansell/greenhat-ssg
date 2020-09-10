@@ -40,43 +40,11 @@ const Place = require('./objects/place');
 const MusicGroup = require("./objects/musicGroup");
 const HowTo = require("./objects/howTo");
 const HowToStep = require("./objects/howToStep");
+const BaseType = require("./baseType");
+const { syslog } = require("greenhat-util/syslog");
 
 class Schema
 {
-    /**
-     * Validate schema.
-     * 
-     * @param   {object}    defs    Definitions to validate.
-     * @return
-     */
-    static validate(defs)
-    {
-        if (!Array.isArray(defs)) {
-            defs = [defs];
-        }
-        for (let key in defs) {
-            Schema.validateWork(key, defs[key]);                
-        }
-
-    }
-
-    static validateWork(pref, defs) 
-    {
-        let [result, msgs] = defs.check(pref);
-        if (!result) {
-            for (let msg of msgs) {
-                syslog.error(msg);
-            }
-        }
-
-        for (let key in defs.defs) {
-            if (defs[key] instanceof Thing) {
-                syslog.info(pref + ':' + key);
-                Schema.validateWork(pref + ':' + key, defs.defs[key]);
-            }
-        }
-    }
-
     /**
      * Create a reference.
      * 

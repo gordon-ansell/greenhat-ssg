@@ -446,7 +446,7 @@ class SSG
                     try {
                         await this.ctx.cfg.parsers[ext].call(this.ctx, file);
                     } catch (err) {
-                        errs.push(err);
+                        errs.push([err, file]);
                     }
                     this.ctx.filesProcessed.push(file);
                 }
@@ -456,11 +456,11 @@ class SSG
                 if (this.ctx.cfg.site.showAllErrors && this.ctx.cfg.site.showAllErrors == true) {
                     syslog.error(`${errs.length} errors encountered in parse. Here they are:`);
                     for (let err of errs) {
-                        syslog.error(err.message);
+                        syslog.inspect(err[0], "error", err[0].message + ', processing file: ' + err[1]);
                     }
                 } else {
                     syslog.error(`${errs.length} errors encountered in parse. Here's the first:`);
-                    syslog.error(errs[0].message);
+                    syslog.inspect(errs[0][0], "error", errs[0][0].message + ', processing file: ' + errs[0][1]);
                 }
             }
     
@@ -521,7 +521,7 @@ class SSG
                 try {
                     await this.ctx.cfg.renderers[ext].call(this.ctx, item.obj);
                 } catch (err) {
-                    errs.push(err);
+                    errs.push([err, item.relPath]);
                 }
             } else {
                 syslog.warning(`No renderer found for extenstion '${ext}'.`);
@@ -532,11 +532,11 @@ class SSG
             if (this.ctx.cfg.site.showAllErrors && this.ctx.cfg.site.showAllErrors == true) {
                 syslog.error(`${errs.length} errors encountered in render. Here they are:`);
                 for (let err of errs) {
-                    syslog.error(err.message);
+                    syslog.inspect(err[0], "error", err[0].message + ', processing: ' + err[1]);
                 }
             } else {
                 syslog.error(`${errs.length} errors encountered in render. Here's the first:`);
-                syslog.error(errs[0].message);
+                syslog.inspect(errs[0][0], "error", errs[0][0].message + ', processing: ' + errs[0][1]);
             }
         }
 

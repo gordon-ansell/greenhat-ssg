@@ -623,6 +623,8 @@ class ArticleSchema
         }
 
         this.coll.add('article', schema);
+
+        schema.check(this.article.relPath);
     }
 
     /**

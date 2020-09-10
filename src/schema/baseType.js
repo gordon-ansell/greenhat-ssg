@@ -8,6 +8,8 @@
 
 'use strict';
 
+const { syslog } = require("greenhat-util/syslog");
+
 class BaseType
 {
     // Properties.
@@ -18,6 +20,18 @@ class BaseType
 
     // Context.
     static context = 'https://schema.org';
+
+    // Checks.
+    static checks = {
+        Article: {
+            compulsory: ['name', 'url', 'datePublished', 'headline', 'url'],
+            recommended: ['image', 'dateModified', 'author', 'publisher'],
+        },
+        BlogPosting: {
+            compulsory: ['name', 'url', 'datePublished', 'headline', 'url'],
+            recommended: ['image', 'dateModified', 'author', 'publisher'],
+        },
+    }
 
     /**
      * Constructor.
@@ -160,33 +174,46 @@ class BaseType
      * Check the schema.
      * 
      * @param   {string}        pref    Message prefix.
-     * @return  {array}                 [status, errors, advisories]. 
+     * @return  {number}                0: ok, 1 has advs, 2, has errs, 3 has both. 
      */
     check(pref = '')
     {
-        let ret = true;
-        let errs = [];
+        let ret = 0;
 
-        if (this.comp) {
-            for (let field of this.comp) {
-                if (!this.hasProp(field)) {
-                    errs.push(`[${pref}] Schema type '${this.constructor.name}' must have a '${field}' defined.`);
-                    ret = false;
-                }
-            }
+        let checks = null;
+
+        if (BaseType.checks[this.constructor.name]) {
+            checks = BaseType.checks[this.constructor.name];
+        } else {
+            return 0;
         }
 
-        let advs = [];
-
-        if (this.rec) {
-            for (let field of this.rec) {
+        if (checks.recommended) {
+            let has = false;
+            for (let field of checks.recommended) {
                 if (!this.hasProp(field)) {
-                    advs.push(`[${pref}] Field '${field}' is recommende for schema type '${this.constructor.name}'.`);
+                    syslog.advice(`[${pref}] Field '${field}' is recommended for schema type '${this.constructor.name}'.`);
+                    has = true;
                 }
             }
+            if (has) ret + 1;
         }
 
-        return [ret, errs, advs];
+        this.errs = [];
+
+        if (checks.compulsory) {
+            let has = false;
+            for (let field of checks.compulsory) {
+                if (!this.hasProp(field)) {
+                    syslog.error(`[${pref}] Schema type '${this.constructor.name}' must have a '${field}' defined.`);
+                    has = true;
+                }
+            }
+            if (has) ret += 2;
+        }
+
+
+        return ret;
     }
 }
 
