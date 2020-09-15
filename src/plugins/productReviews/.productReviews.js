@@ -7,7 +7,7 @@
 
 'use strict';
 
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 const ProductReviewProcessor = require("./productReviewProcessor");
 
 /**

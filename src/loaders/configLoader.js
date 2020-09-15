@@ -8,11 +8,9 @@
 
 'use strict';
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const BaseLoader = require("./baseLoader");
 const path = require("path");
-require('greenhat-util/object');
-require('greenhat-util/array');
 
 /**
  * Config loader class.

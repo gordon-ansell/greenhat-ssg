@@ -10,7 +10,8 @@
 
 const Html = require("greenhat-util/html");
 const path = require('path');
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
+const str = require("greenhat-util/string");
 
 /**
  * Taxonomy.
@@ -89,7 +90,7 @@ class Taxonomy
     getLink()
     {
         let html = new Html('a');
-        let url = path.join(path.sep, this.type, this.name.slugify(), path.sep);
+        let url = path.join(path.sep, this.type, str.slugify(this.name), path.sep);
         html.addParam('href', url);
         return html.resolve(this.name);
     }

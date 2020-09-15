@@ -5,7 +5,7 @@
  * @license     MIT
  */
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const Html = require("greenhat-util/html");
 const GreenHatSSGError = require('../../ssgError');
 

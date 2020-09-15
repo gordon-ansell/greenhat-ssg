@@ -10,7 +10,7 @@
 
 const fs = require('fs');
 const ghfs = require("greenhat-util/fs");
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 const { mkdirRecurse } = require("greenhat-util/fs");
 const path = require('path');
 const NunjucksTemplate = require("../../template/nunjucksTemplate");

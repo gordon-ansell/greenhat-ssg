@@ -8,11 +8,12 @@
 
 'use strict';
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const path = require('path');
 const fs = require('fs');
 const { mkdirRecurse } = require("greenhat-util/fs");
 const GreenHatSSGError = require("./ssgError");
+const str = require("greenhat-util/string");
 
 /**
  * Pagination class.
@@ -120,15 +121,15 @@ class Paginate
             let end = start + this.articlesPerPage - 1;
 
             let fileData = dummy;
-            fileData = fileData.replaceAll('-page-', page)
-                .replaceAll('-title-', this.ctx.cfg.site.title)
-                .replaceAll('-description-', this.ctx.cfg.site.description)
-                .replaceAll('-start-', start)
-                .replaceAll('-end-', end);
+            fileData = str.replaceAll(fileData, '-page-', page);
+            fileData = str.replaceAll(fileData, '-title-', this.ctx.cfg.site.title);
+            fileData = str.replaceAll(fileData, '-description-', this.ctx.cfg.site.description);
+            fileData = str.replaceAll(fileData, '-start-', start);
+            fileData = str.replaceAll(fileData, '-end-', end);
 
             // Define a file name and write to it.
             let fileName = path.join(this.ctx.sitePath, this.ctx.cfg.locations.temp, 
-                'dummy', String(page).slugify() + '.html');
+                'dummy', str.slugify(String(page)) + '.html');
             let dir = path.dirname(fileName);
             if (!fs.existsSync(dir)) {
                 mkdirRecurse(dir);

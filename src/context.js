@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const EventManager = require('greenhat-util/event');
 const GreenHatSSGError = require('./ssgError');
 const Html = require("greenhat-util/html");
@@ -16,8 +16,7 @@ const path = require('path');
 const urlp = require("url");
 const dateformat = require("dateformat");
 const fs = require('fs');
-
-require("greenhat-util/array");
+const arr = require("greenhat-util/array");
 
 class GreenHatSSGContextError extends GreenHatSSGError {}
 
@@ -240,7 +239,7 @@ class Context extends EventManager
     setExtensionParser(exts, parser)
     {
         let saved = null;
-        exts = Array.makeArray(exts);
+        exts = arr.makeArray(exts);
         for (let ext of exts) {
             if (typeof parser != 'function') {
                 syslog.error(`Invalid parser for extension '${ext}'. It will be ignored.`);
@@ -269,7 +268,7 @@ class Context extends EventManager
     setExtensionRenderer(exts, renderer)
     {
         let saved = null;
-        exts = Array.makeArray(exts);
+        exts = arr.makeArray(exts);
         for (let ext of exts) {
             if (typeof renderer != 'function') {
                 syslog.error(`Invalid renderer for extension '${ext}'. It will be ignored.`);

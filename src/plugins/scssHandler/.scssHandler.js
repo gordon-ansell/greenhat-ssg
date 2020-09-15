@@ -5,7 +5,7 @@
  * @license     MIT
  */
 
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 const GreenHatError = require("greenhat-util/error");
 const sass = require('node-sass');
 const postcss = require('postcss');

@@ -10,7 +10,7 @@
 
 const showdown = require('showdown');
 const striptags = require("striptags");
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 
 /**
  * Article content object.

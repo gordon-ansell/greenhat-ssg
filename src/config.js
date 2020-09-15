@@ -9,9 +9,9 @@
 'use strict';
 
 const YamlFile = require("greenhat-util/yaml");
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const path = require('path');
-require('greenhat-util/object');
+const { merge } = require("greenhat-util/merge");
 
 /**
  * Config class.
@@ -100,23 +100,22 @@ class Config
             orig = {...this};
         }
 
-        for (let key in data) {
-            //this[key] = Object.merge(this[key], data[key]);
-            if (!this[key]) {
-                this[key] = data[key];
-            } else if (this.isLiteral(data[key])) {
-                this[key] = data[key];
-            } else if (Array.isArray(data[key]) && data[key].length > 0) {
-                this[key] = Object.merge(this[key], data[key]);
-                this[key] = [... new Set(this[key])];
-            } else {
-                this[key] = Object.merge(this[key], data[key]);
-            }
-        }        
+        let props = Object.getOwnPropertyNames(this);
+        let tmp = {};
+        for (let key of props) {
+            tmp[key] = this[key];
+        }
+
+        let merged = merge(tmp, data);
 
         if (preserve) {
-            this.merge(orig);
+            merged = merge(merged, orig);
         }
+
+        for (let key in merged) {
+            this[key] = merged[key];
+        } 
+
     }
 
     /**
@@ -134,26 +133,15 @@ class Config
         }
 
         if (!this[sect]) {
-            this[sect] = {};
+            this[sect] = data;
+        } else {
+            this[sect] = merge(this[sect], data);
         }
-
-        for (let key in data) {
-            //this[sect][key] = Object.merge(this[sect][key], data[key]);
-            if (!this[sect][key]) {
-                this[sect][key] = data[key];
-            } else if (this.isLiteral(data[key])) {
-                this[sect][key] = data[key];
-            } else if (Array.isArray(data[key]) && data[key].length > 0) {
-                this[sect][key] = Object.merge(this[sect][key], data[key]);
-                this[sect][key] = [... new Set(this[sect][key])];
-            } else {
-                this[sect][key] = Object.merge(this[sect][key], data[key]);
-            }
-        }        
 
         if (preserve) {
-            this.mergeSect(sect, orig);
+            this[sect] = merge(this[sect], orig);
         }
+
     }
 }
 

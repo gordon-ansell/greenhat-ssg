@@ -10,8 +10,8 @@
 
 const fs = require('fs');
 const ghfs = require("greenhat-util/fs");
-const { syslog } = require('greenhat-util/syslog');
-require("greenhat-util/array");
+const syslog = require('greenhat-util/syslog');
+const arr = require("greenhat-util/array");
 
 /**
  * Base loader class.
@@ -35,7 +35,7 @@ class BaseLoader
      */
     constructor(paths, ctx, absPath, fspOpts = {})
     {
-        this.#paths = Array.makeArray(paths);
+        this.#paths = arr.makeArray(paths);
         this.#absPath = absPath;
         this.#fspOpts = fspOpts;
         this.ctx = ctx;
@@ -56,7 +56,7 @@ class BaseLoader
             let fsp = new ghfs.FsParser(path, this.#absPath, this.#fspOpts);
             let files = await fsp.parse();
             
-            if (files.isEmpty()) {
+            if (arr.isEmpty(files)) {
                 continue;
             }
 

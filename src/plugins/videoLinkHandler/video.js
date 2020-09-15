@@ -7,7 +7,8 @@
  */
 
 const Html = require("greenhat-util/html");
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
+const str = require("greenhat-util/string");
 
 /**
  * Video link class.
@@ -38,10 +39,10 @@ class Video
         }
 
         for (let item in spec.types[this.type].urls) {
-            this[item] = spec.types[this.type].urls[item]
-                .replaceAll('[[TAG]]', this.tag)
-                .replaceAll('[[SECTION]]', this.section)
-                .replaceAll('[[URL]]', this.url);
+            this[item] = spec.types[this.type].urls[item];
+            this[item] = str.replaceAll(this[item], '[[TAG]]', this.tag);
+            this[item] = str.replaceAll(this[item], '[[SECTION]]', this.section);
+            this[item] = str.replaceAll(this[item], '[[URL]]', this.url);
         }
 
         /*

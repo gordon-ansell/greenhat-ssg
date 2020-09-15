@@ -10,7 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const sanitizeHTML = require('sanitize-html');
 const wmsend = require('send-webmention')
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const { mkdirRecurse } = require('greenhat-util/fs');
 const GreenHatSSGError = require("../../ssgError");
 

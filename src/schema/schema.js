@@ -41,7 +41,7 @@ const MusicGroup = require("./objects/musicGroup");
 const HowTo = require("./objects/howTo");
 const HowToStep = require("./objects/howToStep");
 const BaseType = require("./baseType");
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 
 class Schema
 {

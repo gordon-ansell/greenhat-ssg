@@ -5,9 +5,10 @@
  * @license     MIT
  */
 
- const { syslog } = require('greenhat-util/syslog');
+ const syslog = require('greenhat-util/syslog');
  const Html = require('greenhat-util/html');
  const path = require('path');
+ const str = require("greenhat-util/string")
 
 /**
  * Get the social share links.
@@ -42,16 +43,16 @@ function getSocialShareLinks(ctx, article)
 
         let link = spec.linkDefs[item];
 
-        link = link.replaceAll('[URL]', ctx.qualify(article.url))
-            .replaceAll('[TITLE]', encodeURI(article.title))
-            .replaceAll('[WSURL]', escape(ctx.qualify('/')))
-            .replaceAll('[WSTITLE]', encodeURI(ctx.cfg.site.title));
+        link = str.replaceAll(link, '[URL]', ctx.qualify(article.url));
+        link = str.replaceAll(link, '[TITLE]', encodeURI(article.title));
+        link = str.replaceAll(link, '[WSURL]', escape(ctx.qualify('/')));
+        link = str.replaceAll(link, '[WSTITLE]', encodeURI(ctx.cfg.site.title));
 
         if (item == 'email') {
             if (!ctx.cfg.site.publisher.email) {
                 syslog.warning("Publisher email is requited for 'email' share.");
             } else {
-                link = link.replaceAll('[EMAIL]', ctx.cfg.site.publisher.email);
+                link = str.replaceAll(link, '[EMAIL]', ctx.cfg.site.publisher.email);
             }
         }
 

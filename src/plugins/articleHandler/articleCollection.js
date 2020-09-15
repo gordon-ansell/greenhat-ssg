@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const Collection = require("../../collection");
 
 /**

@@ -5,7 +5,7 @@
  * @license     MIT
  */
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const path = require('path');
 const Image = require('./image');
 const md5 = require('md5');

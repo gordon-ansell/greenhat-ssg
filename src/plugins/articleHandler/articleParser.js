@@ -10,7 +10,7 @@
 
 const fs = require('fs');
 const ghfs = require("greenhat-util/fs");
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 const Article = require('./article');
 const YamlFile = require('greenhat-util/yaml');
 const path = require('path');
@@ -22,8 +22,9 @@ const ArticleCollection = require("./articleCollection");
 const Taxonomy = require('../../taxonomy');
 const TaxonomyType = require('../../taxonomyType');
 const ArticleSchema = require('./parts/articleSchema');
-require("greenhat-util/object");
-require("greenhat-util/array");
+const { merge } = require("greenhat-util/merge");
+const arr = require("greenhat-util/array");
+const str = require("greenhat-util/string");
 
 class GreenHatSSGArticleError extends GreenHatSSGError {}
 
@@ -192,11 +193,11 @@ class ArticleParser
         let words = 0;
         
         if (this.article.content && this.article.content.text) {
-            words += this.article.content.text.countWords();
+            words += str.countWords(this.article.content.text);
         }
 
         if (this.article.summary && this.article.summary.text) {
-            words += this.article.summary.text.countWords();
+            words += str.countWords(this.article.summary.text);
         }
 
         this.article.words = words;
@@ -246,7 +247,7 @@ class ArticleParser
                     let h1 = new Html('a');
                     h1.addParam('href', '/');
                     if (final != '') final += sep;
-                    final += h1.resolve(this.ctx.x('home').ucfirst());
+                    final += h1.resolve(str.ucfirst(this.ctx.x('home')));
                     break;
                 case ':fn':
                     if (final != '') final += sep;
@@ -257,14 +258,14 @@ class ArticleParser
                         let h2 = new Html('a');
                         h2.addParam('href', path.join(path.sep, this.article.dirname));
                         if (final != '') final += sep;
-                         final += h2.resolve(this.article.dirname.trimChar(path.sep).ucfirst());
+                         final += h2.resolve(str.ucfirst(str.trimChar(this.article.dirname, path.sep)));
                     }
                     break;
                 case ':taxtype':
                     if (final != '') final += sep;
                     let h4 = new Html('a');
                     h4.addParam('href', path.join('/', extra, '/'));
-                    final += h4.resolve(extra.ucfirst());
+                    final += h4.resolve(str.ucfirst(extra));
                     break;
                 default:
                     if (final != '') final += sep;
@@ -278,7 +279,7 @@ class ArticleParser
                                 let taxType = sp[0].slice(1);
                                 let tax = this.article[taxType][num];
                                 let h3 = new Html('a');
-                                h3.addParam('href', path.join('/', taxType, tax.slugify()));
+                                h3.addParam('href', path.join('/', taxType, str.slugify(tax)));
                                 final += h3.resolve(tax); 
                             } else {
                                 final += chunk;
@@ -433,7 +434,7 @@ class ArticleParser
     _processExcerpt()
     {
         if (!this.article.excerpt || this.article.excerpt.text == '') {
-            this.article.excerpt = new ArticleContent(this.article.content.text.truncate(100), this.article.relPath);
+            this.article.excerpt = new ArticleContent(str.truncate(this.article.content.text, 100), this.article.relPath);
         }
         if (!this.article.excerptRss || this.article.excerptRss.text == '') {
             this.article.excerptRss = {...this.article.excerpt};
@@ -476,7 +477,7 @@ class ArticleParser
         if (this.article.headline) {
             this.article.title = this.article.headline;
         } else {
-            this.article.title = this.article.baseop.deslugify().ucfirst();
+            this.article.title = str.ucfirst(str.deslugify(this.article.baseop));
         }
     }
 
@@ -495,7 +496,7 @@ class ArticleParser
             return;
         }
 
-        this.article.author = Array.makeArray(this.article.author);
+        this.article.author = arr.makeArray(this.article.author);
 
         let authObjs = [];
 
@@ -850,8 +851,10 @@ class ArticleParser
 
         // Merge all the data.
         let finalData = defCfg;
-        finalData = Object.merge(finalData, layoutData);
-        finalData = Object.merge(finalData, data);
+        //finalData = Object.merge(finalData, layoutData);
+        //finalData = Object.merge(finalData, data);
+        finalData = merge(finalData, layoutData);
+        finalData = merge(finalData, data);
 
         return finalData;
     }

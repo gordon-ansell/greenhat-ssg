@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const pkg = require("../package.json");
 const Context = require("./context");
 const path = require('path');
@@ -18,8 +18,6 @@ const DataLoader = require("./loaders/dataLoader")
 const PluginLoader = require("./loaders/pluginLoader")
 const ghfs = require("greenhat-util/fs");
 const Config = require("./config");
-require('greenhat-util/object');
-require('greenhat-util/array');
 const GreenHatSSGError = require("./ssgError")
 const { deleteFolderRecursive, cleanDir, copyFile } = require('greenhat-util/fs');
 const XLator = require("greenhat-util/xlate");
@@ -100,6 +98,7 @@ class SSG
     {
         syslog.notice("*** Initialising. ***");
         await this._loadConfigs();
+        //syslog.inspect(this.ctx.cfg);
 
         if (this.ctx.cfg.site.traceKeys) {
             syslog.setTraceKeys(this.ctx.cfg.site.traceKeys);
@@ -120,6 +119,7 @@ class SSG
         if (this.ctx.cfg.cfgChk) {
             this._checkConfig(this.ctx.cfg.cfgChk, this.ctx.cfg, []);
         }
+
 
         this._loadTranslations();
 

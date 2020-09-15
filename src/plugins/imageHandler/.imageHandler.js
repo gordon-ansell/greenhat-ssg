@@ -7,7 +7,7 @@
 
 'use strict';
 
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 const ImageParser = require('./imageParser');
 const ImagePrerenderer = require('./imagePrerenderer');
 const path = require('path');

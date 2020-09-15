@@ -8,9 +8,10 @@
 
 'use strict';
 
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 const Duration = require("greenhat-util/duration");
-require("greenhat-util/array");
+const arr = require("greenhat-util/array");
+const str = require("greenhat-util/string");
 
 /**
  * Product review processing class.
@@ -169,7 +170,7 @@ class ProductReviewProcessor
 
             if (this.ctx.cfg.reviewSpec.ratings.alts && this.ctx.cfg.reviewSpec.ratings.alts[rev.rating]) {
                 let rs = this.ctx.cfg.reviewSpec.ratings.alts[rev.rating];
-                let cls = 'rating-string ' + rs.slugify();
+                let cls = 'rating-string ' + str.slugify(rs);
                 rev.ratingStr += ': <span class="' + cls + '">' + rs + '</span>';
             }
 
@@ -263,7 +264,7 @@ class ProductReviewProcessor
     
                     // Category.
                     if (prod.category) {
-                        prod.category = Array.makeArray(prod.category);
+                        prod.category = arr.makeArray(prod.category);
                         prod.categoryStr = prod.category.join(", ");
                     }
     
@@ -271,12 +272,12 @@ class ProductReviewProcessor
                     if (prod.type == 'SoftwareApplication') {
                         // OS.
                         if (prod.os) {
-                            prod.os = Array.makeArray(prod.os);
+                            prod.os = arr.makeArray(prod.os);
                             prod.osStr = prod.os.join(", ");
                         }
                         // Version.
                         if (prod.version) {
-                            prod.version = Array.makeArray(prod.version);
+                            prod.version = arr.makeArray(prod.version);
                             prod.versionStr = prod.version.join(", ");
                         }
                     }
@@ -304,7 +305,7 @@ class ProductReviewProcessor
     
                         // Same as.
                         if (prod.sameAs) {
-                            prod.sameAs = Array.makeArray(prod.sameAs);
+                            prod.sameAs = arr.makeArray(prod.sameAs);
                             let str = '';
                             for (let item of prod.sameAs) {
                                 if (item.includes('imdb.com')) {

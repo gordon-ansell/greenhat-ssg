@@ -8,15 +8,15 @@
 
 'use strict';
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const path = require('path');
 const Duration = require("greenhat-util/duration");
 const Schema = require("../../../schema/schema");
 const SchemaCollection = require("../../../schema/schemaCollection");
 const CreativeWork = require("../../../schema/objects/creativeWork");
 const BaseType = require("../../../schema/baseType");
-require("greenhat-util/string");
-require("greenhat-util/object");
+const str = require("greenhat-util/string");
+const { merge } = require("greenhat-util/merge");
 
 /**
  * Article schema class.
@@ -150,7 +150,7 @@ class ArticleSchema
                 if (this.article.author) {
                     let auths = [];
                     for (let key of this.article.author) {
-                        auths.push(Schema.ref('author-' + key.slugify()));
+                        auths.push(Schema.ref('author-' + str.slugify(key)));
                     }
                     schema.author(auths);
                 }
@@ -187,7 +187,7 @@ class ArticleSchema
                 if (t.startsWith('TV')) {
                     t = 'tv' + t.substring(2);
                 } else {
-                    t = t.lcfirst();
+                    t = str.lcfirst(t);
                 }
 
                 let schema = Schema[t](fullId).name(prod.name);
@@ -320,7 +320,8 @@ class ArticleSchema
                 if (prod.images) {
                     let imgs = [];
                     for (let ikey of prod.images) {
-                        imgs = Object.merge(imgs, this.articleImagesByTag[ikey]);
+                        //imgs = Object.merge(imgs, this.articleImagesByTag[ikey]);
+                        imgs = merge(imgs, this.articleImagesByTag[ikey]);
                     }
                     schema.image(imgs);
                 } else {
@@ -508,7 +509,7 @@ class ArticleSchema
 
                 if (!imgObj.hasSubimages()) {
 
-                    let id = 'aimg-' + key.slugify();
+                    let id = 'aimg-' + str.slugify(key);
                     let fullId = path.sep + '#' + id;
 
                     let schema = Schema.imageObject(fullId)
@@ -537,7 +538,7 @@ class ArticleSchema
 
                 } else {
 
-                    let keystart = 'aimg-' + key.slugify() + '-';
+                    let keystart = 'aimg-' + str.slugify(key) + '-';
 
                     for (let subKey of imgObj.subs.keys()) {
 
@@ -609,7 +610,7 @@ class ArticleSchema
         if (this.article.author) {
             let auths = [];
             for (let key of this.article.author) {
-                auths.push(Schema.ref(path.sep + '#author-' + key.slugify()));
+                auths.push(Schema.ref(path.sep + '#author-' + str.slugify(key)));
             }
             schema.author(auths);
         }
@@ -698,14 +699,18 @@ class ArticleSchema
 
                 case ':path':
                     if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
-                        item.item(Schema.webPage().name(this.article.dirname.trimChar(path.sep).ucfirst())
+                        item.item(Schema.webPage().name(
+                                str.ucfirst(
+                                    str.trimChar(this.article.dirname,path.sep)
+                                )
+                            )
                             .id(path.join(path.sep, this.article.dirname, path.sep)));
                         pos++;
                     }
                     break;
     
                 case ':taxtype':
-                    item.item(Schema.webPage().name(extra.ucfirst()).id(path.join(path.sep, extra, path.sep)));
+                    item.item(Schema.webPage().name(str.ucfirst(extra)).id(path.join(path.sep, extra, path.sep)));
                     pos++;
 
                 default:
@@ -717,7 +722,7 @@ class ArticleSchema
                                 let taxType = sp[0].slice(1);
                                 let tax = this.article[taxType][num];
                                 item.item(Schema.webPage().name(tax)
-                                    .id(path.join(path.sep, taxType, tax.slugify(), path.sep)));
+                                    .id(path.join(path.sep, taxType, str.slugify(tax), path.sep)));
                                 pos++;
                             }
                         }
@@ -770,7 +775,7 @@ class ArticleSchema
         for (let authorKey in spec) {
             let authorObj = spec[authorKey];
 
-            let id = 'author-' + authorKey.slugify();
+            let id = 'author-' + str.slugify(authorKey);
 
             let schema = Schema.person(path.sep + '#' + id)
 

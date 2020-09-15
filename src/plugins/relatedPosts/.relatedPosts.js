@@ -7,8 +7,8 @@
 
 'use strict';
 
-const { syslog } = require('greenhat-util/syslog');
-require("greenhat-util/array");
+const syslog = require('greenhat-util/syslog');
+const arr = require("greenhat-util/array");
 
 /**
  * Called after all articles parsed.
@@ -29,7 +29,7 @@ async function afterParseLate()
         let article = this.articles.type.post.get(articleKey);
         let newTags = [];
         if (article.tags) {
-            let tags = Array.makeArray(article.tags);
+            let tags = arr.makeArray(article.tags);
             for (let tag of tags) {
                 if (!spec.excludeTaxonomies.includes(tag)) {
                     newTags.push(tag);

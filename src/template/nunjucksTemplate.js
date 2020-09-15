@@ -12,7 +12,7 @@ const BaseTemplate = require('./baseTemplate');
 const nunjucks = require('nunjucks');
 const GreenHatSSGError = require("../ssgError");
 const beautify = require('js-beautify').html;
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 
 class GreenhatSSGTemplateError extends GreenHatSSGError {}
 

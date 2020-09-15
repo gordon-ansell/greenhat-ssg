@@ -10,12 +10,12 @@
 
 const fs = require('fs');
 const ghfs = require("greenhat-util/fs");
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 const Html = require('greenhat-util/html');
-require("greenhat-util/array");
-require("greenhat-util/string");
+const arr = require("greenhat-util/array");
+const str = require("greenhat-util/string");
 const path = require('path');
-require("greenhat-util/object");
+const { merge } = require("greenhat-util/merge");
 
 /**
  * Article object.
@@ -46,17 +46,17 @@ class Article
             type = Object.keys(this.ctx.cfg.taxonomySpec);
         }
 
-        type = Array.makeArray(type);
+        type = arr.makeArray(type);
 
         let retArr = [];
 
         for (let taxType of type) {
             if (this[taxType]) {
-                let tt = Array.makeArray(this[taxType]);
+                let tt = arr.makeArray(this[taxType]);
                 for (let tax of tt) {
                     if (asLinks) {
                         let ts = this.ctx.cfg.taxonomySpec[taxType];
-                        let link = this.ctx.link(tax, path.join(ts.path, tax.slugify()));
+                        let link = this.ctx.link(tax, path.join(ts.path, str.slugify(tax)));
                         retArr.push(link);
                     } else {
                         retArr.push(tax);
@@ -141,7 +141,7 @@ class Article
      */
     getImageUrlsForTags(tags)
     {
-        tags = Array.makeArray(tags);
+        tags = arr.makeArray(tags);
 
         let ret = [];
 
@@ -165,7 +165,8 @@ class Article
 
             let u = this.ctx.images.get(url).allUrls();
 
-            ret = Object.merge(ret, u);
+            ret = merge(ret, u);
+            //ret = Object.merge(ret, u);
         }
 
         return ret;

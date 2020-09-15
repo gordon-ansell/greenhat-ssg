@@ -5,11 +5,11 @@
  * @license     MIT
  */
 
-const { syslog } = require("greenhat-util/syslog");
+const syslog = require("greenhat-util/syslog");
 const path = require('path');
 const fs = require('fs');
 const { mkdirRecurse } = require("greenhat-util/fs");
-require("greenhat-util/string");
+const str = require("greenhat-util/string");
 
 /**
  * Create taxonomy pages.
@@ -37,12 +37,12 @@ async function afterParseLate()
         taxonomyNames.forEach(async taxonomyName => {
             // Set up the dummy file.
             let fileData = dummy;
-            fileData = fileData.replaceAll('-taxonomy-', taxonomyName)
-                .replaceAll('-taxonomyType-', taxType);
+            fileData = str.replaceAll(fileData, '-taxonomy-', taxonomyName)
+            fileData = str.replaceAll(fileData, '-taxonomyType-', taxType);
 
             // Define a file name and write to it.
             let fileName = path.join(this.sitePath, this.cfg.locations.temp, 
-                'taxonomies', taxType, taxonomyName.slugify() + '.html');
+                'taxonomies', taxType, str.slugify(taxonomyName) + '.html');
             let dir = path.dirname(fileName);
             if (!fs.existsSync(dir)) {
                 mkdirRecurse(dir);

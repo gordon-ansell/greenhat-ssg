@@ -5,7 +5,7 @@
  * @license     MIT
  */
 
-const { syslog } = require('greenhat-util/syslog');
+const syslog = require('greenhat-util/syslog');
 const ArticleParser = require('./articleParser');
 const ArticleRenderer = require('./articleRenderer');
 
