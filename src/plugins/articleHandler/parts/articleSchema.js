@@ -11,10 +11,7 @@
 const syslog = require("greenhat-util/syslog");
 const path = require('path');
 const Duration = require("greenhat-util/duration");
-const Schema = require("../../../schema/schema");
-const SchemaCollection = require("../../../schema/schemaCollection");
-const CreativeWork = require("../../../schema/objects/creativeWork");
-const BaseType = require("../../../schema/baseType");
+const { Schema, SchemaCollection, CreativeWork, SchemaBase } = require("greenhat-schema");
 const str = require("greenhat-util/string");
 const { merge } = require("greenhat-util/merge");
 
@@ -133,9 +130,9 @@ class ArticleSchema
                 let prod = this.ctx.products[key];
 
                 let id = 'review-' + key;
-                let fullId = path.sep + '#' + id;
+                //let fullId = path.sep + '#' + id;
 
-                let schema = Schema.review(fullId)
+                let schema = Schema.review(id)
                     .description(rev.description)
                     .name(prod.name)
                     .mainEntityOfPage(Schema.ref(path.sep + '#' + 'article'))
@@ -143,8 +140,8 @@ class ArticleSchema
                     .publisher(Schema.ref(path.sep + '#' + 'publisher'))
                     .reviewRating(Schema.rating()
                         .ratingValue(rev.rating)
-                        .bestRating(rev.bestRating)
-                        .worstRating(rev.worstRating)
+                        .bestRating(rev.bestRating || 5)
+                        .worstRating(rev.worstRating || 0)
                     );
 
                 if (this.article.author) {
@@ -181,7 +178,7 @@ class ArticleSchema
                 let prod = this.article[arr][key];
 
                 let id = 'product-' + key;
-                let fullId = path.sep + '#' + id;
+                //let fullId = path.sep + '#' + id;
 
                 let t = prod.type;
                 if (t.startsWith('TV')) {
@@ -190,7 +187,7 @@ class ArticleSchema
                     t = str.lcfirst(t);
                 }
 
-                let schema = Schema[t](fullId).name(prod.name);
+                let schema = Schema[t](id).name(prod.name);
 
                 // Brand.
                 if (prod.brand) {
@@ -333,7 +330,7 @@ class ArticleSchema
                     if (prod.videos) {
                         let vids = [];
                         for (let key of prod.videos) {
-                            imgs.push(this._idref('avid-' + key));
+                            imgs.push(Schema.ref('avid-' + key));
                         }
                         schema.video(vids);
                     } else {
@@ -357,7 +354,7 @@ class ArticleSchema
                             .reviewCount(rev.reviewCount)
                     );
 
-                    schema.review(Schema.ref(path.sep + '#review-' + key));
+                    schema.review(Schema.ref('review-' + key));
                 }
 
                 // Product numbers.
@@ -448,11 +445,11 @@ class ArticleSchema
             for (let key in this.article[arr]) {
 
                 let id = 'avid-' + key;
-                let fullId = path.sep + '#' + id;
+                //let fullId = path.sep + '#' + id;
 
                 let vidObj = this.article.videoObjs[key];
 
-                let schema = Schema.videoObject(fullId)
+                let schema = Schema.videoObject(id)
                     .name(vidObj.title)
                     .contentUrl(vidObj.contentUrl)
                     .embedUrl(vidObj.embedUrl)
@@ -468,7 +465,7 @@ class ArticleSchema
                 }
 
                 this.coll.add(id, schema);
-                this.articleVideos.push(Schema.ref(fullId));
+                this.articleVideos.push(Schema.ref(id));
 
             }
         }
@@ -510,9 +507,9 @@ class ArticleSchema
                 if (!imgObj.hasSubimages()) {
 
                     let id = 'aimg-' + str.slugify(key);
-                    let fullId = path.sep + '#' + id;
+                    //let fullId = path.sep + '#' + id;
 
-                    let schema = Schema.imageObject(fullId)
+                    let schema = Schema.imageObject(id)
                         .url(imgObj.relPath)
                         .contentUrl(imgObj.relPath)
                         .width(imgObj.width)
@@ -528,13 +525,13 @@ class ArticleSchema
                     }
 
                     this.coll.add(id, schema);
-                    this.articleImages.push(Schema.ref(fullId));
+                    this.articleImages.push(Schema.ref(id));
 
                     if (!this.articleImagesByTag[key]) {
                         this.articleImagesByTag[key] = [];
                     }
 
-                    this.articleImagesByTag[key].push(Schema.ref(fullId));
+                    this.articleImagesByTag[key].push(Schema.ref(id));
 
                 } else {
 
@@ -543,11 +540,11 @@ class ArticleSchema
                     for (let subKey of imgObj.subs.keys()) {
 
                         let id = keystart + subKey;
-                        let fullId = path.sep + '#' + id;
+                        //let fullId = path.sep + '#' + id;
 
                         let subObj = imgObj.subs.get(subKey);
 
-                        let schema = Schema.imageObject(fullId)
+                        let schema = Schema.imageObject(id)
                             .url(subObj.relPath)
                             .contentUrl(subObj.relPath)
                             .width(subObj.width)
@@ -564,13 +561,13 @@ class ArticleSchema
                         }
 
                         this.coll.add(id, schema);
-                        this.articleImages.push(Schema.ref(fullId));
+                        this.articleImages.push(Schema.ref(id));
 
                         if (!this.articleImagesByTag[key]) {
                             this.articleImagesByTag[key] = [];
                         }
     
-                        this.articleImagesByTag[key].push(Schema.ref(fullId));
+                        this.articleImagesByTag[key].push(Schema.ref(id));
                     }
 
                 }
@@ -593,14 +590,15 @@ class ArticleSchema
             schema = Schema.article();
         }
 
-        schema.id(path.sep + '#article')
+        schema.id('article')
+        //schema.id(path.sep + '#article')
             .name(this.article.title)
             .headline(this.article.headline)
             .url(this.article.url)
             .datePublished(this.article.dates.published.iso)
             .dateModified(this.article.dates.modified.iso)
-            .mainEntityOfPage(Schema.ref(path.sep + '#webpage'))
-            .publisher(Schema.ref(path.sep + '#publisher'));
+            .mainEntityOfPage(Schema.ref('webpage'))
+            .publisher(Schema.ref('publisher'));
 
 
         if (this.article.description) {
@@ -610,7 +608,8 @@ class ArticleSchema
         if (this.article.author) {
             let auths = [];
             for (let key of this.article.author) {
-                auths.push(Schema.ref(path.sep + '#author-' + str.slugify(key)));
+                //auths.push(Schema.ref(path.sep + '#author-' + str.slugify(key)));
+                auths.push(Schema.ref('author-' + key));
             }
             schema.author(auths);
         }
@@ -625,7 +624,7 @@ class ArticleSchema
 
         this.coll.add('article', schema);
 
-        schema.check(this.article.relPath);
+        //schema.check(this.article.relPath);
     }
 
     /**
@@ -633,11 +632,11 @@ class ArticleSchema
      */
     _processWebpage()
     {
-        let schema = Schema.webPage(path.sep + '#webpage')
+        let schema = Schema.webPage('webpage')
             .name(this.article.title)
             .url(this.article.url)
-            .isPartOf(Schema.ref(path.sep + '#website'))
-            .breadcrumb(Schema.ref(path.sep + '#breadcrumb'));
+            .isPartOf(Schema.ref('website'))
+            .breadcrumb(Schema.ref('breadcrumb'));
 
 
         if (this.article.description) {
@@ -652,7 +651,7 @@ class ArticleSchema
      */
     _processBreadcrumbs()
     {
-        let schema = Schema.breadcrumbList(path.sep + '#breadcrumb')
+        let schema = Schema.breadcrumbList('breadcrumb')
             .name(this.article.title);
 
         let items = [];
@@ -742,8 +741,8 @@ class ArticleSchema
      */
     _processWebsite()
     {
-        let schema = Schema.webSite(path.sep + '#website')
-            .name(this.cfg.site.name)
+        let schema = Schema.webSite('website')
+            .name(this.cfg.site.title)
             .url(path.sep);
 
         if (this.cfg.site.description) {
@@ -777,7 +776,7 @@ class ArticleSchema
 
             let id = 'author-' + str.slugify(authorKey);
 
-            let schema = Schema.person(path.sep + '#' + id)
+            let schema = Schema.person(id)
 
             for (let key of ['name', 'url']) {
                 if (authorObj[key]) {
@@ -805,7 +804,8 @@ class ArticleSchema
 
         let spec = this.cfg.site.publisher;
 
-        let schema = Schema.organization(path.sep + '#publisher');
+        //let schema = Schema.organization(path.sep + '#publisher');
+        let schema = Schema.organization('publisher');
 
         for (let key of ['name', 'url']) {
             if (spec[key]) {
@@ -825,7 +825,11 @@ class ArticleSchema
      */
     parse()
     {
-        BaseType.setAddContext(false);
+        //BaseType.setAddContext(false);
+
+        //let test = Schema.webSite('aaa').name("bbb");
+        //syslog.inspect(test.dump());
+        //return
 
         this._processPublisher();
         this._processAuthors();
