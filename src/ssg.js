@@ -446,14 +446,23 @@ class SSG
                     try {
                         await this.ctx.cfg.parsers[ext].call(this.ctx, file);
                     } catch (err) {
-                        errs.push([err, file]);
+                        if (this.ctx.cfg.site.errorControl.exitOnFirst) {
+                            syslog.fatal(`Error parsing ${file}. Error message: ${err.message}`);
+                            if (this.ctx.cfg.site.errorControl.printStack) {
+                                console.log(' ');
+                                syslog.error(`STACK TRACE: ${err.stack}`)
+                            }     
+                            process.exit(1);                  
+                        } else {
+                            errs.push([err, file]);
+                        }
                     }
                     this.ctx.filesProcessed.push(file);
                 }
             }));
 
             if (errs.length > 0) {
-                if (this.ctx.cfg.site.showAllErrors && this.ctx.cfg.site.showAllErrors == true) {
+                if (this.ctx.cfg.site.errorControl.showAllErrors) {
                     syslog.error(`${errs.length} errors encountered in parse. Here they are:`);
                     for (let err of errs) {
                         syslog.inspect(err[0], "error", err[0].message + ', processing file: ' + err[1]);
@@ -521,7 +530,16 @@ class SSG
                 try {
                     await this.ctx.cfg.renderers[ext].call(this.ctx, item.obj);
                 } catch (err) {
-                    errs.push([err, item.relPath]);
+                    if (this.ctx.cfg.site.errorControl.exitOnFirst) {
+                        syslog.fatal(`Error rendering ${item.relPath}. Error message: ${err.message}`);
+                        if (this.ctx.cfg.site.errorControl.printStack) {
+                            console.log(' ');
+                            syslog.error(`STACK TRACE: ${err.stack}`)
+                        }     
+                        process.exit(1);                  
+                    } else {
+                        errs.push([err, item.relPath]);
+                    }
                 }
             } else {
                 syslog.warning(`No renderer found for extenstion '${ext}'.`);
@@ -529,7 +547,7 @@ class SSG
         }));
 
         if (errs.length > 0) {
-            if (this.ctx.cfg.site.showAllErrors && this.ctx.cfg.site.showAllErrors == true) {
+            if (this.ctx.cfg.site.errorControl.showAllErrors) {
                 syslog.error(`${errs.length} errors encountered in render. Here they are:`);
                 for (let err of errs) {
                     syslog.inspect(err[0], "error", err[0].message + ', processing: ' + err[1]);

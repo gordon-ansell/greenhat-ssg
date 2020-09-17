@@ -11,7 +11,7 @@
     version="2.0"
 >
     <channel>
-	<title>{{site.title}}</title>
+	<title>{{site.name}}</title>
 	<description>By {{ctx.getFirstAuthor().name}}</description>
 	<link>{{ctx.qualify('/')}}</link>
 	<atom:link rel="self" type="application/atom+xml" href="{{ctx.qualify(article.url)}}"/>
@@ -34,7 +34,7 @@
 	{%- for post in ctx.articles.type.post.desc().values() -%}
         {% if post.sitemap and post.feed and post.published and loop.index < site.postsInFeed and not post.robots.includes('noindex') %}
             <item>
-                <title>{{post.title}}</title>
+                <title>{{post.name}}</title>
                 <link>{{ctx.qualify(post.url)}}</link>
                 <guid isPermaLink="true">{{ctx.qualify(post.url)}}</guid>
                 <pubDate>{{post.dates.published.utc}}</pubDate>

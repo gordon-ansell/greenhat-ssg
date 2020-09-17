@@ -30,8 +30,8 @@ async function afterArticleParserRun(article)
         }
         let menuItem = article.menus[menuName];
 
-        if (!menuItem.title && article.title) {
-            menuItem.title = article.title;
+        if (!menuItem.title && article.name) {
+            menuItem.title = article.name;
         } else {
             menuItem.title = "unnamed";
             syslog.warning("Unnamed menu title.", article.relPath);

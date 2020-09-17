@@ -65,7 +65,7 @@ class ArticleSchema
         }
 
         if (!this.article.howTo.name) {
-            this.article.howTo.name = this.article.title;
+            this.article.howTo.name = this.article.name;
         }
 
         if (!this.article.howTo.description) {
@@ -592,7 +592,7 @@ class ArticleSchema
 
         schema.id('article')
         //schema.id(path.sep + '#article')
-            .name(this.article.title)
+            .name(this.article.name)
             .headline(this.article.headline)
             .url(this.article.url)
             .datePublished(this.article.dates.published.iso)
@@ -633,7 +633,7 @@ class ArticleSchema
     _processWebpage()
     {
         let schema = Schema.webPage('webpage')
-            .name(this.article.title)
+            .name(this.article.name)
             .url(this.article.url)
             .isPartOf(Schema.ref('website'))
             .breadcrumb(Schema.ref('breadcrumb'));
@@ -652,7 +652,7 @@ class ArticleSchema
     _processBreadcrumbs()
     {
         let schema = Schema.breadcrumbList('breadcrumb')
-            .name(this.article.title);
+            .name(this.article.name);
 
         let items = [];
 
@@ -692,7 +692,7 @@ class ArticleSchema
                     break;
 
                 case ':fn':
-                    item.item(Schema.webPage().name(this.article.title).id(this.article.url));
+                    item.item(Schema.webPage().name(this.article.name).id(this.article.url));
                     pos++;
                     break;
 
@@ -742,7 +742,7 @@ class ArticleSchema
     _processWebsite()
     {
         let schema = Schema.webSite('website')
-            .name(this.cfg.site.title)
+            .name(this.cfg.site.name)
             .url(path.sep);
 
         if (this.cfg.site.description) {

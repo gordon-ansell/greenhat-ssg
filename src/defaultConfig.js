@@ -11,7 +11,7 @@ module.exports = {
 
     // Site defaults.
     site: {
-        title: "Your site title.",
+        name: "Your site title.",
         description: "Your site description",
         lang: "en_GB",
         lazyload: false,
@@ -19,6 +19,11 @@ module.exports = {
         cache: false,
         cacheCssJsMax: "86400",
         cacheImagesMax: "2592000",
+        errorControl: {
+            exitOnFirst: true,
+            printStack: false,
+            showAllErrors: false,
+        }
     },
 
     // Various locations.
@@ -86,7 +91,7 @@ module.exports = {
     cfgChk: {
         site: {
             _compulsory: ['prodDomain'],
-            _advisory: ['title', 'description', 'publisher', 'authors'],
+            _advisory: ['name', 'description', 'publisher', 'authors'],
 
             publisher: {
                 _compulsory: ['name', 'url'],

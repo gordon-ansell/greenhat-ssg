@@ -55,6 +55,7 @@ class ArticleParser
 
         // Initialisation.
         let data = this._extractFrontMatter();
+        data = this._renameLegacyFieldNames(data);
         data = this._processType(data);
         data = this._processLayout(data);
         this._createArticle(data);
@@ -66,7 +67,7 @@ class ArticleParser
         this._determineOutput();
         this._processReferences();
         this._processAuthors();
-        this._processTitle();
+        this._processName();
         this._processHeadline();
         this._processSummary();
         this._processExcerpt();
@@ -251,7 +252,7 @@ class ArticleParser
                     break;
                 case ':fn':
                     if (final != '') final += sep;
-                    final += this.article.title;
+                    final += this.article.name;
                     break;
                 case ':path':
                     if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
@@ -461,23 +462,23 @@ class ArticleParser
     _processHeadline()
     {
         if (!this.article.headline) {
-            this.article.headline = this.article.title;
+            this.article.headline = this.article.name;
         }
     }
 
     /**
-     * Process the title.
+     * Process the name.
      */
-    _processTitle()
+    _processName()
     {
-        if (this.article.title) {
+        if (this.article.name) {
             return;
         }
 
         if (this.article.headline) {
-            this.article.title = this.article.headline;
+            this.article.name = this.article.headline;
         } else {
-            this.article.title = str.ucfirst(str.deslugify(this.article.baseop));
+            this.article.name = str.ucfirst(str.deslugify(this.article.baseop));
         }
     }
 
@@ -949,6 +950,21 @@ class ArticleParser
             }
         }
 
+        return data;
+    }
+
+    /**
+     * Rename legacy field names.
+     * 
+     * @param   {object}    data    Current data.
+     * @return  {object}            Updared data. 
+     */
+    _renameLegacyFieldNames(data)
+    {
+        if (data.title) {
+            data.name = data.title;
+            delete data.title
+        }
         return data;
     }
 

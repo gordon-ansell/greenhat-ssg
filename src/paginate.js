@@ -74,13 +74,13 @@ class Paginate
             if (next != null) {
                 let nextObj = this.map.get(next);
                 this.map.get(currKey).next = {
-                    title: nextObj.title,
+                    name: nextObj.name,
                     url: nextObj.url,
                 }
     
                 let thisObj = this.map.get(currKey);
                 this.map.get(next).prev = {
-                    title: thisObj.title,
+                    name: thisObj.name,
                     url: thisObj.url,
                 }
     
@@ -122,7 +122,7 @@ class Paginate
 
             let fileData = dummy;
             fileData = str.replaceAll(fileData, '-page-', page);
-            fileData = str.replaceAll(fileData, '-title-', this.ctx.cfg.site.title);
+            fileData = str.replaceAll(fileData, '-title-', this.ctx.cfg.site.name);
             fileData = str.replaceAll(fileData, '-description-', this.ctx.cfg.site.description);
             fileData = str.replaceAll(fileData, '-start-', start);
             fileData = str.replaceAll(fileData, '-end-', end);

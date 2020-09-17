@@ -71,7 +71,7 @@ wantEffort: true
                 <h6>You might also be interested in:</h6>
                 <ul>
                     {%- for item in article.relatedPosts -%}
-                        <li>{{ctx.link(item.title, item.url, item.description)}}</li>
+                        <li>{{ctx.link(item.name, item.url, item.description)}}</li>
                     {%- endfor -%}
                 </ul>
             </div>
@@ -80,12 +80,12 @@ wantEffort: true
             <nav class="prevnext">
                 <span class="prev">
                     {%- if article.prev -%}
-                        &larr; {{ctx.link(article.prev.title, article.prev.url, "Go to the previous (older) post.")}}
+                        &larr; {{ctx.link(article.prev.name, article.prev.url, "Go to the previous (older) post.")}}
                     {%- endif -%}
                 </span>
                 <span class="next">
                     {%- if article.next -%}
-                        {{ctx.link(article.next.title, article.next.url, "Go to the next (newer) post.")}} &rarr;
+                        {{ctx.link(article.next.name, article.next.url, "Go to the next (newer) post.")}} &rarr;
                     {%- endif -%}
                 </span>
             </nav>

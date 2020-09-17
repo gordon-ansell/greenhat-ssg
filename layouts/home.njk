@@ -25,14 +25,14 @@ sitemap: true
                 <h2>
                     {%- if post.layoutName == 'citation' -%}
                         {{post.firstCitationLink()}}
-                        <meta name="p-name" content="{{post.title}}" />
+                        <meta name="p-name" content="{{post.name}}" />
                         <meta name="u-url" content="{{post.url}}" />
                     {%- elif post.layoutName == 'briefly' -%}
-                        <span class="briefly p-name">Briefly: {{post.title}}</span>
+                        <span class="briefly p-name">Briefly: {{post.name}}</span>
                         <meta name="u-url" content="{{post.url}}" />
                     {%- else -%}
                         <a class="u-url" href="{{post.url}}" title="Read this post.">
-                            <span class="p-name">{{post.title}}</span>
+                            <span class="p-name">{{post.name}}</span>
                         </a>
                     {%- endif -%}
                 </h2>

@@ -90,7 +90,7 @@ async function afterParseLate()
         for (let item of sorted[srcKey]) {
             let target = this.articles.type.post.get(item.target);
             this.articles.type.post.get(srcKey).relatedPosts.push({
-                title: target.title,
+                name: target.name,
                 url: target.url,
                 description: target.description,
             });

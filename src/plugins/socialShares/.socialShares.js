@@ -44,9 +44,9 @@ function getSocialShareLinks(ctx, article)
         let link = spec.linkDefs[item];
 
         link = str.replaceAll(link, '[URL]', ctx.qualify(article.url));
-        link = str.replaceAll(link, '[TITLE]', encodeURI(article.title));
+        link = str.replaceAll(link, '[TITLE]', encodeURI(article.name));
         link = str.replaceAll(link, '[WSURL]', escape(ctx.qualify('/')));
-        link = str.replaceAll(link, '[WSTITLE]', encodeURI(ctx.cfg.site.title));
+        link = str.replaceAll(link, '[WSTITLE]', encodeURI(ctx.cfg.site.name));
 
         if (item == 'email') {
             if (!ctx.cfg.site.publisher.email) {

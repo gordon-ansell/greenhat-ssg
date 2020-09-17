@@ -9,7 +9,7 @@
         {%- block articleHeader -%}
             <header>
                 {%- block articleHeaderTitle -%}
-                    <h1 class="p-name">{{article.title}}</h1>
+                    <h1 class="p-name">{{article.name}}</h1>
                 {%- endblock -%}
                 {%- block articleHeaderMeta -%}
                     {%- set post = article -%}{%- include 'includes/_articleMeta.njk' -%}

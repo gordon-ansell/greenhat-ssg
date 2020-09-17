@@ -9,7 +9,7 @@ sitemap: true
     {%- if article.breadcrumbs -%}
         <div class="breadcrumbs">{{article.bcStr}}</div>
     {%- endif -%}
-    <h1 class="p-name">{{article.title}}</h1>
+    <h1 class="p-name">{{article.name}}</h1>
     {%- set post = article -%}{%- include 'includes/_articleMetaSilent.njk' -%}
     <section class="e-content">
         {{article.description}}
@@ -22,7 +22,7 @@ sitemap: true
                         <header>
                             <h2>
                                 <a class="u-url" href="{{item.url}}" title="Read this post.">
-                                    <span class="p-name">{{item.title}}</span>
+                                    <span class="p-name">{{item.name}}</span>
                                 </a>
                             </h2>
                             {%- set post = item -%}{% include 'includes/_articleMeta.njk' %}

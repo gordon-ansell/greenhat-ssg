@@ -15,7 +15,7 @@
 
     {% block headMetaArticle %}
         {%- if article.isHomePage -%}
-            <title>{{site.title}}</title>
+            <title>{{site.name}}</title>
             {%- if site.description -%}
                 <meta name="description" content="{{site.description}}" />
             {%- endif -%}
@@ -45,9 +45,9 @@
 
     {% block headFeeds %}
         <!-- Feeds -->
-        <link rel="alternate" type="application/rss+xml" title="{{site.title}} - Standard Feed" 
+        <link rel="alternate" type="application/rss+xml" title="{{site.name}} - Standard Feed" 
             href="{{ctx.qualify('/feed.xml')}}" />        
-        <link rel="alternate" type="application/rss+xml" title="{{site.title}} - Full Feed" 
+        <link rel="alternate" type="application/rss+xml" title="{{site.name}} - Full Feed" 
             href="{{ctx.qualify('/feedfull.xml')}}" />        
     {% endblock %}
 
@@ -118,12 +118,12 @@
             <meta property="og:type" content="article" />
             {%- set isArticle = true -%}
         {% endif %}
-            <meta property="og:title" content="{{ article.title }}" />
+            <meta property="og:title" content="{{ article.name }}" />
             {%- if article.description %}
                 <meta property="og:description" content="{{ article.description }}" />
             {%- endif -%}
             <meta property="og:url" content="{{ctx.qualify(article.url)}}" />
-            <meta property="og:site_name" content="{{site.title}}" />
+            <meta property="og:site_name" content="{{site.name}}" />
         {%- if article.imageFuncs.og %}
             <meta property="og:image" content="{{ctx.asset(article.imageFuncs.og, true)}}" />
         {% endif %}
@@ -142,7 +142,7 @@
     {% block headTwitter %}
         <!-- Twitter. -->
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content="{{ article.title }}" />
+        <meta name="twitter:title" content="{{ article.name }}" />
         {%- if article.description -%}
             <meta name="twitter:description" content="{{ article.description }}" />
         {%- endif -%}
