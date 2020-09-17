@@ -116,7 +116,7 @@ class Article
         a.addParam('href', fc.url);
         a.addParam('title', 'Read the cited article on the external site.');
 
-        return a.resolve(this.title + imgStr);
+        return a.resolve(this.name + imgStr);
 
     }
 

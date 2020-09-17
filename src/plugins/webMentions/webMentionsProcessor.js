@@ -156,7 +156,8 @@ class WebmentionsProcessor
                     syslog.notice("==> Sent webmention from: " + source + " to: " + target);
                     this.logSent(source, target, false);
                 } else {
-                    throw new GreenHatSSGError("Failed to send webmention from: " + source + " to: " + target);
+                    syslog.warning("Failed to send webmention from: " + source + " to: " + target + 
+                        ". Target site probably does not have a webmentions endpoint.");
                 }
             });
 
