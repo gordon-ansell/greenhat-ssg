@@ -389,6 +389,12 @@ class ArticleSchema
                             }
                         }
 
+                        if (!off.hasProp('priceValidUntil')) {
+                            let oneYear = new Date();
+                            oneYear.setFullYear(oneYear.getFullYear() + 1);
+                            off.setProp('priceValidUntil', oneYear.toISOString());
+                        }
+
                         offers.push(off);
 
                     } else {
@@ -410,6 +416,12 @@ class ArticleSchema
                                 }
                             }
 
+                            if (!off.hasProp('priceValidUntil')) {
+                                let oneYear = new Date();
+                                oneYear.setFullYear(oneYear.getFullYear() + 1);
+                                off.setProp('priceValidUntil', oneYear.toISOString());
+                            }
+                                
                             offers.push(off);
     
                         }
