@@ -598,11 +598,16 @@ class ArticleSchema
             .datePublished(this.article.dates.published.iso)
             .dateModified(this.article.dates.modified.iso)
             .mainEntityOfPage(Schema.ref('webpage'))
+            .wordCount(this.article.words)
             .publisher(Schema.ref('publisher'));
 
 
         if (this.article.description) {
             schema.description(this.article.description);
+        }
+
+        if (this.article.excerpt && this.article.excerptIsSpecified) {
+            schema.abstract(this.article.excerpt.text);
         }
 
         if (this.article.author) {

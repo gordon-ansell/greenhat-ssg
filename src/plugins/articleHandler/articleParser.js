@@ -434,7 +434,9 @@ class ArticleParser
      */
     _processExcerpt()
     {
+        this.article.excerptIsSpecified = true;
         if (!this.article.excerpt || this.article.excerpt.text == '') {
+            this.article.excerptIsSpecified = false;
             this.article.excerpt = new ArticleContent(str.truncate(this.article.content.text, 100), this.article.relPath);
         }
         if (!this.article.excerptRss || this.article.excerptRss.text == '') {
