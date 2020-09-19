@@ -38,6 +38,6 @@
 		"striptags": "*"
 	},
 	"engines": {
-		"node": ">=12.16"
+		"node": "*"
 	}
 }
