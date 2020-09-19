@@ -270,8 +270,8 @@ class ArticleParser
                     break;
                 default:
                     if (final != '') final += sep;
-                    if (chunk.includes('-')) {
-                        let sp = chunk.split('-');
+                    if (chunk.includes('#')) {
+                        let sp = chunk.split('#');
                         if (sp.length != 2) {
                             final += chunk;
                         } else {

@@ -664,6 +664,22 @@ class ArticleSchema
     }
 
     /**
+     * Sanitize a URL (that might have taxonomies in it).
+     * 
+     * @param   {string}    url     Input URL.
+     * @return  {string}            Sanitized. 
+     */
+    _sanitizeUrl(url)
+    {
+        let urlsp = url.split(path.sep);
+        let urlNew = [];
+        for (let p of urlsp) {
+            urlNew.push(str.slugify(p));
+        }
+        return path.join(path.sep, urlNew.join(path.sep), path.sep);
+    }
+
+    /**
      * Process the breadcrumbs.
      */
     _processBreadcrumbs()
@@ -673,84 +689,100 @@ class ArticleSchema
 
         let items = [];
 
-        let bcSpec;
+        if (this.article.breadcrumbs1) {
+            let pos = 1;
+            for (let elemKey in this.article.breadcrumbs1) {
+                let elem = this.article.breadcrumbs1[elemKey];
+                let item = Schema.listItem().position(pos);
+                item.item(Schema.webPage().name(elem.name).idPlain(this._sanitizeUrl(elem.url)));
+                items.push(item);
+                pos++;
+            }
+            schema.itemListElement(items);
+            this.coll.add('breadcrumb', schema);
 
-        if (this.article.breadcrumbs) {
-            bcSpec = this.article.breadcrumbs;
         } else {
-            let as = this.ctx.cfg.articleSpec;
-            if (as.defaultBreadcrumbs) {
-                bcSpec = as.defaultBreadcrumbs;
-            }
-        }
 
-        if (!bcSpec) {
-            throw new GreenHatSSGArticleError("No breadcrumb specification could be found.");
-        }
+            let bcSpec;
 
-        let pos = 1;
-
-        for (let part of bcSpec) {
-
-            let item = Schema.listItem().position(pos);
-
-            let extra = null;
-            if (part.includes('|')) {
-                let sp = part.split('|');
-                extra = sp[1];
-                part = sp[0];
+            if (this.article.breadcrumbs) {
+                bcSpec = this.article.breadcrumbs;
+            } else {
+                let as = this.ctx.cfg.articleSpec;
+                if (as.defaultBreadcrumbs) {
+                    bcSpec = as.defaultBreadcrumbs;
+                }
             }
 
-            switch (part) {
-                case ':home':
-                
-                    item.item(Schema.webPage().name('Home').id(path.sep));
-                    pos++;
-                    break;
+            if (!bcSpec) {
+                throw new GreenHatSSGArticleError("No breadcrumb specification could be found.");
+            }
 
-                case ':fn':
-                    item.item(Schema.webPage().name(this.article.name).id(this.article.url));
-                    pos++;
-                    break;
+            let pos = 1;
 
-                case ':path':
-                    if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
-                        item.item(Schema.webPage().name(
-                                str.ucfirst(
-                                    str.trimChar(this.article.dirname,path.sep)
-                                )
-                            )
-                            .id(path.join(path.sep, this.article.dirname, path.sep)));
+            for (let part of bcSpec) {
+
+                let item = Schema.listItem().position(pos);
+
+                let extra = null;
+                if (part.includes('|')) {
+                    let sp = part.split('|');
+                    extra = sp[1];
+                    part = sp[0];
+                }
+
+                switch (part) {
+                    case ':home':
+                    
+                        item.item(Schema.webPage().name('Home').idPlain(path.sep));
                         pos++;
-                    }
-                    break;
-    
-                case ':taxtype':
-                    item.item(Schema.webPage().name(str.ucfirst(extra)).id(path.join(path.sep, extra, path.sep)));
-                    pos++;
+                        break;
 
-                default:
-                    if (part.includes('-')) {
-                        let sp = part.split('-');
-                        if (sp.length == 2) {
-                            if (this.article[sp[0].slice(1)] && (sp[0].slice(1) in this.ctx.cfg.taxonomySpec)) {
-                                let num = parseInt(sp[1]);
-                                let taxType = sp[0].slice(1);
-                                let tax = this.article[taxType][num];
-                                item.item(Schema.webPage().name(tax)
-                                    .id(path.join(path.sep, taxType, str.slugify(tax), path.sep)));
-                                pos++;
+                    case ':fn':
+                        item.item(Schema.webPage().name(this.article.name).idPlain(this.article.url));
+                        pos++;
+                        break;
+
+                    case ':path':
+                        if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
+                            item.item(Schema.webPage().name(
+                                    str.ucfirst(
+                                        str.trimChar(this.article.dirname,path.sep)
+                                    )
+                                )
+                                .idPlain(path.join(path.sep, this.article.dirname, path.sep)));
+                            pos++;
+                        }
+                        break;
+        
+                    case ':taxtype':
+                        item.item(Schema.webPage().name(str.ucfirst(extra))
+                            .idPlain(path.join(path.sep, extra, path.sep)));
+                        pos++;
+
+                    default:
+                        if (part.includes('#')) {
+                            let sp = part.split('#');
+                            if (sp.length == 2) {
+                                if (this.article[sp[0].slice(1)] && (sp[0].slice(1) in this.ctx.cfg.taxonomySpec)) {
+                                    let num = parseInt(sp[1]);
+                                    let taxType = sp[0].slice(1);
+                                    let tax = this.article[taxType][num];
+                                    item.item(Schema.webPage().name(tax)
+                                        .idPlain(path.join(path.sep, taxType, str.slugify(tax), path.sep)));
+                                    pos++;
+                                }
                             }
                         }
-                    }
+                }
+
+                items.push(item);
             }
 
-            items.push(item);
+            schema.itemListElement(items);
+
+            this.coll.add('breadcrumb', schema);
         }
-
-        schema.itemListElement(items);
-
-        this.coll.add('breadcrumb', schema);
     }
 
     /**

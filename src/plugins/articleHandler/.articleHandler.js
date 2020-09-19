@@ -68,7 +68,7 @@ module.exports.init = ctx => {
                     feed: true,
                     robots: 'index, follow, NOODP',
                     permalink: ':fn',
-                    breadcrumbs: [':home', ':tags-0', ':tags-1', ':fn'],
+                    breadcrumbs: [':home', ':tags#0', ':tags#1', ':fn'],
                     arq: true,
                 }
             },
