@@ -684,105 +684,81 @@ class ArticleSchema
      */
     _processBreadcrumbs()
     {
+
+        let bcs = null;
+        if (this.article.breadcrumbs) {
+            bcs = this.article.breadcrumbs;
+        } else {
+            let as = this.ctx.cfg.articleSpec;
+            if (as.defaultBreadcrumbs) {
+                bcs = as.defaultBreadcrumbs;
+            } 
+        }
+
         let schema = Schema.breadcrumbList('breadcrumb')
             .name(this.article.name);
 
         let items = [];
 
-        if (this.article.breadcrumbs1) {
+        if (bcs) {
             let pos = 1;
-            for (let elemKey in this.article.breadcrumbs1) {
-                let elem = this.article.breadcrumbs1[elemKey];
-                let item = Schema.listItem().position(pos);
-                item.item(Schema.webPage().name(elem.name).idPlain(this._sanitizeUrl(elem.url)));
-                items.push(item);
-                pos++;
-            }
-            schema.itemListElement(items);
-            this.coll.add('breadcrumb', schema);
-
-        } else {
-
-            let bcSpec;
-
-            if (this.article.breadcrumbs) {
-                bcSpec = this.article.breadcrumbs;
-            } else {
-                let as = this.ctx.cfg.articleSpec;
-                if (as.defaultBreadcrumbs) {
-                    bcSpec = as.defaultBreadcrumbs;
+            for (let elemKey in bcs) {
+                let elem = bcs[elemKey];
+                if (!elem.calc && !(elem.name && elem.url)) {
+                    throw new GreenHatSSGArticleError(`Breadcrumbs should have either a 'calc' field or both the 'name' and 'url' fields.`,
+                        this.article.relPath);
                 }
-            }
-
-            if (!bcSpec) {
-                throw new GreenHatSSGArticleError("No breadcrumb specification could be found.");
-            }
-
-            let pos = 1;
-
-            for (let part of bcSpec) {
-
-                let item = Schema.listItem().position(pos);
-
-                let extra = null;
-                if (part.includes('|')) {
-                    let sp = part.split('|');
-                    extra = sp[1];
-                    part = sp[0];
-                }
-
-                switch (part) {
-                    case ':home':
-                    
-                        item.item(Schema.webPage().name('Home').idPlain(path.sep));
-                        pos++;
-                        break;
-
-                    case ':fn':
-                        item.item(Schema.webPage().name(this.article.name).idPlain(this.article.url));
-                        pos++;
-                        break;
-
-                    case ':path':
+                let name;
+                let url;
+                let skip = false;
+                if (elem.name && elem.url) {
+                    name = String(elem.name).charAt(0).toUpperCase() + String(elem.name).slice(1);
+                    url = elem.url;
+                } else if (elem.calc) {
+                    if (elem.calc == 'self') {
+                        name = this.article.name;
+                        url = this.article.url;
+                    } else if (elem.calc == 'path') {
                         if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
-                            item.item(Schema.webPage().name(
-                                    str.ucfirst(
-                                        str.trimChar(this.article.dirname,path.sep)
-                                    )
-                                )
-                                .idPlain(path.join(path.sep, this.article.dirname, path.sep)));
-                            pos++;
+                            name = str.ucfirst(str.trimChar(this.article.dirname, path.sep));
+                            url = path.join(path.sep, this.article.dirname, path.sep)
+                        } else {
+                            skip = true;
                         }
-                        break;
-        
-                    case ':taxtype':
-                        item.item(Schema.webPage().name(str.ucfirst(extra))
-                            .idPlain(path.join(path.sep, extra, path.sep)));
-                        pos++;
-
-                    default:
-                        if (part.includes('#')) {
-                            let sp = part.split('#');
-                            if (sp.length == 2) {
-                                if (this.article[sp[0].slice(1)] && (sp[0].slice(1) in this.ctx.cfg.taxonomySpec)) {
-                                    let num = parseInt(sp[1]);
-                                    let taxType = sp[0].slice(1);
-                                    let tax = this.article[taxType][num];
-                                    item.item(Schema.webPage().name(tax)
-                                        .idPlain(path.join(path.sep, taxType, str.slugify(tax), path.sep)));
-                                    pos++;
-                                }
+                    } else if (elem.calc.includes('#')) {
+                        let sp = elem.calc.split('#');
+                        if (!this.article[sp[0]]) {
+                            syslog.warning(`Article has no '${sp[0]}' from which to extract breadcrumbs.`,
+                                this.article.relPath);
+                            skip = true;
+                        } else {
+                            let tax = sp[0];
+                            let index = sp[1];
+                            if (!this.article[tax][index]) {
+                                syslog.warning(`Article has no '${tax}' index ${index} from which to extract breadcrumbs.`,
+                                    this.article.relPath);
+                                skip = true;
+                            } else {
+                                name = str.ucfirst(this.article[tax][index]);
+                                url = path.join(path.sep, tax, name, path.sep);
                             }
                         }
+                    }
+
                 }
-
-                items.push(item);
+                if (!skip) {
+                    let item = Schema.listItem().position(pos);
+                    item.item(Schema.webPage().name(name).idPlain(this._sanitizeUrl(url)));
+                    items.push(item);
+                    pos++;
+                }
             }
-
             schema.itemListElement(items);
-
             this.coll.add('breadcrumb', schema);
+        } else {
+            syslog.error("No breadcrumbs found for article (schema).", this.article.relPath);
         }
+
     }
 
     /**

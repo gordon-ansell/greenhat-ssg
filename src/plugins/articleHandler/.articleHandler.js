@@ -68,7 +68,21 @@ module.exports.init = ctx => {
                     feed: true,
                     robots: 'index, follow, NOODP',
                     permalink: ':fn',
-                    breadcrumbs: [':home', ':tags#0', ':tags#1', ':fn'],
+                    breadcrumbs: {
+                        1: {
+                            name: 'Home',
+                            url: '/'
+                        },
+                        2: {
+                            calc: 'tags#0'
+                        },
+                        3: {
+                            calc: 'tags#1'
+                        },
+                        4: {
+                            calc: 'self'
+                        },
+                    },
                     arq: true,
                 }
             },
@@ -79,12 +93,32 @@ module.exports.init = ctx => {
                     robots: 'index, follow, NOODP',
                     permalink: ':path/:fn',
                     arq: true,
+                    breadcrumbs: {
+                        1: {
+                            name: 'Home',
+                            url: '/'
+                        },
+                        2: {
+                            calc: 'self'
+                        },
+                    },
                 }
             },
         },
         defaultType: 'page',
         defaultPermalink: ':fn',
-        defaultBreadcrumbs: [':home', ':path', ':fn'],
+        defaultBreadcrumbs: {
+            1: {
+                name: 'Home',
+                url: '/'
+            },
+            2: {
+                calc: 'path'
+            },
+            3: {
+                calc: 'self'
+            },
+        },
         dispDate: "dS mmmm yyyy",
         dispTime: "HH:MM",     
         indexFn: 'index',  

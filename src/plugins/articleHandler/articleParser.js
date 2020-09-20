@@ -214,85 +214,108 @@ class ArticleParser
     }
 
     /**
+     * Sanitize a URL (that might have taxonomies in it).
+     * 
+     * @param   {string}    url     Input URL.
+     * @return  {string}            Sanitized. 
+     */
+    _sanitizeUrl(url)
+    {
+        let urlsp = url.split(path.sep);
+        let urlNew = [];
+        for (let p of urlsp) {
+            urlNew.push(str.slugify(p));
+        }
+        return path.join(path.sep, urlNew.join(path.sep), path.sep);
+    }
+
+    /**
      * Process breadcrumbs.
      */
     _processBreadcrumbs()
     {
-        let bcSpec;
-
-        let sep = " &rarr; ";
-
+        let bcs = null;
         if (this.article.breadcrumbs) {
-            bcSpec = this.article.breadcrumbs;
+            bcs = this.article.breadcrumbs;
         } else {
             let as = this.ctx.cfg.articleSpec;
             if (as.defaultBreadcrumbs) {
-                bcSpec = as.defaultBreadcrumbs;
-            }
+                bcs = as.defaultBreadcrumbs;
+            } 
         }
 
-        if (!bcSpec) {
-            throw new GreenHatSSGArticleError("No breadcrumb specification could be found.");
-        }
+        if (bcs) {
+            let final = [];
+            let sep = " &rarr; ";
 
-        let final = '';
-        for (let chunk of bcSpec) {
-            let extra = null;
-            if (chunk.includes('|')) {
-                let sp = chunk.split('|');
-                extra = sp[1];
-                chunk = sp[0];
-            }
-            switch (chunk) {
-                case ':home':
-                    let h1 = new Html('a');
-                    h1.addParam('href', '/');
-                    if (final != '') final += sep;
-                    final += h1.resolve(str.ucfirst(this.ctx.x('home')));
-                    break;
-                case ':fn':
-                    if (final != '') final += sep;
-                    final += this.article.name;
-                    break;
-                case ':path':
-                    if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
-                        let h2 = new Html('a');
-                        h2.addParam('href', path.join(path.sep, this.article.dirname));
-                        if (final != '') final += sep;
-                         final += h2.resolve(str.ucfirst(str.trimChar(this.article.dirname, path.sep)));
-                    }
-                    break;
-                case ':taxtype':
-                    if (final != '') final += sep;
-                    let h4 = new Html('a');
-                    h4.addParam('href', path.join('/', extra, '/'));
-                    final += h4.resolve(str.ucfirst(extra));
-                    break;
-                default:
-                    if (final != '') final += sep;
-                    if (chunk.includes('#')) {
-                        let sp = chunk.split('#');
-                        if (sp.length != 2) {
-                            final += chunk;
+            for (let elemKey in bcs) {
+                let elem = bcs[elemKey];
+                if (!elem.calc && !(elem.name && elem.url)) {
+                    throw new GreenHatSSGArticleError(`Breadcrumbs should have either a 'calc' field or both the 'name' and 'url' fields.`,
+                        this.article.relPath);
+                }
+                let name;
+                let url;
+                let skip = false;
+                if (elem.name && elem.url) {
+                    name = String(elem.name).charAt(0).toUpperCase() + String(elem.name).slice(1);
+                    url = elem.url;
+                } else if (elem.calc) {
+                    if (elem.calc == 'self') {
+                        name = this.article.name;
+                        url = this.article.url;
+                    } else if (elem.calc == 'path') {
+                        if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
+                            name = str.ucfirst(str.trimChar(this.article.dirname, path.sep));
+                            url = path.join(path.sep, this.article.dirname, path.sep)
                         } else {
-                            if (this.article[sp[0].slice(1)] && (sp[0].slice(1) in this.ctx.cfg.taxonomySpec)) {
-                                let num = parseInt(sp[1]);
-                                let taxType = sp[0].slice(1);
-                                let tax = this.article[taxType][num];
-                                let h3 = new Html('a');
-                                h3.addParam('href', path.join('/', taxType, str.slugify(tax)));
-                                final += h3.resolve(tax); 
+                            skip = true;
+                        }
+                    } else if (elem.calc.includes('#')) {
+                        let sp = elem.calc.split('#');
+                        if (!this.article[sp[0]]) {
+                            syslog.warning(`Article has no '${sp[0]}' from which to extract breadcrumbs.`,
+                                this.article.relPath);
+                            skip = true;
+                        } else {
+                            let tax = sp[0];
+                            let index = sp[1];
+                            if (!this.article[tax][index]) {
+                                syslog.warning(`Article has no '${tax}' index ${index} from which to extract breadcrumbs.`,
+                                    this.article.relPath);
+                                skip = true;
                             } else {
-                                final += chunk;
+                                name = str.ucfirst(this.article[tax][index]);
+                                url = path.join(path.sep, tax, name, path.sep);
                             }
                         }
-                    } else {
-                        final += chunk;
                     }
-            }
-        }
 
-        this.article.bcStr = final;
+                }
+                if (!skip) {
+                    final.push({name: name, url: url});
+                }
+            }
+
+            let bcstr = '';
+            let count = 1;
+            for (let item of final) {
+                if (count == final.length) {
+                    if (bcstr != '') bcstr += sep;
+                    bcstr += item.name;
+                } else {
+                    if (bcstr != '') bcstr += sep;
+                    let html = new Html('a');
+                    html.addParam('href', this._sanitizeUrl(item.url));
+                    bcstr += html.resolve(item.name);
+                }
+                count++;
+            }
+
+            this.article.bcStr = bcstr;
+        } else {
+            syslog.error("No breadcrumbs found for article.", this.article.relPath);
+        }
     }
 
     /**
