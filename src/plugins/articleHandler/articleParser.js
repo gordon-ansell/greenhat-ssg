@@ -9,7 +9,6 @@
 'use strict';
 
 const fs = require('fs');
-const ghfs = require("greenhat-util/fs");
 const syslog = require('greenhat-util/syslog');
 const Article = require('./article');
 const YamlFile = require('greenhat-util/yaml');
@@ -19,19 +18,19 @@ const ArticleContent = require('./parts/articleContent');
 const ArticleDate = require('./parts/articleDate');
 const Html = require("greenhat-util/html");
 const ArticleCollection = require("./articleCollection");
-const Taxonomy = require('../../taxonomy');
 const TaxonomyType = require('../../taxonomyType');
 const ArticleSchema = require('./parts/articleSchema');
 const { merge } = require("greenhat-util/merge");
 const arr = require("greenhat-util/array");
 const str = require("greenhat-util/string");
+const BreadcrumbProcessor = require("./breadcrumbProcessor");
 
 class GreenHatSSGArticleError extends GreenHatSSGError {}
 
 /**
  * Article psrser class.
  */
-class ArticleParser
+class ArticleParser extends BreadcrumbProcessor
 {
     /**
      * Constructor.
@@ -40,6 +39,7 @@ class ArticleParser
      */
     constructor(ctx)
     {
+        super();
         this.ctx = ctx;
     }
 
@@ -214,22 +214,6 @@ class ArticleParser
     }
 
     /**
-     * Sanitize a URL (that might have taxonomies in it).
-     * 
-     * @param   {string}    url     Input URL.
-     * @return  {string}            Sanitized. 
-     */
-    _sanitizeUrl(url)
-    {
-        let urlsp = url.split(path.sep);
-        let urlNew = [];
-        for (let p of urlsp) {
-            urlNew.push(str.slugify(p));
-        }
-        return path.join(path.sep, urlNew.join(path.sep), path.sep);
-    }
-
-    /**
      * Process breadcrumbs.
      */
     _processBreadcrumbs()
@@ -250,50 +234,10 @@ class ArticleParser
 
             for (let elemKey in bcs) {
                 let elem = bcs[elemKey];
-                if (!elem.calc && !(elem.name && elem.url)) {
-                    throw new GreenHatSSGArticleError(`Breadcrumbs should have either a 'calc' field or both the 'name' and 'url' fields.`,
-                        this.article.relPath);
-                }
-                let name;
-                let url;
-                let skip = false;
-                if (elem.name && elem.url) {
-                    name = String(elem.name).charAt(0).toUpperCase() + String(elem.name).slice(1);
-                    url = elem.url;
-                } else if (elem.calc) {
-                    if (elem.calc == 'self') {
-                        name = this.article.name;
-                        url = this.article.url;
-                    } else if (elem.calc == 'path') {
-                        if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
-                            name = str.ucfirst(str.trimChar(this.article.dirname, path.sep));
-                            url = path.join(path.sep, this.article.dirname, path.sep)
-                        } else {
-                            skip = true;
-                        }
-                    } else if (elem.calc.includes('#')) {
-                        let sp = elem.calc.split('#');
-                        if (!this.article[sp[0]]) {
-                            syslog.warning(`Article has no '${sp[0]}' from which to extract breadcrumbs.`,
-                                this.article.relPath);
-                            skip = true;
-                        } else {
-                            let tax = sp[0];
-                            let index = sp[1];
-                            if (!this.article[tax][index]) {
-                                syslog.warning(`Article has no '${tax}' index ${index} from which to extract breadcrumbs.`,
-                                    this.article.relPath);
-                                skip = true;
-                            } else {
-                                name = str.ucfirst(this.article[tax][index]);
-                                url = path.join(path.sep, tax, name, path.sep);
-                            }
-                        }
-                    }
+                let ret = ArticleParser.processBreadcrumbElement(elem, this.article);
 
-                }
-                if (!skip) {
-                    final.push({name: name, url: url});
+                if (!ret.skip) {
+                    final.push({name: ret.name, url: ret.url});
                 }
             }
 

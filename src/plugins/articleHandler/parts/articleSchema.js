@@ -14,11 +14,12 @@ const Duration = require("greenhat-util/duration");
 const { Schema, SchemaCollection, CreativeWork, SchemaBase } = require("greenhat-schema");
 const str = require("greenhat-util/string");
 const { merge } = require("greenhat-util/merge");
+const BreadcrumbProcessor = require("../breadcrumbProcessor");
 
 /**
  * Article schema class.
  */
-class ArticleSchema
+class ArticleSchema extends BreadcrumbProcessor
 {
     static context = 'https://schema.org';
 
@@ -32,6 +33,7 @@ class ArticleSchema
      */
     constructor(ctx, article)
     {
+        super();
         this.ctx = ctx;
         this.cfg = ctx.cfg;
         this.article = article;
@@ -664,27 +666,10 @@ class ArticleSchema
     }
 
     /**
-     * Sanitize a URL (that might have taxonomies in it).
-     * 
-     * @param   {string}    url     Input URL.
-     * @return  {string}            Sanitized. 
-     */
-    _sanitizeUrl(url)
-    {
-        let urlsp = url.split(path.sep);
-        let urlNew = [];
-        for (let p of urlsp) {
-            urlNew.push(str.slugify(p));
-        }
-        return path.join(path.sep, urlNew.join(path.sep), path.sep);
-    }
-
-    /**
      * Process the breadcrumbs.
      */
     _processBreadcrumbs()
     {
-
         let bcs = null;
         if (this.article.breadcrumbs) {
             bcs = this.article.breadcrumbs;
@@ -704,6 +689,9 @@ class ArticleSchema
             let pos = 1;
             for (let elemKey in bcs) {
                 let elem = bcs[elemKey];
+                let ret = ArticleSchema.processBreadcrumbElement(elem, this.article);
+
+                /*
                 if (!elem.calc && !(elem.name && elem.url)) {
                     throw new GreenHatSSGArticleError(`Breadcrumbs should have either a 'calc' field or both the 'name' and 'url' fields.`,
                         this.article.relPath);
@@ -746,9 +734,10 @@ class ArticleSchema
                     }
 
                 }
-                if (!skip) {
+                */
+                if (!ret.skip) {
                     let item = Schema.listItem().position(pos);
-                    item.item(Schema.webPage().name(name).idPlain(this._sanitizeUrl(url)));
+                    item.item(Schema.webPage().name(ret.name).idPlain(this._sanitizeUrl(ret.url)));
                     items.push(item);
                     pos++;
                 }
