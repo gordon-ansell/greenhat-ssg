@@ -8,14 +8,14 @@
 
 'use strict';
 
-const ProductBase = require("./productBase");
 const syslog = require("greenhat-util/syslog");
 const arr = require("greenhat-util/array");
+const BaseProdType = require("./baseProdType");
 
 /**
  * Product.
  */
-class Product extends ProductBase
+class Product extends BaseProdType
 {
     /**
      * Process.

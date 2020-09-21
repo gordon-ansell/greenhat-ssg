@@ -11,7 +11,7 @@
 const syslog = require("greenhat-util/syslog");
 const path = require('path');
 const Duration = require("greenhat-util/duration");
-const { Schema, SchemaCollection, CreativeWork, SchemaBase } = require("greenhat-schema");
+const { Schema, SchemaCollection, CreativeWork } = require("greenhat-schema");
 const str = require("greenhat-util/string");
 const { merge } = require("greenhat-util/merge");
 const BreadcrumbProcessor = require("../breadcrumbProcessor");
@@ -235,7 +235,7 @@ class ArticleSchema extends BreadcrumbProcessor
 
                 // Simples
                 let simples = ['url', 'description', 'version', 'startDate', 'endDate',
-                    'eventStatus', 'eventAttendanceMode', 'sameAs', 'address', 'email', 'telephone',
+                    'eventAttendanceMode', 'sameAs', 'address', 'email', 'telephone',
                     'priceRange', 'openingHours']
 
                 for (let simp of simples) {
@@ -302,6 +302,13 @@ class ArticleSchema extends BreadcrumbProcessor
                     schema.organizer(Schema.organization().name(prod.organizer));
                 } else if (prod.type == 'Event') {
                     schema.organizer(Schema.organization().name(prod.name).url(prod.url));
+                }
+
+                // Event status.
+                if (prod.eventStatus) {
+                    schema.eventStatus(Schema.eventStatusType(prod.eventStatus));
+                } else if (prod.type == 'Event') {
+                    schema.eventStatus(Schema.eventStatusType('Scheduled'));
                 }
                 
                 // Artist.
@@ -383,7 +390,7 @@ class ArticleSchema extends BreadcrumbProcessor
 
                         for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
                             if (prod.offers[bit]) {
-                                if (bit = 'priceCurrency') {
+                                if (bit == 'priceCurrency') {
                                     off.setProp(bit, prod.offers[bit].name);
                                 } else {
                                     off.setProp(bit, prod.offers[bit]);
@@ -396,6 +403,10 @@ class ArticleSchema extends BreadcrumbProcessor
                             oneYear.setFullYear(oneYear.getFullYear() + 1);
                             off.setProp('priceValidUntil', oneYear.toISOString());
                         }
+
+                        if (!off.hasProp('validFrom')) {
+                            off.setProp('validFrom', this.article.dates.published.iso)               
+                        } 
 
                         offers.push(off);
 
@@ -422,6 +433,10 @@ class ArticleSchema extends BreadcrumbProcessor
                                 let oneYear = new Date();
                                 oneYear.setFullYear(oneYear.getFullYear() + 1);
                                 off.setProp('priceValidUntil', oneYear.toISOString());
+                            }
+                                
+                            if (!off.hasProp('validFrom')) {
+                                off.setProp('validFrom', this.article.dates.published.iso)               
                             }
                                 
                             offers.push(off);
@@ -690,51 +705,6 @@ class ArticleSchema extends BreadcrumbProcessor
             for (let elemKey in bcs) {
                 let elem = bcs[elemKey];
                 let ret = ArticleSchema.processBreadcrumbElement(elem, this.article);
-
-                /*
-                if (!elem.calc && !(elem.name && elem.url)) {
-                    throw new GreenHatSSGArticleError(`Breadcrumbs should have either a 'calc' field or both the 'name' and 'url' fields.`,
-                        this.article.relPath);
-                }
-                let name;
-                let url;
-                let skip = false;
-                if (elem.name && elem.url) {
-                    name = String(elem.name).charAt(0).toUpperCase() + String(elem.name).slice(1);
-                    url = elem.url;
-                } else if (elem.calc) {
-                    if (elem.calc == 'self') {
-                        name = this.article.name;
-                        url = this.article.url;
-                    } else if (elem.calc == 'path') {
-                        if (this.article.dirname && this.article.dirname != '' && this.article.dirname != '/') {
-                            name = str.ucfirst(str.trimChar(this.article.dirname, path.sep));
-                            url = path.join(path.sep, this.article.dirname, path.sep)
-                        } else {
-                            skip = true;
-                        }
-                    } else if (elem.calc.includes('#')) {
-                        let sp = elem.calc.split('#');
-                        if (!this.article[sp[0]]) {
-                            syslog.warning(`Article has no '${sp[0]}' from which to extract breadcrumbs.`,
-                                this.article.relPath);
-                            skip = true;
-                        } else {
-                            let tax = sp[0];
-                            let index = sp[1];
-                            if (!this.article[tax][index]) {
-                                syslog.warning(`Article has no '${tax}' index ${index} from which to extract breadcrumbs.`,
-                                    this.article.relPath);
-                                skip = true;
-                            } else {
-                                name = str.ucfirst(this.article[tax][index]);
-                                url = path.join(path.sep, tax, name, path.sep);
-                            }
-                        }
-                    }
-
-                }
-                */
                 if (!ret.skip) {
                     let item = Schema.listItem().position(pos);
                     item.item(Schema.webPage().name(ret.name).idPlain(this._sanitizeUrl(ret.url)));

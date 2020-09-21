@@ -80,10 +80,12 @@ module.exports = {
     // Language strings.
     langStrs: {
         en: {
-            on: 'on',
+            and: 'and',
             by: 'by',
             home: 'home',
-            and: 'and',
+            link: 'link',
+            map: 'map',
+            on: 'on',
         }
     },
 

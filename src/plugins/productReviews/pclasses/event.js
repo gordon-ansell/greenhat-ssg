@@ -23,6 +23,19 @@ class Event extends ProductBase
     process()
     {
         super.process();
+
+        if (this._specs.attendanceMode) {
+            this.attendanceMode = this._specs.attendanceMode;
+        } else {
+            this.attendanceMode = "Offline";
+        }
+
+        if (this._specs.eventStatus) {
+            this.eventStatus = this._specs.eventStatus;
+        } else {
+            this.eventStatus = "Scheduled";
+        }
+
     }
 
 }

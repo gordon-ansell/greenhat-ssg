@@ -1,6 +1,6 @@
 /**
  * @file        product/types/base product.
- * @module      ProductBase
+ * @module      BaseProdType
  * @author      Gordon Ansell   <contact@gordonansell.com> 
  * @copyright   Gordon Ansell, 2020.
  * @license     MIT
@@ -10,35 +10,38 @@
 
 const syslog = require("greenhat-util/syslog");
 const arr = require("greenhat-util/array");
+const Product = require("./product");
+const GreenHatError = require("greenhat-util/error");
+
 
 /**
  * Base class for all products.
  */
-class ProductBase
+class BaseProdType
 {
     /** @type {object} */
     _specs = null;
     /** @type {string} */
     _key = null;
-    /** @type {string} */
-    _file = null;
     /** @type {object} */
     _ctx = null;
+    /** @type {article} */
+    _article = null;
 
     /**
      * Constructor.
      * 
      * @param   {object}    specs       Input product specs.
      * @param   {string}    key         Key we're processing.
-     * @param   {string}    file        File we're processing.
      * @param   {object}    ctx         Context.
+     * @param   {object}    article     Article.
      */
-    constructor(specs, key, file, ctx)
+    constructor(specs, key, ctx, article)
     {
         this._specs = specs;
         this._key = key;
-        this._file = file;
         this._ctx = ctx;
+        this._article = article;
 
         this._frigSpecs();
     }
@@ -56,7 +59,7 @@ class ProductBase
     process()
     {
         if (!this.specs.name) {
-            syslog.warning(`Products should have a name (${this._key}).`, this._file);
+            syslog.warning(`Products should have a name (${this._key}).`, this._article.relPath);
         }
 
         let common = ['name', 'description', 'url', 'mpn', 'sku', 'gtin', 'gtin8', 'gtin12', 'gtin13', 'gtin14'];
@@ -134,6 +137,30 @@ class ProductBase
 
         return ret;
     }
+
+    /**
+     * Create a type.
+     * 
+     * @param   {string}    type        Type.
+     * @param   {object}    specs       Spec.
+     * @param   {string}    key         Key.
+     * @param   {object}    ctx         Context.
+     * @param   {object}    article     Article.
+     * @return  {object}
+     */
+    static create(type, specs, key, ctx, article)
+    {
+        let ret = null;
+        switch(type) {
+            case 'Product':
+                ret = new Product({...specs}, key, ctx, article);
+                break;
+            default:
+                throw new GreenHatError(`There is no product type for '${type}'.`)
+        }
+
+        return ret;
+    }
 }
 
-module.exports = ProductBase
+module.exports = BaseProdType;
