@@ -10,6 +10,7 @@
 const syslog = require('greenhat-util/syslog');
 const ProductReviewProcessor = require("./productReviewProcessor");
 
+
 /**
  * Called after article is parsed.
  */

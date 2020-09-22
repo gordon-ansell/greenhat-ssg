@@ -30,7 +30,7 @@
 		"minimist": "*",
 		"node-sass": "*",
 		"nunjucks": "*",
-		"postcss": "^8.0.6",
+		"postcss": "^8.0.7",
 		"sanitize-html": "*",
 		"send-webmention": "*",
 		"sharp": "^0.26.1",

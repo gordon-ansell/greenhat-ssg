@@ -12,7 +12,6 @@ const syslog = require('greenhat-util/syslog');
 const Duration = require("greenhat-util/duration");
 const arr = require("greenhat-util/array");
 const str = require("greenhat-util/string");
-//const BaseProdType = require("./pclasses/baseProdType");
 
 /**
  * Product review processing class.
@@ -208,7 +207,7 @@ class ProductReviewProcessor
                     let prod = this.article[rr][prodKey];
     
                     prod.key = prodKey;
-    
+   
                     // No review switch?
                     let noReview = false;
                     if (this.article.noReview) {

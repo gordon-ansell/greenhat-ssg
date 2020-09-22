@@ -737,7 +737,8 @@ class ArticleParser extends BreadcrumbProcessor
         this.article.dates = {};
 
         let [published, modified] = this._getPublishedModifiedDates(this.file, this.article.type,
-            (this.article.date) ? this.article.date : null, (this.article.mdate) ? this.article.mdate : null)
+            (this.article.date) ? this.article.date : null, 
+            (this.article.mdate) ? this.article.mdate : null)
 
         this.article.dates.published = published;
         this.article.dates.modified = modified;

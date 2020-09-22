@@ -46,13 +46,6 @@
                 <link>{{ctx.qualify(post.url)}}</link>
                 <guid isPermaLink="true">{{ctx.qualify(post.url)}}</guid>
                 <pubDate>{{post.dates.published.utc}}</pubDate>
-                {%- if post.imageFuncs.rssIcon %}
-                    <webfeeds:icon>{{ctx.asset(post.imageFuncs.rssIcon, true)}}</webfeeds:icon>
-                {%- endif -%}
-                {%- if post.imageFuncs.rss %}
-                    <webfeeds:cover image="{{ctx.asset(post.imageFuncs.rss, true)}}" />
-                    <media:content medium="image" url="{{ctx.asset(post.imageFuncs.rss, true)}}" />
-                {%- endif %}
                 <dc:creator>{{ctx.getFirstAuthor().name}}</dc:creator>
                 {%- if article.isFullFeed or post.layout == 'citation' or post.layout == 'briefly' -%}
                     {%- if post.excerptRss %}

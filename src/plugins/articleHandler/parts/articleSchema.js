@@ -15,6 +15,7 @@ const { Schema, SchemaCollection, CreativeWork } = require("greenhat-schema");
 const str = require("greenhat-util/string");
 const { merge } = require("greenhat-util/merge");
 const BreadcrumbProcessor = require("../breadcrumbProcessor");
+const GreenHatError = require("greenhat-util/error");
 
 /**
  * Article schema class.
@@ -129,6 +130,9 @@ class ArticleSchema extends BreadcrumbProcessor
 
                 let rev = this.article[arr][key];
 
+                if (!this.ctx.products[key]) {
+                    throw new GreenHatError(`No product with key '${key}' when processing schema review.`, this.article.relPath);
+                }
                 let prod = this.ctx.products[key];
 
                 let id = 'review-' + key;
@@ -385,7 +389,6 @@ class ArticleSchema extends BreadcrumbProcessor
                         let off = Schema.offer()
                             .price(prod.offers.price)
                             .url(prod.offers.url)
-                            .availability(prod.offers.availability)
                             .offeredBy(Schema.organization().name(prod.offers.from))
 
                         for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
@@ -396,6 +399,12 @@ class ArticleSchema extends BreadcrumbProcessor
                                     off.setProp(bit, prod.offers[bit]);
                                 }
                             }
+                        }
+
+                        if (prod.offers.availability) {
+                            off.availability(Schema.itemAvailability(prod.offers.availability));
+                        } else {
+                            off.availability(Schema.itemAvailability('InStock'));
                         }
 
                         if (!off.hasProp('priceValidUntil')) {
@@ -416,7 +425,6 @@ class ArticleSchema extends BreadcrumbProcessor
                             let off = Schema.offer()
                                 .price(item.price)
                                 .url(item.url)
-                                .availability(item.availability)
                                 .offeredBy(Schema.organization().name(item.from))
 
                             for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
@@ -427,6 +435,12 @@ class ArticleSchema extends BreadcrumbProcessor
                                         off.setProp(bit, item[bit]);
                                     }
                                 }
+                            }
+
+                            if (item.availability) {
+                                off.availability(Schema.itemAvailability(item.availability));
+                            } else {
+                                off.availability(Schema.itemAvailability('InStock'));
                             }
 
                             if (!off.hasProp('priceValidUntil')) {
