@@ -1,6 +1,6 @@
 {
 	"name": "greenhat-ssg",
-	"version": "0.8.0",
+	"version": "0.9.0",
 	"description": "GreenHat Static Site Generator",
 	"homepage": "https://gordonansell.com/greenhat-ssg",
 	"license": "MIT",
