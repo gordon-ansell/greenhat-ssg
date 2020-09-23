@@ -124,10 +124,10 @@ module.exports.init = ctx => {
         indexFn: 'index',  
         outputExt: '.html',  
         outputMode: 'directory',
-        excerptExtractLen: 300,
+        abstractExtractLen: 200,
         descriptionExtractLen: 160,
         taxonomyTypes: ['tags'],
-        multiFormat: ['content', 'contentRss', 'excerpt', 'summary'],
+        multiFormat: ['content', 'contentRss', 'abstract', 'summary'],
         terminateUrl: '/',
         homePageType: 'post',
     }

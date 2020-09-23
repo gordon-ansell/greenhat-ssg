@@ -63,10 +63,10 @@ sitemap: true
                             {{ctx.img({src: post.imageFuncs.icon, alt: 'Icon for this post.', class: 'icon'})}}
                         </a>
                     {% endif %}
-                    {% if post.excerpt %}
-                        {{post.excerpt.html}}
+                    {% if post.abstract %}
+                        {{post.abstract.html}}
                     {% else %}
-                        {{post.content.text | truncate(300)}}
+                        {{post.abstract.text | truncate(300)}}
                     {% endif %}
                     {{ctx.link(rmimg, post.url, 'Read this post in full.', 'readmore')}}
                 </div>

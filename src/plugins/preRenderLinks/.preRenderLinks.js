@@ -16,7 +16,7 @@ async function articlePrerender(article)
 {
     syslog.trace('.preRenderLinks:articlePrerender', "Responding to hook.");
 
-    for (let item of ['content', 'excerpt']) {
+    for (let item of ['content', 'abstract']) {
     
         let html = article[item].html;
         let htmlRss = article[item + 'Rss'].html;

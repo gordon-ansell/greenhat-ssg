@@ -70,7 +70,7 @@ class ArticleParser extends BreadcrumbProcessor
         this._processName();
         this._processHeadline();
         this._processSummary();
-        this._processExcerpt();
+        this._processAbstract();
         this._processMetaDescription();
         this._processCitations();
         this._processBreadcrumbs();
@@ -397,17 +397,19 @@ class ArticleParser extends BreadcrumbProcessor
     }
 
     /**
-     * Process the excerpt.
+     * Process the abstract.
      */
-    _processExcerpt()
+    _processAbstract()
     {
-        this.article.excerptIsSpecified = true;
-        if (!this.article.excerpt || this.article.excerpt.text == '') {
-            this.article.excerptIsSpecified = false;
-            this.article.excerpt = new ArticleContent(str.truncate(this.article.content.text, 100), this.article.relPath);
+        this.article.abstractIsSpecified = true;
+        if (!this.article.abstract || this.article.abstract.text == '') {
+            this.article.abstractIsSpecified = false;
+            let as = this.ctx.cfg.articleSpec;
+            this.article.abstract = new ArticleContent(
+                str.truncate(this.article.content.text, as.abstractExtractLen), this.article.relPath);
         }
-        if (!this.article.excerptRss || this.article.excerptRss.text == '') {
-            this.article.excerptRss = {...this.article.excerpt};
+        if (!this.article.abstractRss || this.article.abstractRss.text == '') {
+            this.article.abstractRss = {...this.article.abstract};
         }
     }
 
@@ -931,9 +933,13 @@ class ArticleParser extends BreadcrumbProcessor
      */
     _renameLegacyFieldNames(data)
     {
-        if (data.title) {
+        if (data.title && !data.name) {
             data.name = data.title;
             delete data.title
+        }
+        if (data.excerpt && !data.abstract) {
+            data.abstract = data.excerpt;
+            delete data.excerpt;
         }
         return data;
     }

@@ -649,8 +649,8 @@ class ArticleSchema extends BreadcrumbProcessor
             schema.description(this.article.description);
         }
 
-        if (this.article.excerpt && this.article.excerptIsSpecified) {
-            schema.abstract(this.article.excerpt.text);
+        if (this.article.abstract && this.article.abstractIsSpecified) {
+            schema.abstract(this.article.abstract.text);
         }
 
         if (this.article.author) {

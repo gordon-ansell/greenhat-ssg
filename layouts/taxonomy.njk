@@ -37,7 +37,7 @@ sitemap: true
                             {% if item.description %}
                                 {{item.description}}
                             {% else %}
-                                {{item.content.text | truncate(300)}}
+                                {{item.content.text | truncate(200)}}
                             {% endif %}
                         </div>
                     </article>

@@ -48,13 +48,13 @@
                 <pubDate>{{post.dates.published.utc}}</pubDate>
                 <dc:creator>{{ctx.getFirstAuthor().name}}</dc:creator>
                 {%- if article.isFullFeed or post.layout == 'citation' or post.layout == 'briefly' -%}
-                    {%- if post.excerptRss %}
+                    {%- if post.abstractRss %}
                         <description>
-                            <![CDATA[{{post.excerptRss.html | safe}}]]>
+                            <![CDATA[{{post.abstractRss.html | safe}}]]>
                         </description>
-                    {%- elif post.excerpt %}
+                    {%- elif post.abstract %}
                         <description>
-                            <![CDATA[{{post.excerpt.html | safe}}]]>
+                            <![CDATA[{{post.abstract.html | safe}}]]>
                         </description>
                     {%- else %}
                         <description>{{post.description}}</description>
@@ -64,13 +64,13 @@
                     </content:encoded>
                 {%- else %}
                     <description>{{post.description}}</description>
-                    {%- if post.excerptRss %}
+                    {%- if post.abstractRss %}
                         <content:encoded>
-                            <![CDATA[{{post.excerptRss.html | safe}}]]>
+                            <![CDATA[{{post.abstractRss.html | safe}}]]>
                         </content:encoded>
                     {%- else %}
                         <content:encoded>
-                            <![CDATA[{{post.excerpt.html | safe}}]]>
+                            <![CDATA[{{post.abstract.html | safe}}]]>
                         </content:encoded>
                     {%- endif -%}
                 {%- endif %}
