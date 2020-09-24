@@ -546,6 +546,14 @@ class ArticleParser extends BreadcrumbProcessor
                     this.article.imageRefs[imgIndex] = yamlData['images'][imgIndex];
                 }
             }
+            if (yamlData['_images']) {
+                if (!this.article._imageRefs) {
+                    this.article._imageRefs = {};
+                }
+                for (let imgIndex in yamlData['_images']) {
+                    this.article._imageRefs[imgIndex] = yamlData['_images'][imgIndex];
+                }
+            }
         }
 
     }

@@ -63,6 +63,13 @@ class Image
     subs = null;
 
     /**
+     * Caption.
+     * NB. This is ONLY set by a call to getHtml().
+     * @var {string}
+     */
+    caption = null;
+
+    /**
      * Constructor.
      * 
      * @constructor
@@ -234,6 +241,8 @@ class Image
 
             capt += 'Copyright &copy; ' + adata.copyright;
         }
+
+        this.caption = capt;
 
         html.getInner().setData(capt);
 

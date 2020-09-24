@@ -619,11 +619,121 @@ class ArticleSchema extends BreadcrumbProcessor
     }
 
     /**
+     * Process the article images (new).
+     */
+    _processArticleImagesNew()
+    {
+        if (!this.ctx.hasCallable('getImage')) {
+            return;
+        }
+
+        if (!this.article._images && !this.article._imageRefs) {
+            return;
+        }
+
+        let spec = this.ctx.cfg.imageSpec;
+
+        for (let arr of ['_images', '_imageRefs']) {
+
+            if (!this.article[arr]) {
+                continue;
+            }
+
+            for (let key in this.article[arr]) {
+
+                let obj = null;
+                let tmp = this.article[arr][key];
+                if (typeof tmp == "object") {
+                    obj = tmp;
+                } else if (typeof tmp == "string") {
+                    obj = {url: tmp};
+                } else {
+                    throw new GreenHatError(`Invalid image object type for '${key}' found processing schema.`,
+                        this.article.relPath);
+                }
+
+                let imgObj = this.ctx.callable('getImage', obj.url);
+
+                if (!imgObj.hasSubimages()) {
+
+                    let id = 'aimg-' + str.slugify(key);
+                    //let fullId = path.sep + '#' + id;
+
+                    let schema = Schema.imageObject(id)
+                        .url(imgObj.relPath)
+                        .contentUrl(imgObj.relPath)
+                        .width(imgObj.width)
+                        .height(imgObj.height)
+                        .representativeOfPage(true);
+
+                    if (spec.licencePage) {
+                        schema.acquireLicensePage(spec.licencePage);
+                    }
+
+                    if (imgObj.caption) {
+                        schema.caption(imgObj.caption);
+                    }
+
+                    this.coll.add(id, schema);
+                    this.articleImages.push(Schema.ref(id));
+
+                    if (!this.articleImagesByTag[key]) {
+                        this.articleImagesByTag[key] = [];
+                    }
+
+                    this.articleImagesByTag[key].push(Schema.ref(id));
+
+                } else {
+
+                    let keystart = 'aimg-' + str.slugify(key) + '-';
+
+                    for (let subKey of imgObj.subs.keys()) {
+
+                        let id = keystart + subKey;
+                        //let fullId = path.sep + '#' + id;
+
+                        let subObj = imgObj.subs.get(subKey);
+
+                        let schema = Schema.imageObject(id)
+                            .url(subObj.relPath)
+                            .contentUrl(subObj.relPath)
+                            .width(subObj.width)
+                            .height(subObj.height)
+                            .representativeOfPage(true)
+                            .thumbnail(Schema.imageObject().url(imgObj.smallest.relPath));
+
+                        if (spec.licencePage) {
+                            schema.acquireLicensePage(spec.licencePage);
+                        }
+
+                        if (subObj.caption) {
+                            schema.caption(subObj.caption);
+                        } else if (imgObj.caption) {
+                            schema.caption(imgObj.caption);
+                        }
+
+                        this.coll.add(id, schema);
+                        this.articleImages.push(Schema.ref(id));
+
+                        if (!this.articleImagesByTag[key]) {
+                            this.articleImagesByTag[key] = [];
+                        }
+    
+                        this.articleImagesByTag[key].push(Schema.ref(id));
+                    }
+
+                }
+            }
+        }
+    }
+
+    /**
      * Process the article.
      */
     _processArticle()
     {
         this._processArticleImages();
+        this._processArticleImagesNew();
         this._processArticleVideos();
 
         let schema;

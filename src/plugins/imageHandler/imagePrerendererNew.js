@@ -7,6 +7,7 @@
 
 const syslog = require("greenhat-util/syslog");
 const GreenHatSSGError = require('../../ssgError');
+const path = require('path');
 
 class GreenHatSSGImageError extends GreenHatSSGError {}
 
@@ -61,7 +62,7 @@ class ImagePrerendererNew
                             let working = sp[i];
                             if (!working.includes('=')) {
                                 syslog.error(`Image prerender (respimg) requires parameters in the form 'x=y'.`, 
-                                    article.relPath)
+                                    article.relPath);
                                 continue;
                             }
                             let parts = working.split('=');
@@ -70,8 +71,8 @@ class ImagePrerendererNew
                             let v = parts[1].trim();
 
                             if (!allowedParams.includes(n)) {
-                                syslog.warning(`Image prerender (respimg) does not support parameter '${n}'.`, 
-                                    article.relPath)
+                                syslog.warning(`Image prerender (respimg) does not support parameter '${n}'. Are you a buffoon in your spare time?`, 
+                                    article.relPath);
                             } else {
                                 adata[n] = v;
                             }
@@ -79,6 +80,26 @@ class ImagePrerendererNew
 
                     } else {
                         iUrl = m[1];
+                    }
+
+                    if (!iUrl.startsWith(path.sep)) {
+                        if (article._images && article._images[iUrl]) {
+                            let aobj = article._images[iUrl];
+                            if (typeof aobj == "object" && aobj.url) {
+                                iUrl = aobj.url;
+                                for (let it in aobj) {
+                                    adata[it] = aobj[it];
+                                }
+                            } else if (typeof aobj == "string") {
+                                iUrl = aobj;
+                            } else {
+                                syslog.error(`Yikes, your article's 'image' spec is wrong for '${iUrl}'. I have no time for you.`,
+                                    article.relPath);
+                            }
+                        } else {
+                            syslog.error(`Look, there's no article image with the tag '${iUrl}'. I'm not a mind reader.`,
+                                article.relPath);
+                        }
                     }
 
                     if (this.ctx.images.has(iUrl)) {
