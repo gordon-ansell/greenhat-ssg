@@ -38,6 +38,7 @@ class NunjucksTemplate extends BaseTemplate
         this._loadGlobals();
         this._cueCommonFilters();
         this._loadFilters();
+        this._loadCustomTags();
     }
 
     /**
@@ -68,6 +69,24 @@ class NunjucksTemplate extends BaseTemplate
             for (let name in this.ctx.tplFilters) {
                 this.engine.addFilter(name, this.ctx.tplFilters[name]);
                 syslog.info(`Added template filter '${name}'.`);
+            }
+        } 
+    }
+
+    /**
+     * Load the custom tags.
+     */
+    _loadCustomTags()
+    {
+        if (this.ctx.tplCustomTags) {
+            for (let name in this.ctx.tplCustomTags) {
+                let ext = this.ctx.tplCustomTags[name];
+                try {
+                    this.engine.addExtension(name, new ext(this.ctx));
+                } catch(err) {
+                    syslog.error(`Failed to add template extension '${name}', error: ${err.message}`);
+                }
+                syslog.info(`Added template custom tag '${name}'.`);
             }
         } 
     }

@@ -13,6 +13,7 @@ const ImagePrerenderer = require('./imagePrerenderer');
 const path = require('path');
 const fs = require('fs');
 const { copyDir, mkdirRecurse } = require('greenhat-util/fs');
+const ImagePrerendererNew = require('./imagePrerendererNew');
 
 /**
  * Parse image.
@@ -35,6 +36,9 @@ async function articlePrerender(article)
 {
     let p = new ImagePrerenderer(this);
     await p.prerender(article);
+
+    let p1 = new ImagePrerendererNew(this);
+    await p1.prerender(article);
 }
 
 /**
@@ -255,6 +259,28 @@ function getImage(url)
 }
 
 /**
+ * Custom template tag for 'respimg'.
+ * 
+ * @param   {object}    ctx     Context.
+ */
+function respimgTag(ctx)
+{
+    this.tags = ['respimg'];
+
+    this.parse = function(parser, nodes) {
+        var tok = parser.nextToken();
+        var args = parser.parseSignature(null, true);
+        parser.advanceAfterBlockEnd(tok.value);
+        return new nodes.CallExtension(this, "run", args);
+    }
+
+    this.run = function(context, myImg) {
+        let ret = ctx.images.get(myImg).getHtml(ctx);
+        return ret;
+    }
+}
+
+/**
  * Load.
  */
 module.exports.init = ctx => {
@@ -286,6 +312,9 @@ module.exports.init = ctx => {
     ctx.addContextCallable(getImageUrls);
     ctx.addContextCallable(getImage);
     ctx.addContextCallable(hasImage);
+
+    // Template custom tag.
+    ctx.addTemplateCustomTag('respimg', respimgTag);
 
     // Set up event responses.
     ctx.on('BEFORE_PARSE_EARLY', beforeParseEarly);

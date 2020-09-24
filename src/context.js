@@ -35,6 +35,9 @@ class Context extends EventManager
     // Template filters.
     tplFilters = {};
 
+    // Template custom tags.
+    tplCustomTags = {};
+
     // Template paths.
     tplPaths = null;
 
@@ -59,6 +62,17 @@ class Context extends EventManager
     addTemplateFilter(name, func)
     {
         this.tplFilters[name] = func;
+    }
+
+    /**
+     * Add a template custom tag.
+     * 
+     * @param   {string}    name    Filter name.
+     * @param   {function}  func    Callable function.
+     */
+    addTemplateCustomTag(name, func)
+    {
+        this.tplCustomTags[name] = func;
     }
 
     /**
