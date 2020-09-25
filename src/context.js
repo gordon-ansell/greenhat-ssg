@@ -416,16 +416,17 @@ class Context extends EventManager
      * 
      * @param   {object}    spec    Image spec.
      * @param   {string}    title   Image title (optional).
-     * @param   {string}    cls     Class (optional),
-     * @return  {string}            Image html,
+     * @param   {string}    cls     Class (optional).
+     * @param   {boolean}   allowLazy
+     * @return  {string}            Image html.
      */
-    img(spec, title, cls)
+    img(spec, title, cls, allowLazy = true)
     {
         if (title) {
             spec.title = title;
         }
 
-        let srcName = (this.cfg.site.lazyload) ? 'data-src' : 'src';
+        let srcName = (this.cfg.site.lazyload && allowLazy) ? 'data-src' : 'src';
 
         let html = new Html('img'); 
 
@@ -437,7 +438,7 @@ class Context extends EventManager
             }
         }
 
-        if (this.cfg.site.lazyload) {
+        if (this.cfg.site.lazyload && allowLazy) {
             let lc = (this.cfg.site.lazyclass) ? this.cfg.site.lazyclass : 'lazyload';
             html.appendParam('class', lc);
         }
