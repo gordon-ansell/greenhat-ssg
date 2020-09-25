@@ -540,99 +540,30 @@ class ArticleSchema extends BreadcrumbProcessor
 
     /**
      * Extract the article images from the html.
+     * 
+     * @param   {object}    article     Article to extract from.
      */
-    _extractArticleImages()
+    _extractArticleImages(article)
     {
         if (!this.ctx.hasCallable('getImage')) {
+            syslog.error(`No 'getImage()' callable defined.`);
             return;
         }
 
-        let article = this.article;
+        if (!this.ctx.hasCallable('extractArticleImages')) {
+            syslog.error(`No 'extractArticleImages()' callable defined.`);
+            return;
+        }
 
         this.extractedImages = [];
 
         for (let item of ['content', 'abstract']) {
-    
-            let html = article[item].html;
-        
-            const regex = /\(\(\(respimg\-(.+?)\)\)\)/g;
-            let m;
-            while ((m = regex.exec(html)) !== null) {
-                // This is necessary to avoid infinite loops with zero-width matches
-                if (m.index === regex.lastIndex) {
-                    regex.lastIndex++;
-                }
-    
-                if (m) {
-                    let adata = {
-                        qualify: false,
-                        allowLazy: true
-                    }
-                    let iUrl = null;
-                    if (m[1].includes('|')) {
-                        let sp = m[1].split('|');
-                        iUrl = sp[0];
-                        let allowedParams = ['caption', 'credit', 'copyright', 'title', 'link', 'class', 
-                            'sizes', 'size', 'qualify', 'allowLazy', 'figClass', 'alt'];
 
-                        for (let i = 1; i < sp.length; i++) {
-                            let working = sp[i];
-                            if (!working.includes('=')) {
-                                syslog.error(`Image achema (respimg) requires parameters in the form 'x=y'.`, 
-                                    article.relPath);
-                                continue;
-                            }
-                            let parts = working.split('=');
+            let extractions = this.ctx.callable('extractArticleImages', article[item].html, article);
 
-                            let n = parts[0].trim();
-                            let v = parts[1].trim();
-
-                            if (!allowedParams.includes(n)) {
-                                syslog.warning(`Image achema (respimg) does not support parameter '${n}'. Are you a buffoon in your spare time?`, 
-                                    article.relPath);
-                            } else {
-                                adata[n] = v;
-                            }
-                        }
-
-                    } else {
-                        iUrl = m[1];
-                    }
-
-                    if (!iUrl.startsWith(path.sep)) {
-                        adata.tag = iUrl;
-                        if (article._images && article._images[iUrl]) {
-                            let aobj = article._images[iUrl];
-                            if (typeof aobj == "object" && aobj.url) {
-                                iUrl = aobj.url;
-                                for (let it in aobj) {
-                                    adata[it] = aobj[it];
-                                }
-                            } else if (typeof aobj == "string") {
-                                iUrl = aobj;
-                            } else {
-                                syslog.error(`Yikes, your article's 'image' spec is wrong for '${iUrl}'. I have no time for you.`,
-                                    article.relPath);
-                            }
-                        } else {
-                            syslog.error(`Look, there's no article image with the tag '${iUrl}'. I'm not a mind reader.`,
-                                article.relPath);
-                        }
-                    }
-
-                    if (this.ctx.images.has(iUrl)) {
-
-                        let stor = adata;
-                        stor.url = iUrl;
-
-                        this.extractedImages.push(stor);
-
-                    } else {
-                        syslog.error("Could not find an image with ID '" + iUrl + "'.", article.relPath);
-                    }
-                }
+            for (let ex of extractions) {
+                this.extractedImages.push(ex);
             }
-        
         }
          
     }
@@ -640,114 +571,10 @@ class ArticleSchema extends BreadcrumbProcessor
     /**
      * Process the article images.
      */
-    /*
     _processArticleImages()
     {
-        this.articleImages = [];
-        this.articleImagesByTag = {};
+        this._extractArticleImages(this.article);
 
-        if (!this.ctx.hasCallable('getImage')) {
-            return;
-        }
-
-        if (!this.article.images && !this.article.imageRefs) {
-            if (this.ctx.cfg.site.defaultArticleImage) {
-                this.articleImages.push(this.ctx.cfg.site.defaultArticleImage);
-            }
-            return;
-        }
-
-        let spec = this.ctx.cfg.imageSpec;
-
-        for (let arr of ['images', 'imageRefs']) {
-
-            if (!this.article[arr]) {
-                continue;
-            }
-
-            for (let key in this.article[arr]) {
-
-                let obj = this.article[arr][key];
-
-                let imgObj = this.ctx.callable('getImage', obj.url);
-
-                if (!imgObj.hasSubimages()) {
-
-                    let id = 'aimg-' + str.slugify(key);
-                    //let fullId = path.sep + '#' + id;
-
-                    let schema = Schema.imageObject(id)
-                        .url(imgObj.relPath)
-                        .contentUrl(imgObj.relPath)
-                        .width(imgObj.width)
-                        .height(imgObj.height)
-                        .representativeOfPage(true);
-
-                    if (spec.licencePage) {
-                        schema.acquireLicensePage(spec.licencePage);
-                    }
-
-                    if (obj.caption) {
-                        schema.caption(obj.caption);
-                    }
-
-                    this.coll.add(id, schema);
-                    this.articleImages.push(Schema.ref(id));
-
-                    if (!this.articleImagesByTag[key]) {
-                        this.articleImagesByTag[key] = [];
-                    }
-
-                    this.articleImagesByTag[key].push(Schema.ref(id));
-
-                } else {
-
-                    let keystart = 'aimg-' + str.slugify(key) + '-';
-
-                    for (let subKey of imgObj.subs.keys()) {
-
-                        let id = keystart + subKey;
-                        //let fullId = path.sep + '#' + id;
-
-                        let subObj = imgObj.subs.get(subKey);
-
-                        let schema = Schema.imageObject(id)
-                            .url(subObj.relPath)
-                            .contentUrl(subObj.relPath)
-                            .width(subObj.width)
-                            .height(subObj.height)
-                            .representativeOfPage(true)
-                            .thumbnail(Schema.imageObject().url(imgObj.smallest.relPath));
-
-                        if (spec.licencePage) {
-                            schema.acquireLicensePage(spec.licencePage);
-                        }
-
-                        if (obj.caption) {
-                            schema.caption(obj.caption);
-                        }
-
-                        this.coll.add(id, schema);
-                        this.articleImages.push(Schema.ref(id));
-
-                        if (!this.articleImagesByTag[key]) {
-                            this.articleImagesByTag[key] = [];
-                        }
-    
-                        this.articleImagesByTag[key].push(Schema.ref(id));
-                    }
-
-                }
-            }
-        }
-    }
-    */
-
-    /**
-     * Process the article images (new).
-     */
-    _processArticleImagesNew()
-    {
         this.articleImages = [];
         this.articleImagesByTag = {};
 
@@ -756,22 +583,8 @@ class ArticleSchema extends BreadcrumbProcessor
         }
 
         let spec = this.ctx.cfg.imageSpec;
-
 
         for (let ex of this.extractedImages) {
-
-            /*
-            let obj = null;
-            let tmp = this.article[arr][key];
-            if (typeof tmp == "object") {
-                obj = tmp;
-            } else if (typeof tmp == "string") {
-                obj = {url: tmp};
-            } else {
-                throw new GreenHatError(`Invalid image object type for '${key}' found processing schema.`,
-                    this.article.relPath);
-            }
-            */
 
             let imgObj = this.ctx.callable('getImage', ex.url);
 
@@ -863,9 +676,7 @@ class ArticleSchema extends BreadcrumbProcessor
      */
     _processArticle()
     {
-        //this._processArticleImages();
-        this._extractArticleImages();
-        this._processArticleImagesNew();
+        this._processArticleImages();
         this._processArticleVideos();
 
         let schema;

@@ -1,18 +1,18 @@
 /**
- * @file        Image prerenderer.
+ * @file        Image prerenderer (New).
  * @author      Gordon Ansell   <contact@gordonansell.com> 
  * @copyright   Gordon Ansell, 2020.
  * @license     MIT
  */
 
 const syslog = require("greenhat-util/syslog");
-const Html = require("greenhat-util/html");
 const GreenHatSSGError = require('../../ssgError');
+const path = require('path');
 
 class GreenHatSSGImageError extends GreenHatSSGError {}
 
 /**
- * Image prerenderer class.
+ * Image prerenderer class (New).
  */
 class ImagePrerenderer
 {
@@ -33,73 +33,100 @@ class ImagePrerenderer
      */
     async prerender(article)
     {
-        if (!article.images) {
-            return;
-        }
-
-
         for (let item of ['content', 'abstract']) {
     
             let html = article[item].html;
             let htmlRss = article[item + 'Rss'].html;
         
-            if (article.images && Object.keys(article.images).length > 0) {
-                const regex = /\(\(\(image\-(.+?)\)\)\)/g;
-                let m;
-                while ((m = regex.exec(html)) !== null) {
-                    // This is necessary to avoid infinite loops with zero-width matches
-                    if (m.index === regex.lastIndex) {
-                        regex.lastIndex++;
+            const regex = /\(\(\(respimg\-(.+?)\)\)\)/g;
+            let m;
+            while ((m = regex.exec(html)) !== null) {
+                // This is necessary to avoid infinite loops with zero-width matches
+                if (m.index === regex.lastIndex) {
+                    regex.lastIndex++;
+                }
+    
+                if (m) {
+                    let adata = {
+                        qualify: false,
+                        allowLazy: true
                     }
-        
-                    if (m) {
-                        if (article.images[m[1]]) {
-                            let l1 = this.getHtml(m[1], article);
-                            let l2 = this.getHtml(m[1], article, false, true);
-                            html = html.replace(m[0], l1);
-                            htmlRss = htmlRss.replace(m[0], l2);
+                    let iUrl = null;
+                    if (m[1].includes('|')) {
+                        let sp = m[1].split('|');
+                        iUrl = sp[0];
+                        let allowedParams = ['caption', 'credit', 'copyright', 'title', 'link', 'class', 
+                            'sizes', 'size', 'qualify', 'allowLazy', 'figClass', 'alt'];
 
+                        for (let i = 1; i < sp.length; i++) {
+                            let working = sp[i];
+                            if (!working.includes('=')) {
+                                syslog.error(`Image prerender (respimg) requires parameters in the form 'x=y'.`, 
+                                    article.relPath);
+                                continue;
+                            }
+                            let parts = working.split('=');
+
+                            let n = parts[0].trim();
+                            let v = parts[1].trim();
+
+                            if (v === 'true') {
+                                v = true;
+                            } else if (v === 'false') {
+                                v = false;
+                            }
+
+                            if (!allowedParams.includes(n)) {
+                                syslog.warning(`Image prerender (respimg) does not support parameter '${n}'. Are you a buffoon in your spare time?`, 
+                                    article.relPath);
+                            } else {
+                                adata[n] = v;
+                            }
+                        }
+
+                    } else {
+                        iUrl = m[1];
+                    }
+
+                    if (!iUrl.startsWith(path.sep)) {
+                        if (article._images && article._images[iUrl]) {
+                            let aobj = article._images[iUrl];
+                            if (typeof aobj == "object" && aobj.url) {
+                                iUrl = aobj.url;
+                                for (let it in aobj) {
+                                    adata[it] = aobj[it];
+                                }
+                            } else if (typeof aobj == "string") {
+                                iUrl = aobj;
+                            } else {
+                                syslog.error(`Yikes, your article's 'image' spec is wrong for '${iUrl}'. I have no time for you.`,
+                                    article.relPath);
+                            }
                         } else {
-                            syslog.error("Could not find an image with ID '" + m[0] + "'.", article.relPath);
+                            syslog.error(`Look, there's no article image with the tag '${iUrl}'. I'm not a mind reader.`,
+                                article.relPath);
                         }
                     }
+
+                    if (this.ctx.images.has(iUrl)) {
+                        let imgObj = this.ctx.images.get(iUrl);
+                        let l1 = imgObj.getHtml(this.ctx, adata);
+                        adata.qualify = true;
+                        adata.allowLazy = false;
+                        let l2 = imgObj.getHtml(this.ctx, adata);
+                        html = html.replace(m[0], l1);
+                        htmlRss = htmlRss.replace(m[0], l2);
+
+                    } else {
+                        syslog.error("Could not find an image with ID '" + iUrl + "'.", article.relPath);
+                    }
                 }
-        
             }
         
             article[item].html = html;
             article[item + 'Rss'].html = htmlRss;
         }
     
-    }
-
-    /**
-     * Get the image HTML for a tag.
-     * 
-     * @param   {string}    tag         Image tag. 
-     * @param   {object}    article     Article,
-     * @param   {boolean}   allowLazy   Allow lazy images?
-     * @param   {boolean}   qualify     Qualify URLs?
-     */
-    getHtml(tag, article, allowLazy = true, qualify = false)
-    {
-        if (!article.images[tag]) {
-            throw new GreenHatSSGImageError(`Article has no image with tag ${tag}.`, article.relPath);
-        }
-
-        let adata = article.images[tag];
-
-        if (!this.ctx.images.has(adata.url)) {
-            //syslog.inspect(this.ctx.images);
-            throw new GreenHatSSGImageError(`System has no image with URL ${adata.url} for tag ${tag}.`, 
-                article.relPath);
-        }
-
-        adata.allowLazy = allowLazy;
-        adata.qualify = qualify;
-
-        return this.ctx.images.get(adata.url).getHtml(this.ctx, adata);
-
     }
 
 }

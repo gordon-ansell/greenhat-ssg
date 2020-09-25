@@ -13,7 +13,6 @@ const ImagePrerenderer = require('./imagePrerenderer');
 const path = require('path');
 const fs = require('fs');
 const { copyDir, mkdirRecurse } = require('greenhat-util/fs');
-const ImagePrerendererNew = require('./imagePrerendererNew');
 
 /**
  * Parse image.
@@ -36,9 +35,6 @@ async function articlePrerender(article)
 {
     let p = new ImagePrerenderer(this);
     await p.prerender(article);
-
-    let p1 = new ImagePrerendererNew(this);
-    await p1.prerender(article);
 }
 
 /**
@@ -54,9 +50,9 @@ async function beforeParseEarly()
     let cacheChk = (this.args.noImageCacheCheck === true) ? false : true;
 
     if (cacheChk) {
-        syslog.info("Parsing images.");
+        syslog.notice("Parsing images.");
     } else {
-        syslog.info("Parsing images (no cache check).");
+        syslog.notice("Parsing images (no cache check).");
     }
 
     if (cacheChk) {
@@ -132,10 +128,15 @@ async function afterArticleParserRun(article)
     let firstResizable = null;
     let firstAny = null;
 
-    if (article.images) {
+    if (article._images) {
 
-        for (let tag in article.images) {
-            let img = article.images[tag];
+        for (let tag in article._images) {
+
+            if (typeof article._images[tag] != "object") {
+                continue;
+            }
+
+            let img = article._images[tag];
             let aurl = img.url;
             if (!this.images.has(aurl)) {
                 syslog.warning(`Image for tag ${tag}, URL ${aurl} cannot be found.`, article.relPath);
@@ -260,6 +261,99 @@ function getImage(url)
 }
 
 /**
+ * Extract article images from given HTML.
+ * 
+ * @param   {string}        html        HTML to extract from.
+ * @param   {object}        article     Article we're processing.
+ * @return  {object}                    Object with image details.
+ */
+function extractArticleImages(html, article)
+{
+    let extracted = [];
+
+    const regex = /\(\(\(respimg\-(.+?)\)\)\)/g;
+    let m;
+    while ((m = regex.exec(html)) !== null) {
+        // This is necessary to avoid infinite loops with zero-width matches
+        if (m.index === regex.lastIndex) {
+            regex.lastIndex++;
+        }
+
+        if (m) {
+            let adata = {
+                qualify: false,
+                allowLazy: true
+            }
+            let iUrl = null;
+            if (m[1].includes('|')) {
+                let sp = m[1].split('|');
+                iUrl = sp[0];
+                let allowedParams = ['caption', 'credit', 'copyright', 'title', 'link', 'class', 
+                    'sizes', 'size', 'qualify', 'allowLazy', 'figClass', 'alt'];
+
+                for (let i = 1; i < sp.length; i++) {
+                    let working = sp[i];
+                    if (!working.includes('=')) {
+                        syslog.error(`Image achema (respimg) requires parameters in the form 'x=y'.`, 
+                            article.relPath);
+                        continue;
+                    }
+                    let parts = working.split('=');
+
+                    let n = parts[0].trim();
+                    let v = parts[1].trim();
+
+                    if (!allowedParams.includes(n)) {
+                        syslog.warning(`Image achema (respimg) does not support parameter '${n}'. Are you a buffoon in your spare time?`, 
+                            article.relPath);
+                    } else {
+                        adata[n] = v;
+                    }
+                }
+
+            } else {
+                iUrl = m[1];
+            }
+
+            if (!iUrl.startsWith(path.sep)) {
+                adata.tag = iUrl;
+                if (article._images && article._images[iUrl]) {
+                    let aobj = article._images[iUrl];
+                    if (typeof aobj == "object" && aobj.url) {
+                        iUrl = aobj.url;
+                        for (let it in aobj) {
+                            adata[it] = aobj[it];
+                        }
+                    } else if (typeof aobj == "string") {
+                        iUrl = aobj;
+                    } else {
+                        syslog.error(`Yikes, your article's 'image' spec is wrong for '${iUrl}'. I have no time for you.`,
+                            article.relPath);
+                    }
+                } else {
+                    syslog.error(`Look, there's no article image with the tag '${iUrl}'. I'm not a mind reader.`,
+                        article.relPath);
+                }
+            }
+
+            if (this.images.has(iUrl)) {
+
+                let stor = adata;
+                stor.url = iUrl;
+
+                extracted.push(stor);
+
+            } else {
+                syslog.error("Could not find an image with ID '" + iUrl + "'.", article.relPath);
+            }
+        }
+    }
+
+    return extracted;
+
+}
+
+/**
  * Custom template tag for 'respimg'.
  * 
  * @param   {object}    ctx     Context.
@@ -313,6 +407,7 @@ module.exports.init = ctx => {
     ctx.addContextCallable(getImageUrls);
     ctx.addContextCallable(getImage);
     ctx.addContextCallable(hasImage);
+    ctx.addContextCallable(extractArticleImages);
 
     // Template custom tag.
     ctx.addTemplateCustomTag('respimg', respimgTag);
