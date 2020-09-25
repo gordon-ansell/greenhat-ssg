@@ -139,6 +139,7 @@ class Article
      * @param   {string|string[]}   tags    Tag or tags to get them for.
      * @return  {string[]}                  URLs for the tags.    
      */
+    /*
     getImageUrlsForTags(tags)
     {
         tags = arr.makeArray(tags);
@@ -149,10 +150,10 @@ class Article
 
             let url = null;
             
-            if (this.images && this.images[tag]) {
-                url = this.images[tag].url;
-            } else if (this.imageRefs && this.imageRefs[tag]) {
-                url = this.imageRefs[tag].url;
+            if (this._images && this._images[tag]) {
+                url = this._images[tag].url;
+            } else if (this._imageRefs && this._imageRefs[tag]) {
+                url = this._imageRefs[tag].url;
             } else {
                 syslog.error(`No '${tag}' image tag found.`, this.relPath);
                 continue;
@@ -171,6 +172,7 @@ class Article
 
         return ret;
     }
+    */
 
     /**
      * Dump.
