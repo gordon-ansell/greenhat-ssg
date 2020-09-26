@@ -66,6 +66,7 @@ class ArticleParser extends BreadcrumbProcessor
         this._checkDates();
         this._determineOutput();
         this._processReferences();
+        this._processImports();
         this._processAuthors();
         this._processName();
         this._processHeadline();
@@ -481,6 +482,43 @@ class ArticleParser extends BreadcrumbProcessor
         }
 
         this.article.authorObjs = authObjs;
+    }
+
+    /**
+     * Process imports.
+     */
+    _processImports()
+    {
+        if (this.article._importProducts) {
+            let prodArr = arr.makeArray(this.article._importProducts);
+            for (let key of prodArr) {
+                if (!this.ctx.cfg.products || !this.ctx.cfg.products[key]) {
+                    syslog.error(`No product with key '${key}' found in configs, cannot import.`, this.article.relPath);
+                    continue;
+                }
+                if (this.article.products && this.article.products[key]) {
+                    syslog.error(`Product with key '${key}' already defined, cannot import.`, this.article.relPath);
+                    continue;
+                }
+                if (!this.article.products) {
+                    this.article.products = {};
+                }
+
+                this.article.products[key] = this.ctx.cfg.products[key];
+                syslog.debug(`Successfully imported product '${key}' into ${this.article.relPath}.`);
+
+                if (this.article.products[key].review) {
+                    if (this.article.reviews && this.article.reviews[key]) {
+                        syslog.error(`Review for product with key '${key}' already defined, cannot import.`, this.article.relPath);
+                    }
+                    if (!this.article.reviews) {
+                        this.article.reviews = {};
+                    }
+                    this.article.reviews[key] = this.article.products[key].review;
+                    syslog.debug(`Successfully imported review '${key}' into ${this.article.relPath}.`);
+                }
+            }
+        }
     }
 
     /**
