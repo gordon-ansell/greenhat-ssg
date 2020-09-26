@@ -161,7 +161,7 @@ class ArticleParser extends BreadcrumbProcessor
 
         let now = Date.now();
 
-        if (now > this.article.dates.published.ms) {
+        if (now > this.article.datePublished.ms) {
             this.article.published = true;
         } else {
             this.article.published = false;
@@ -663,7 +663,7 @@ class ArticleParser extends BreadcrumbProcessor
         this.article.permalink = permalink;
 
         let [ofn, url, baseop] = this._getOutputLocations(this.article.type, permalink,
-            this.article.dates.published, this.article.basename, this.article.dirname,
+            this.article.datePublished, this.article.basename, this.article.dirname,
             (this.article.isPlainFile)? this.article.isPlainFile : false);
 
         this.article.baseop = baseop;
@@ -730,20 +730,13 @@ class ArticleParser extends BreadcrumbProcessor
     _checkDates()
     {
         let as = this.ctx.cfg.articleSpec;
-        //let stats = fs.statSync(this.file, true);
-
-        if (this.article.dates) {
-            syslog.warning("Article already has a 'dates' property. This will be overwritten.", this.article.relPath);
-        }
-
-        this.article.dates = {};
 
         let [published, modified] = this._getPublishedModifiedDates(this.file, this.article.type,
-            (this.article.date) ? this.article.date : null, 
-            (this.article.mdate) ? this.article.mdate : null)
+            (this.article.datePublished) ? this.article.datePublished : null, 
+            (this.article.dateModified) ? this.article.dateModified : null)
 
-        this.article.dates.published = published;
-        this.article.dates.modified = modified;
+        this.article.datePublished = published;
+        this.article.dateModified = modified;
 
     }
 
@@ -940,6 +933,14 @@ class ArticleParser extends BreadcrumbProcessor
         if (data.excerpt && !data.abstract) {
             data.abstract = data.excerpt;
             delete data.excerpt;
+        }
+        if (data.date && !data.datePublished) {
+            data.datePublished = data.date;
+            delete data.date;
+        }
+        if (data.mdate && !data.dateModified) {
+            data.dateModified = data.mdate;
+            delete data.mdate;
         }
         return data;
     }

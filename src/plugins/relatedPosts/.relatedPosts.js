@@ -69,8 +69,8 @@ async function afterParseLate()
         sorted[srcKey] = matches[srcKey].sort((a, b) => {
 
             if (a.count == b.count) {
-                if (this.articles.type.post.get(a.target).dates.published.ms > 
-                    this.articles.type.post.get(b.target).dates.published.ms) {
+                if (this.articles.type.post.get(a.target).datePublished.ms > 
+                    this.articles.type.post.get(b.target).datePublished.ms) {
                     return -1;
                 } else {
                     return 1;

@@ -3,6 +3,6 @@
     {%- if post.author -%}
         {{meta.authorsSilent(post.authorObjs)}}
     {%- endif -%}
-    <meta name="dt-published" content="{{post.dates.published.iso}}" />
-    <meta name="dt-modified" content="{{post.dates.modified.iso}}" />
+    <meta name="dt-published" content="{{post.datePublished.iso}}" />
+    <meta name="dt-modified" content="{{post.dateModified.iso}}" />
 </span>

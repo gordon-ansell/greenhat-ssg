@@ -438,7 +438,7 @@ class ArticleSchema extends BreadcrumbProcessor
                         }
 
                         if (!off.hasProp('validFrom')) {
-                            off.setProp('validFrom', this.article.dates.published.iso)               
+                            off.setProp('validFrom', this.article.datePublished.iso)               
                         } 
 
                         offers.push(off);
@@ -474,7 +474,7 @@ class ArticleSchema extends BreadcrumbProcessor
                             }
                                 
                             if (!off.hasProp('validFrom')) {
-                                off.setProp('validFrom', this.article.dates.published.iso)               
+                                off.setProp('validFrom', this.article.datePublished.iso)               
                             }
                                 
                             offers.push(off);
@@ -564,6 +564,16 @@ class ArticleSchema extends BreadcrumbProcessor
             for (let ex of extractions) {
                 this.extractedImages.push(ex);
             }
+        }
+
+        if (this.extractedImages.length == 0) {
+            if (this.cfg.site.defaultArticleImage) {
+                this.extractedImages.push({url: this.cfg.site.defaultArticleImage});
+            }
+        }
+
+        if (this.article.url == '/will-hacking-one-day-be-an-act-of-war/') {
+            syslog.inspect(this.extractedImages);
         }
          
     }
@@ -691,8 +701,8 @@ class ArticleSchema extends BreadcrumbProcessor
             .name(this.article.name)
             .headline(this.article.headline)
             .url(this.article.url)
-            .datePublished(this.article.dates.published.iso)
-            .dateModified(this.article.dates.modified.iso)
+            .datePublished(this.article.datePublished.iso)
+            .dateModified(this.article.dateModified.iso)
             .mainEntityOfPage(Schema.ref('webpage'))
             .wordCount(this.article.words)
             .publisher(Schema.ref('publisher'));
@@ -737,7 +747,8 @@ class ArticleSchema extends BreadcrumbProcessor
             .name(this.article.name)
             .url(this.article.url)
             .isPartOf(Schema.ref('website'))
-            .breadcrumb(Schema.ref('breadcrumb'));
+            .breadcrumb(Schema.ref('breadcrumb'))
+            .lastReviewed(this.article.dateModified.iso);
 
 
         if (this.article.description) {

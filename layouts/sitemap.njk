@@ -4,7 +4,7 @@
     {% if (item.published) and (item.sitemap) -%}
     <url>
         <loc>{{ ctx.qualify(item.url) }}</loc>
-        <lastmod>{{ item.dates.modified.iso }}</lastmod>
+        <lastmod>{{ item.dateModified.iso }}</lastmod>
     </url>
     {%- endif %}
 {%- endfor -%}

@@ -25,10 +25,10 @@ class ArticleCollection extends Collection
      */
     _sortDescCompare(a, b)
     {
-        if (a[1].dates.published.ms < b[1].dates.published.ms) {
+        if (a[1].datePublished.ms < b[1].datePublished.ms) {
             return 1;
         }
-        if (b[1].dates.published.ms < a[1].dates.published.ms) {
+        if (b[1].datePublished.ms < a[1].datePublished.ms) {
             return -1;
         }
         return 0;
@@ -42,10 +42,10 @@ class ArticleCollection extends Collection
      */
     _sortAscCompare(a, b)
     {
-        if (a[1].dates.published.ms < b[1].dates.published.ms) {
+        if (a[1].datePublished.ms < b[1].datePublished.ms) {
             return -1;
         }
-        if (b[1].dates.published.ms < a[1].dates.published.ms) {
+        if (b[1].datePublished.ms < a[1].datePublished.ms) {
             return 1;
         }
         return 0;

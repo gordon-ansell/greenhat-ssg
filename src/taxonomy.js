@@ -75,8 +75,8 @@ class Taxonomy
     sortArticlesByDate()
     {
         this.articles = this.articles.sort((a, b) => {
-            if (a.dates.published.ms > b.dates.published.ms) {return -1;}
-            if (b.dates.published.ms > a.dates.published.ms) {return 1;}
+            if (a.datePublished.ms > b.datePublished.ms) {return -1;}
+            if (b.datePublished.ms > a.datePublished.ms) {return 1;}
             return 0; 
         });
         return this;
