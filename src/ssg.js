@@ -120,7 +120,6 @@ class SSG
             this._checkConfig(this.ctx.cfg.cfgChk, this.ctx.cfg, []);
         }
 
-
         this._loadTranslations();
 
     }

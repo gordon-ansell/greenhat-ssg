@@ -351,10 +351,14 @@ class ArticleSchema extends BreadcrumbProcessor
 
 
                 // Images.
-                if (prod.images) {
+                if (prod._images) {
                     let imgs = [];
-                    for (let ikey of prod.images) {
-                        //imgs = Object.merge(imgs, this.articleImagesByTag[ikey]);
+                    for (let ikey of prod._images) {
+                        if (typeof this.articleImagesByTag[ikey] != "object") {
+                            syslog.inspect(this.articleImagesByTag[ikey]);
+                            throw new GreenHatError(`Hmm, image spec for '${ikey}' does not appear to be an object.`,
+                                this.article.relPath);
+                        }
                         imgs = merge(imgs, this.articleImagesByTag[ikey]);
                     }
                     schema.image(imgs);
@@ -572,10 +576,89 @@ class ArticleSchema extends BreadcrumbProcessor
             }
         }
 
-        if (this.article.url == '/will-hacking-one-day-be-an-act-of-war/') {
-            syslog.inspect(this.extractedImages);
+    }
+
+    /**
+     * Schemarise a single image.
+     * 
+     * @param   {object}    obj     Image object.
+     * @param   {string}    id      ID.
+     * @param   {object}    ex      Extraction.
+     * @return  {object}            Schema class.
+     */
+    _schemariseSingleImage(obj, id, ex)
+    {
+        let spec = this.ctx.cfg.imageSpec;
+
+        let schema = Schema.imageObject(id)
+            .url(obj.relPath)
+            .contentUrl(obj.relPath)
+            .width(obj.width)
+            .height(obj.height)
+            .representativeOfPage(true);
+
+        if (spec.licencePage) {
+            schema.acquireLicensePage(spec.licencePage);
         }
-         
+
+        if (obj.caption) {
+            schema.caption(obj.caption);
+        } else if (ex.caption) {
+            schema.caption(ex.caption);
+        }
+
+        return schema;
+    }
+
+    /**
+     * Schemarise an image.
+     * 
+     * @param   {object}    imgObj  Image object.
+     * @param   {string}    key     Key.
+     * @param   {object}    ex      Extraction.
+     * @return  {object}            Schema class.
+     */
+    _schemariseImageObject(imgObj, key, ex)
+    {
+        if (!imgObj.hasSubimages()) {
+
+            let id = 'aimg-' + str.slugify(key);
+
+            let schema = this._schemariseSingleImage(imgObj, id, ex);
+
+            this.coll.add(id, schema, true);
+            this.articleImages.push(Schema.ref(id));
+
+            if (!this.articleImagesByTag[key]) {
+                this.articleImagesByTag[key] = [];
+            }
+
+            this.articleImagesByTag[key].push(Schema.ref(id));
+
+        } else {
+
+            let keystart = 'aimg-' + str.slugify(key) + '-';
+
+            for (let subKey of imgObj.subs.keys()) {
+
+                let id = keystart + subKey;
+
+                let subObj = imgObj.subs.get(subKey);
+
+                let schema = this._schemariseSingleImage(subObj, id, ex);
+
+                this.coll.add(id, schema, true);
+                this.articleImages.push(Schema.ref(id));
+
+                if (!this.articleImagesByTag[key]) {
+                    this.articleImagesByTag[key] = [];
+                }
+
+                this.articleImagesByTag[key].push(Schema.ref(id));
+            }
+
+        }
+
     }
 
     /**
@@ -592,8 +675,6 @@ class ArticleSchema extends BreadcrumbProcessor
             return;
         }
 
-        let spec = this.ctx.cfg.imageSpec;
-
         for (let ex of this.extractedImages) {
 
             let imgObj = this.ctx.callable('getImage', ex.url);
@@ -605,78 +686,28 @@ class ArticleSchema extends BreadcrumbProcessor
                 key = str.slugify(ex.url);
             }
 
-            if (!imgObj.hasSubimages()) {
+            this._schemariseImageObject(imgObj, key, ex);
 
-                let id = 'aimg-' + str.slugify(key);
-                //let fullId = path.sep + '#' + id;
+        }
 
-                let schema = Schema.imageObject(id)
-                    .url(imgObj.relPath)
-                    .contentUrl(imgObj.relPath)
-                    .width(imgObj.width)
-                    .height(imgObj.height)
-                    .representativeOfPage(true);
+        if (this.article._images || this.article._imageRefs) {
 
-                if (spec.licencePage) {
-                    schema.acquireLicensePage(spec.licencePage);
+            for (let t of ['_images', '_imageRefs']) {
+
+                if (!this.article[t]) {
+                    continue;
                 }
 
-                if (imgObj.caption) {
-                    schema.caption(imgObj.caption);
-                } else if (ex.caption) {
-                    schema.caption(ex.caption);
+                for (let index in this.article[t]) {
+                    if (!this.articleImagesByTag[index]) {
+
+                        let ex = this.article[t][index];
+                        ex.tag = index;
+                        let imgObj = this.ctx.callable('getImage', ex.url);
+                        this._schemariseImageObject(imgObj, ex.tag, ex);
+                        
+                    }                
                 }
-
-                this.coll.add(id, schema, true);
-                this.articleImages.push(Schema.ref(id));
-
-                if (!this.articleImagesByTag[key]) {
-                    this.articleImagesByTag[key] = [];
-                }
-
-                this.articleImagesByTag[key].push(Schema.ref(id));
-
-            } else {
-
-                let keystart = 'aimg-' + str.slugify(key) + '-';
-
-                for (let subKey of imgObj.subs.keys()) {
-
-                    let id = keystart + subKey;
-                    //let fullId = path.sep + '#' + id;
-
-                    let subObj = imgObj.subs.get(subKey);
-
-                    let schema = Schema.imageObject(id)
-                        .url(subObj.relPath)
-                        .contentUrl(subObj.relPath)
-                        .width(subObj.width)
-                        .height(subObj.height)
-                        .representativeOfPage(true)
-                        .thumbnail(Schema.imageObject().url(imgObj.smallest.relPath));
-
-                    if (spec.licencePage) {
-                        schema.acquireLicensePage(spec.licencePage);
-                    }
-
-                    if (subObj.caption) {
-                        schema.caption(subObj.caption);
-                    } else if (imgObj.caption) {
-                        schema.caption(imgObj.caption);
-                    } else if (ex.caption) {
-                        schema.caption(ex.caption);
-                    }
-
-                    this.coll.add(id, schema, true);
-                    this.articleImages.push(Schema.ref(id));
-
-                    if (!this.articleImagesByTag[key]) {
-                        this.articleImagesByTag[key] = [];
-                    }
-
-                    this.articleImagesByTag[key].push(Schema.ref(id));
-                }
-
             }
         }
     }
