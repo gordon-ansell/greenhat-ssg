@@ -12,6 +12,7 @@ const ImageParser = require('./imageParser');
 const ImagePrerenderer = require('./imagePrerenderer');
 const path = require('path');
 const fs = require('fs');
+const { merge } = require("greenhat-util/merge");
 const { copyDir, mkdirRecurse } = require('greenhat-util/fs');
 
 /**
@@ -104,6 +105,13 @@ async function afterArticleParserRun(article)
 {
     syslog.trace('.imageHandler:afterArticleParserRun', "Responding to hook.");
 
+    let extracted = this.callable('extractArticleImages', article.content.html, article);
+
+    if (article.abstract) {
+        let extractedAbstract = this.callable('extractArticleImages', article.abstract.html, article);
+        extracted = extracted.concat(extractedAbstract);
+    }
+
     let defImg = false;
     if (!this.cfg.site.defaultArticleImage) {
         syslog.advice("Recommend setting a 'defaultArticleImage' in your 'site' configs.", article.relPath);
@@ -127,6 +135,22 @@ async function afterArticleParserRun(article)
 
     let firstResizable = null;
     let firstAny = null;
+
+    if (extracted && extracted.length > 0) {
+        for (let ex of extracted) {
+            let tag = (ex.tag) ? ex.tag : ex.url;
+
+            if (!article._images) {
+                article._images = {};
+            }
+
+            if (article._images[tag]) {
+                article._images[tag] = merge(article._images[tag], ex);
+            } else {
+                article._images[tag] = ex;
+            }
+        }
+    }
 
     if (article._images) {
 
@@ -334,7 +358,7 @@ function extractArticleImages(html, article)
                     syslog.error(`Look, there's no article image with the tag '${iUrl}'. I'm not a mind reader.`,
                         article.relPath);
                 }
-            }
+            } 
 
             if (this.images.has(iUrl)) {
 
