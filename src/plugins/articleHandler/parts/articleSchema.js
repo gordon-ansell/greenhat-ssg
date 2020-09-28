@@ -79,6 +79,7 @@ class ArticleSchema extends BreadcrumbProcessor
                 .acceptedAnswer(Schema.answer().text(item.a.text));
 
             mainEntity.push(tmp);
+            count++;
         }
 
         schema.mainEntity(mainEntity);
