@@ -7,17 +7,27 @@ wantEffort: true
 {%- block beforeArticleContent -%}
     {%- if article.reviews and site.reviews -%}
         {%- set rev = article.firstReview() -%}
-        {%- if rev.ratingStars -%}
+        {%- if rev.ratingStars and not article.noGlobalStars -%}
             <div class="reviewStars" title="Review rating">{{rev.ratingStars}}</div>
         {%- endif -%}
     {%- endif -%}
-    {%- if article.summary -%}
+    {%- if article._summary -%}
         <section class="summary" title="Summary.">
             {%- if article.imageFuncs and article.imageFuncs.summary -%}
                 {{ctx.img({src: article.imageFuncs.summary})}}
             {%- endif -%}
-            {{ article.summary.html }}
+            {{ article._summary.html }}
         </section>
+    {%- endif -%}
+{%- endblock -%}
+{%- block afterArticleContent -%}
+    {%- if article._faq -%}
+        <div class="faq">
+            <h2>Frequently Asked Questions</h2>
+            {%- for faq in article._faq -%}
+                {%- include 'includes/_faq.njk' -%}
+            {%- endfor -%}
+        </div>
     {%- endif -%}
 {%- endblock -%}
 {%- block articleAside -%}
@@ -34,6 +44,7 @@ wantEffort: true
     {%- if article.products and site.products -%}
         {%- for id,prod in article.products -%}
             <aside class="product">
+                {% set isRef = false %}
                 {%- include 'includes/_articleProduct.njk' -%}
             </aside>
         {%- endfor -%}
@@ -41,6 +52,7 @@ wantEffort: true
     {%- if article.productRefs and site.products -%}
         {%- for id,prod in article.productRefs -%}
             <aside class="product">
+                {% set isRef = true %}
                 {%- include 'includes/_articleProduct.njk' -%}
             </aside>
         {%- endfor -%}

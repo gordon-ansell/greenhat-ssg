@@ -57,7 +57,34 @@ class ArticleSchema extends BreadcrumbProcessor
             }
         }
         return url;
-   }
+    }
+    /**
+     * Process FAQs.
+     */
+    _processFAQ()
+    {
+        if (!this.article._faq) {
+            return;
+        }
+
+        let schema = Schema.faqPage();
+
+        let mainEntity = [];
+
+        let count = 1;
+        for (let item of this.article._faq) {
+            let tmp = Schema.question()
+                .url(this.article.url + '#faq-' + count)
+                .name(item.q)
+                .acceptedAnswer(Schema.answer().text(item.a.text));
+
+            mainEntity.push(tmp);
+        }
+
+        schema.mainEntity(mainEntity);
+
+        this.coll.add('faq', schema);
+    }
 
     /**
      * Process HowTos.
@@ -933,6 +960,7 @@ class ArticleSchema extends BreadcrumbProcessor
         this._processProducts();
         this._processReviews();
         this._processHowTos();
+        this._processFAQ();
     }
 }
 

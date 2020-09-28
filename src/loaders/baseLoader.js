@@ -61,7 +61,7 @@ class BaseLoader
             }
 
             await Promise.all(files.map(async file => {
-                this._loadSingle(file, this.#absPath);
+                await this._loadSingle(file, this.#absPath);
                 cnt++;
             }));
         }

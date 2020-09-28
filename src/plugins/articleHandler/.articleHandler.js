@@ -127,7 +127,7 @@ module.exports.init = ctx => {
         abstractExtractLen: 200,
         descriptionExtractLen: 160,
         taxonomyTypes: ['tags'],
-        multiFormat: ['content', 'contentRss', 'abstract', 'summary'],
+        multiFormat: ['content', 'contentRss', 'abstract', '_summary'],
         terminateUrl: '/',
         homePageType: 'post',
     }

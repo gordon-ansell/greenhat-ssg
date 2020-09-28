@@ -72,14 +72,14 @@ class ProductReviewProcessor
             offer.priceValidUntil = d.toISOString();
         }
 
-        if (!offer.priceCurrency) {
-            offer.priceCurrency = this.ctx.cfg.reviewSpec.defaultCurrency;
+        if (!offer.currency) {
+            offer.currency = this.ctx.cfg.reviewSpec.defaultCurrency;
         }
 
-        if (!this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]) {
-            syslog.error(`No currency defined for '${offer.priceCurrency}'.`, this.article.relPath);
+        if (!this.ctx.cfg.reviewSpec.currencies[offer.currency]) {
+            syslog.error(`No currency defined for '${offer.currency}', processing key '${prod.key}'.`, this.article.relPath);
         } else {
-            offer.priceCurrency = this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]; 
+            offer.priceCurrency = this.ctx.cfg.reviewSpec.currencies[offer.currency]; 
         }
 
         if (offer.price) {

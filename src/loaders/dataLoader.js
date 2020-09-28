@@ -12,6 +12,7 @@ const syslog = require("greenhat-util/syslog");
 const BaseLoader = require("./baseLoader");
 const path = require("path");
 const { merge } = require('greenhat-util/merge');
+const YamlFile = require("greenhat-util/yaml");
 
 /**
  * Data loader class.
@@ -53,7 +54,6 @@ class DataLoader extends BaseLoader
             if (!this.ctx.data[base]) {
                 this.ctx.data[base] = data;
             } else {
-                //this.ctx.data[base] = Object.merge(this.ctx.data[base], data);
                 this.ctx.data[base] = merge(this.ctx.data[base], data);
             }
             this.ctx.dataFilesLoaded.push(rel);

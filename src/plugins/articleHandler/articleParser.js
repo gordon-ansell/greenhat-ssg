@@ -75,6 +75,7 @@ class ArticleParser extends BreadcrumbProcessor
         this._processMetaDescription();
         this._processCitations();
         this._processBreadcrumbs();
+        this._processFAQ();
         this._processEffort();
         this._processPagination();
         this._processPublished();
@@ -212,6 +213,27 @@ class ArticleParser extends BreadcrumbProcessor
             this.article.readingTimeRounded = 0;
         }
 
+    }
+
+    /**
+     * Process FAQ.
+     */
+    _processFAQ()
+    {
+        if (!this.article._faq) {
+            return;
+        }
+
+        let result = [];
+
+        for (let item of this.article._faq) {
+            result.push({
+                q: item.q,
+                a: new ArticleContent(item.a, this.article.relPath),
+            });
+        }
+
+        this.article._faq = result;
     }
 
     /**
@@ -380,8 +402,8 @@ class ArticleParser extends BreadcrumbProcessor
         this.article.metaDescription = this.article.description;
 
         if (this.ctx.cfg.site.cleverDescriptions) {
-            if (this.article.summary && !this.article.summaryIsList) {
-                this.article.metaDescription = this.article.summary.text;
+            if (this.article._summary && !this.article.summaryIsList) {
+                this.article.metaDescription = this.article._summary.text;
             } else {
                 if (this.article.products) {
                     let pkeys = Object.keys(this.article.products);
@@ -419,11 +441,11 @@ class ArticleParser extends BreadcrumbProcessor
      */
     _processSummary()
     {
-        if (!this.article.summary) {
+        if (!this.article._summary) {
             return false;
         }
 
-        if (Array.isArray(this.article.summary.md)) {
+        if (Array.isArray(this.article._summary.md)) {
             this.article.summaryIsList = true;
         }
     }
@@ -519,6 +541,38 @@ class ArticleParser extends BreadcrumbProcessor
                 }
             }
         }
+
+        if (this.article._importProductRefs) {
+            let prodArr = arr.makeArray(this.article._importProductRefs);
+            for (let key of prodArr) {
+                if (!this.ctx.cfg.products || !this.ctx.cfg.products[key]) {
+                    syslog.error(`No product (ref) with key '${key}' found in configs, cannot import.`, this.article.relPath);
+                    continue;
+                }
+                if (this.article.productRefs && this.article.productRefs[key]) {
+                    syslog.error(`Product (ref) with key '${key}' already defined, cannot import.`, this.article.relPath);
+                    continue;
+                }
+                if (!this.article.productRefs) {
+                    this.article.productRefs = {};
+                }
+
+                this.article.productRefs[key] = this.ctx.cfg.products[key];
+                syslog.debug(`Successfully imported product (ref) '${key}' into ${this.article.relPath}.`);
+
+                if (this.article.productRefs[key].review) {
+                    if (this.article.reviewRefs && this.article.reviewRefs[key]) {
+                        syslog.error(`Review for product (ref) with key '${key}' already defined, cannot import.`, this.article.relPath);
+                    }
+                    if (!this.article.reviewRefs) {
+                        this.article.reviewRefs = {};
+                    }
+                    this.article.reviewRefs[key] = this.article.productRefs[key].review;
+                    syslog.debug(`Successfully imported review (ref) '${key}' into ${this.article.relPath}.`);
+                }
+            }
+        }
+
     }
 
     /**
@@ -574,6 +628,15 @@ class ArticleParser extends BreadcrumbProcessor
                     this.article.reviewRefs = {};
                 }
                 this.article.reviewRefs[index] = yamlData['reviews'][index];
+            }
+
+            if (yamlData['_importProducts']) {
+                if (!this.article._importProductRefs) {
+                    this.article._importProductRefs = [];
+                }
+                for (let p of arr.makeArray(yamlData['_importProducts'])) {
+                    this.article._importProductRefs.push(p);
+                }
             }
 
             if (yamlData['_images']) {

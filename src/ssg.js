@@ -213,12 +213,13 @@ class SSG
         }
 
         let loader = new DataLoader(dataPath, this.ctx, this.ctx.sitePath,
-            {allowFiles: ['.'], ignoreFilesByDefault: true});
+            {allowFiles: ['.'], ignoreFilesByDefault: true, ignoreFilesFirst: ['.DS_Store']});
         let result = await loader.load();
 
         if (0 == result) {
             syslog.info('No data to load.');
         }
+        
     }
 
     /**

@@ -97,7 +97,7 @@
         {%- endif -%}
     {%- endif -%}
 
-    {%- if prod.reviewUrl -%}
+    {%- if prod.reviewUrl and isRef == true -%}
         <dt>Review:</dt><dd>{{ctx.link("Read the review.", prod.reviewUrl)}}</dd>
     {%- endif -%}
 

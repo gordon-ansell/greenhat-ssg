@@ -22,7 +22,7 @@
 		"autoprefixer": "*",
 		"dateformat": "*",
 		"deasync": "*",
-		"greenhat-schema": "*",
+		"greenhat-schema": "/Users/gordonansell/Documents/Code/js/gordon-ansell/greenhat-schema",
 		"greenhat-util": "*",
 		"image-size": "*",
 		"js-beautify": "*",
