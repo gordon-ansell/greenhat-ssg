@@ -73,6 +73,7 @@ class ArticleParser extends BreadcrumbProcessor
         this._processSummary();
         this._processAbstract();
         this._processMetaDescription();
+        this._preProcessTaxonomies();
         this._processCitations();
         this._processBreadcrumbs();
         this._processFAQ();
@@ -141,7 +142,7 @@ class ArticleParser extends BreadcrumbProcessor
                 }
                 for (let tax of this.article[taxType]) {
                     if (!this.ctx.articles.taxonomy[taxType].hasTaxonomy(tax)) {
-                        this.ctx.articles.taxonomy[taxType].addTaxonomy(tax);
+                        this.ctx.articles.taxonomy[taxType].addTaxonomy(tax, ts[taxType].taxonomyTypeName);
                         //this.ctx.articles.taxonomy[taxType][tax] = new ArticleCollection();
                     }
                     //this.ctx.articles.taxonomy[taxType][tax].set(this.article.url, this.article);
@@ -257,7 +258,7 @@ class ArticleParser extends BreadcrumbProcessor
 
             for (let elemKey in bcs) {
                 let elem = bcs[elemKey];
-                let ret = ArticleParser.processBreadcrumbElement(elem, this.article);
+                let ret = ArticleParser.processBreadcrumbElement(elem, this.article, this.ctx);
 
                 if (!ret.skip) {
                     final.push({name: ret.name, url: ret.url});
@@ -392,6 +393,50 @@ class ArticleParser extends BreadcrumbProcessor
         }
 
         citation.txt = str;
+    }
+    
+    /**
+     * Pre-process taxonomies.
+     */
+    _preProcessTaxonomies()
+    {
+        if ((!this.ctx.cfg.site.tagsAreSections && !this.ctx.cfg.site.tagsAreArticleTypes) || !this.article.tags) {
+            return;
+        }
+        
+        this.article.tags = arr.makeArray(this.article.tags);
+        
+        let newTags = this.article.tags;
+        
+        if (this.ctx.cfg.site.tagsAreSections) {
+            for (let item of this.article.tags) {
+                if (this.ctx.cfg.site.tagsAreSections.includes(item)) {
+                    if (!this.article.articleSection) {
+                        this.article.articleSection = [];
+                    }
+                    this.article.articleSection.push(item);
+                    newTags = newTags.filter(e => e !== item); 
+                } 
+            }
+        }
+        
+        if (!this.article.articleSection) {
+            this.article.articleSection = ['Misc'];
+        }
+        
+        if (this.ctx.cfg.site.tagsAreArticleTypes) {
+            for (let item of this.article.tags) {
+                if (this.ctx.cfg.site.tagsAreArticleTypes.includes(item)) {
+                    if (!this.article._articleTypes) {
+                        this.article._articleTypes = [];
+                    }
+                    this.article._articleTypes.push(item);
+                    newTags = newTags.filter(e => e !== item); 
+                } 
+            }
+        }
+        
+        this.article.tags = newTags;
     }
 
     /**

@@ -56,7 +56,7 @@ class Article
                 for (let tax of tt) {
                     if (asLinks) {
                         let ts = this.ctx.cfg.taxonomySpec[taxType];
-                        let link = this.ctx.link(tax, path.join(ts.path, str.slugify(tax)));
+                        let link = this.ctx.link(tax, path.join(ts.path, str.slugify(tax)), 'Taxonomy: ' + tax, 'taxonomy-' + taxType);
                         retArr.push(link);
                     } else {
                         retArr.push(tax);

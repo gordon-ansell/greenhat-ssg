@@ -6,7 +6,7 @@
     <time class="dt-published" datetime="{{post.datePublished.iso}}">{{post.datePublished.dispDt}}</time>
     <meta name="dt-modified" content="{{post.dateModified.iso}}" />
     {% if post.tags %}
-        <span class="dot"></span><span class="taxlinks">{{post.getTaxonomies(null, true, false)}}</span>
+        <span class="dot"></span><span class="taxlinks">{{post.getTaxonomies(['articleSection', 'tags', '_articleTypes'], true, false)}}</span>
     {% endif %}
     {% if post.wantEffort %}
         {% if post.words and post.words > 0 %}

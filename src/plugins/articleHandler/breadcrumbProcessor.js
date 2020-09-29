@@ -43,12 +43,15 @@ class BreadcrumbProcessor
      * @param   {object}    article     Article we're processing.
      * @return  {object}                {name, url, skip}
      */
-    static processBreadcrumbElement(elem, article)
+    static processBreadcrumbElement(elem, article, ctx)
     {
         if (!elem.calc && !(elem.name && elem.url)) {
             throw new GreenHatSSGArticleError(`Breadcrumbs should have either a 'calc' field or both the 'name' and 'url' fields.`,
                 article.relPath);
         }
+        
+        let ts = ctx.cfg.taxonomySpec;
+        
         let name;
         let url;
         let skip = false;
@@ -74,6 +77,7 @@ class BreadcrumbProcessor
                     skip = true;
                 } else {
                     let tax = sp[0];
+                    let spec = ts[tax];
                     let index = sp[1];
                     if (!article[tax][index]) {
                         syslog.warning(`Article has no '${tax}' index ${index} from which to extract breadcrumbs.`,
@@ -81,7 +85,7 @@ class BreadcrumbProcessor
                         skip = true;
                     } else {
                         name = str.ucfirst(article[tax][index]);
-                        url = path.join(path.sep, tax, name, path.sep);
+                        url = path.join(path.sep, spec.path, name, path.sep);
                     }
                 }
             }

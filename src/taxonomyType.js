@@ -35,11 +35,12 @@ class TaxonomyType
      * Add a taxonomy type.
      * 
      * @param   {string}    name    Name of the taxonomy to create.
+     * @param   {string}    dir     Directory name for links.
      * @return  {object}            Ourself.    
      */
-    addTaxonomy(name)
+    addTaxonomy(name, dir)
     {
-        this.items.set(name, new Taxonomy(name, this.name));
+        this.items.set(name, new Taxonomy(name, this.name, dir));
         return this;
     }
 

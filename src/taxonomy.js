@@ -27,11 +27,13 @@ class Taxonomy
      * 
      * @param   {string}    name    The name of this taxonomy.
      * @param   {string}    type    The type of this taxonomy.
+     * @param   {string}    dir     Directory name for links.  
      */
-    constructor(name, type)
+    constructor(name, type, dir)
     {
         this.name = name;
         this.type = type;
+        this.dir = dir;
         this.count = 0;
         this.articles = [];
     }
@@ -90,7 +92,7 @@ class Taxonomy
     getLink()
     {
         let html = new Html('a');
-        let url = path.join(path.sep, this.type, str.slugify(this.name), path.sep);
+        let url = path.join(path.sep, this.dir, str.slugify(this.name), path.sep);
         html.addParam('href', url);
         return html.resolve(this.name);
     }

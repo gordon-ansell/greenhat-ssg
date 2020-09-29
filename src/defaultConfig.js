@@ -64,8 +64,20 @@ module.exports = {
     // Taxonomy spec.
     taxonomySpec: {
         tags: {
+            nameStr: ['Tag', 'Tags'],
+            taxonomyTypeName: 'tags',
             path: '/tags',
-        } 
+        },
+        articleSection: {
+            nameStr: ['Section', 'Sections'],
+            taxonomyTypeName: 'sections',
+            path: '/sections',
+        },
+        _articleTypes: {
+            nameStr: ['Type', 'Types'],
+            taxonomyTypeName: 'types',
+            path: '/types',
+        }
     },
 
     // Parsers.

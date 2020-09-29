@@ -74,12 +74,14 @@ module.exports.init = ctx => {
                             url: '/'
                         },
                         2: {
-                            calc: 'tags#0'
+                            calc: 'articleSection#0'
                         },
+                        /*
                         3: {
                             calc: 'tags#1'
                         },
-                        4: {
+                        */
+                        3: {
                             calc: 'self'
                         },
                     },
@@ -126,7 +128,7 @@ module.exports.init = ctx => {
         outputMode: 'directory',
         abstractExtractLen: 200,
         descriptionExtractLen: 160,
-        taxonomyTypes: ['tags'],
+        taxonomyTypes: ['tags', 'articleSection', '_articleTypes'],
         multiFormat: ['content', 'contentRss', 'abstract', '_summary'],
         terminateUrl: '/',
         homePageType: 'post',

@@ -841,7 +841,7 @@ class ArticleSchema extends BreadcrumbProcessor
             let pos = 1;
             for (let elemKey in bcs) {
                 let elem = bcs[elemKey];
-                let ret = ArticleSchema.processBreadcrumbElement(elem, this.article);
+                let ret = ArticleSchema.processBreadcrumbElement(elem, this.article, this.ctx);
                 if (!ret.skip) {
                     let item = Schema.listItem().position(pos);
                     item.item(Schema.webPage().name(ret.name).idPlain(this._sanitizeUrl(ret.url)));

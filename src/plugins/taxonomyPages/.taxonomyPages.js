@@ -34,11 +34,22 @@ async function afterParseLate()
     // Process the taxonomies.
     await Promise.all(articleSpec.taxonomyTypes.map(async taxType => {
         let taxonomyNames = Array.from(this.articles.taxonomy[taxType].items.keys());
+        let taxonomySpec = this.cfg.taxonomySpec;
+        let taxonomyNameStr;
+        if (!taxonomySpec[taxType].nameStr) {
+            syslog.warning(`Taxonomy definitions should have a 'nameStr' specification [singular, plural].`)
+        } else {
+            taxonomyNameStr = taxonomySpec[taxType].nameStr; 
+        }
+        let taxonomyTypeName = taxonomySpec[taxType].taxonomyTypeName; 
         taxonomyNames.forEach(async taxonomyName => {
             // Set up the dummy file.
             let fileData = dummy;
             fileData = str.replaceAll(fileData, '-taxonomy-', taxonomyName)
             fileData = str.replaceAll(fileData, '-taxonomyType-', taxType);
+            fileData = str.replaceAll(fileData, '-taxonomyTypeName-', taxonomyTypeName);
+            fileData = str.replaceAll(fileData, '-taxonomyNameStr-', taxonomyNameStr[0])
+            fileData = str.replaceAll(fileData, '-taxonomyNameStrPlural-', taxonomyNameStr[1])
 
             // Define a file name and write to it.
             let fileName = path.join(this.sitePath, this.cfg.locations.temp, 
@@ -55,9 +66,6 @@ async function afterParseLate()
             // Render the article.
             await this.cfg.renderers['njk'].call(this, article)
 
-            // Save the article.
-            //this.ctx.articles.all.set(article.url, article);
-            //this.ctx.articles[article.type].set(article.url, article);
         })
     }));
     
