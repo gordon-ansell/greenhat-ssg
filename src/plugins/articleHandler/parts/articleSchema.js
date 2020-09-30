@@ -248,51 +248,24 @@ class ArticleSchema extends BreadcrumbProcessor
                 let schema = Schema[t](id).name(prod.name);
 
                 // Brand.
-                if (prod.brand) {
-
-                    let kn = 'brand';
-                    switch (prod.type) {
-                        case 'SoftwareApplication':
-                            kn = 'creator';
-                            break;
-                        case 'TVSeries':
-                        case 'Movie':
-                            kn = 'productionCompany';
-                            break;
+                for (let ind of ['brand', 'productionCompany', 'creator']) {
+                    if (prod[ind]) {
+    
+                        let org = Schema.organization().name(prod[ind].name);
+    
+                        if (prod[ind].url) {
+                            org.url(prod[ind].url);
+                        }
+    
+                        schema.setProp(ind, org);
                     }
-
-                    let org = Schema.organization().name(prod.brand.name);
-
-                    if (prod.brand.url) {
-                        org.url(prod.brand.url);
-                    }
-
-                    schema.setProp(kn, org);
-
-                }
-
-                // Category.
-                if (prod.category) {
-
-                    let kn = 'category';
-                    switch (prod.type) {
-                        case 'SoftwareApplication':
-                            kn = 'applicationCategory';
-                            break;
-                        case 'TVSeries':
-                        case 'Movie':
-                            kn = 'genre';
-                            break;
-                    }
-
-                    //result[kn] = prod.category;
-                    schema.setProp(kn, prod.category);
                 }
 
                 // Simples
                 let simples = ['url', 'description', 'version', 'startDate', 'endDate',
                     'eventAttendanceMode', 'sameAs', 'address', 'email', 'telephone',
-                    'priceRange', 'openingHours']
+                    'priceRange', 'openingHours', 'applicationCategory', 'category', 'genre',
+                    'operatingSystem']
 
                 for (let simp of simples) {
                     if (prod[simp]) {
@@ -305,11 +278,6 @@ class ArticleSchema extends BreadcrumbProcessor
 
                 if (prod.date) {
                     schema.dateCreated(prod.date);
-                }
-
-                // OS.
-                if (prod.os) {
-                    schema.operatingSystem(prod.os);
                 }
 
                 // Actors, directors.
@@ -531,11 +499,11 @@ class ArticleSchema extends BreadcrumbProcessor
     {
         this.articleVideos = [];
 
-        if (!this.article.videos && !this.article.videoRefs) {
+        if (!this.article._videoLinks && !this.article._videoLinkRefs) {
             return;
         }
 
-        for (let arr of ['videos']) {
+        for (let arr of ['_videoLinks']) {
 
             if (!this.article[arr]) {
                 continue;
@@ -546,7 +514,7 @@ class ArticleSchema extends BreadcrumbProcessor
                 let id = 'avid-' + key;
                 //let fullId = path.sep + '#' + id;
 
-                let vidObj = this.article.videoObjs[key];
+                let vidObj = this.article._videoLinkObjs[key];
 
                 let schema = Schema.videoObject(id)
                     .name(vidObj.title)
@@ -782,17 +750,16 @@ class ArticleSchema extends BreadcrumbProcessor
         if (this.article.author) {
             let auths = [];
             for (let key of this.article.author) {
-                //auths.push(Schema.ref(path.sep + '#author-' + str.slugify(key)));
                 auths.push(Schema.ref('author-' + key));
             }
             schema.author(auths);
         }
 
-        if (this.articleImages) {
+        if (this.articleImages && this.articleImages.length > 0) {
             schema.image(this.articleImages);
         }
 
-        if (this.articleVideos) {
+        if (this.articleVideos && this.articleVideos.length > 0) {
             schema.video(this.articleVideos);
         }
 

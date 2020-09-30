@@ -17,15 +17,15 @@ async function afterArticleParserRun(article)
 {
     syslog.trace('.videoLinkHandler:afterArticleParserRun', "Responding to hook.");
 
-    if (!article.videos) {
+    if (!article._videoLinks) {
         return;
     }
 
-    article.videoObjs = {};
+    article._videoLinkObjs = {};
 
-    for (let videoKey in article.videos) {
-        let newVid = new Video(this.cfg.videoLinkSpec, article.videos[videoKey], this);
-        article.videoObjs[videoKey] = newVid; 
+    for (let videoKey in article._videoLinks) {
+        let newVid = new Video(this.cfg.videoLinkSpec, article._videoLinks[videoKey], this);
+        article._videoLinkObjs[videoKey] = newVid; 
     }
 
 }
@@ -37,7 +37,7 @@ async function articlePrerender(article)
 {
     syslog.trace('.videoLinkHandler:articlePrerender', "Responding to hook.");
 
-    if (!article.videos || !article.videoObjs) {
+    if (!article._videoLinks || !article._videoLinkObjs) {
         return;
     }
 
@@ -55,9 +55,9 @@ async function articlePrerender(article)
             }
 
             if (m) {
-                if (article.videoObjs[m[1]]) {
-                    html = html.replace(m[0], article.videoObjs[m[1]].getHtml());
-                    htmlRss = htmlRss.replace(m[0], article.videoObjs[m[1]].getHtml(false));
+                if (article._videoLinkObjs[m[1]]) {
+                    html = html.replace(m[0], article._videoLinkObjs[m[1]].getHtml());
+                    htmlRss = htmlRss.replace(m[0], article._videoLinkObjs[m[1]].getHtml(false));
                 } else {
                     syslog.error("Could not find an video object with ID '" + m[0] + "'.", article.relPath);
                 }

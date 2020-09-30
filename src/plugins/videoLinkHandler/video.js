@@ -45,17 +45,6 @@ class Video
             this[item] = str.replaceAll(this[item], '[[URL]]', this.url);
         }
 
-        /*
-        if (this.type == 'youtube') {
-            this.embedUrl = "https://www.youtube.com/embed/" + this.tag;
-            this.contentUrl = "https://www.youtube.com/watch?v=" + this.tag;
-            this.thumbnailUrl = "https://img.youtube.com/vi/" + this.tag + "/default.jpg";
-        } else if (this.type == 'bbc') {
-            this.embedUrl = "https://www.bbc.co.uk/" + this.section + "/av/embed/" + this.tag;
-            this.contentUrl = this.url;
-            this.thumbnailUrl =  "https://static.bbc.co.uk/news/1.315.03594/web-app-launch-icon.png";
-        }
-        */
     }
 
     /**

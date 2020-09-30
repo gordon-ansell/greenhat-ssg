@@ -63,7 +63,7 @@ module.exports = {
 
     // Taxonomy spec.
     taxonomySpec: {
-        tags: {
+        keywords: {
             nameStr: ['Tag', 'Tags'],
             taxonomyTypeName: 'tags',
             path: '/tags',

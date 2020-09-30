@@ -10,23 +10,39 @@
     {%- endif -%}
 
     {%- if prod.brand -%}
-        <dt>Brand:</dt><dd>{{prod.brandLink}}</dd>
+        <dt>Brand:</dt><dd>{{prod._brandLink}}</dd>
     {%- endif -%}
 
+    {%- if prod.productionCompany -%}
+        <dt>Production Co:</dt><dd>{{prod._brandLink}}</dd>
+    {%- endif -%}
+    
+    {%- if prod.creator -%}
+        <dt>Creator:</dt><dd>{{prod._brandLink}}</dd>
+    {%- endif -%}
+    
     {%- if prod.model -%}
         <dt>Model:</dt><dd>{{prod.model}}</dd>
     {%- endif -%}
 
-    {%- if prod.category -%}
-        <dt>Category:</dt><dd>{{prod.categoryStr}}</dd>
+    {%- if prod.applicationCategory -%}
+        <dt>Category:</dt><dd>{{prod.applicationCategory | join(", ")}}</dd>
     {%- endif -%}
 
+    {%- if prod.genre -%}
+            <dt>Genre:</dt><dd>{{prod.genre | join(", ")}}</dd>
+    {%- endif -%}
+    
+    {%- if prod.category -%}
+            <dt>Category:</dt><dd>{{prod.category | join(", ")}}</dd>
+    {%- endif -%}
+    
     {%- if prod.type == 'SoftwareApplication' -%}
-        {%- if prod.os -%}
-            <dt>OS:</dt><dd>{{prod.osStr}}</dd>
+        {%- if prod.operatingSystem -%}
+            <dt>OS:</dt><dd>{{prod.operatingSystem | join(", ")}}</dd>
         {%- endif -%}
         {%- if prod.version -%}
-            <dt>Version:</dt><dd>{{prod.versionStr}}</dd>
+            <dt>Version:</dt><dd>{{prod.version | join(", ")}}</dd>
         {%- endif -%}
     {%- endif -%}
 
@@ -68,7 +84,7 @@
             <dt>Duration:</dt><dd>{{prod.durationObj.txt}}</dd>
         {%- endif -%}
         {%- if prod.sameAs -%}
-            <dt>More Info:</dt><dd>{{prod.sameAsStr}}</dd>
+            <dt>More Info:</dt><dd>{{prod._sameAsStr}}</dd>
         {%- endif -%}
     {%- endif -%}
 

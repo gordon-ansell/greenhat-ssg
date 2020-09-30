@@ -49,7 +49,7 @@ class Config
                 try {
                     data = new YamlFile(file).parse();
                 } catch (err) {
-                    syslog.warning(err.message);
+                    syslog.warning(`Failed to load config file ${file}, error: ${err.message}`);
                 }
                 break;
             default:

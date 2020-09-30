@@ -143,9 +143,7 @@ class ArticleParser extends BreadcrumbProcessor
                 for (let tax of this.article[taxType]) {
                     if (!this.ctx.articles.taxonomy[taxType].hasTaxonomy(tax)) {
                         this.ctx.articles.taxonomy[taxType].addTaxonomy(tax, ts[taxType].taxonomyTypeName);
-                        //this.ctx.articles.taxonomy[taxType][tax] = new ArticleCollection();
                     }
-                    //this.ctx.articles.taxonomy[taxType][tax].set(this.article.url, this.article);
                     this.ctx.articles.taxonomy[taxType].getTaxonomy(tax).addArticle(this.article);
                 }
             }
@@ -202,6 +200,12 @@ class ArticleParser extends BreadcrumbProcessor
 
         if (this.article.summary && this.article.summary.text) {
             words += str.countWords(this.article.summary.text);
+        }
+        
+        if (this.article._faq) {
+            for (let item of this.article._faq) {
+                words += str.countWords(item.q) + str.countWords(item.a.text);
+            }            
         }
 
         this.article.words = words;
@@ -400,16 +404,16 @@ class ArticleParser extends BreadcrumbProcessor
      */
     _preProcessTaxonomies()
     {
-        if ((!this.ctx.cfg.site.tagsAreSections && !this.ctx.cfg.site.tagsAreArticleTypes) || !this.article.tags) {
+        if ((!this.ctx.cfg.site.tagsAreSections && !this.ctx.cfg.site.tagsAreArticleTypes) || !this.article.keywords) {
             return;
         }
         
-        this.article.tags = arr.makeArray(this.article.tags);
+        this.article.keywords = arr.makeArray(this.article.keywords);
         
-        let newTags = this.article.tags;
+        let newTags = this.article.keywords;
         
         if (this.ctx.cfg.site.tagsAreSections) {
-            for (let item of this.article.tags) {
+            for (let item of this.article.keywords) {
                 if (this.ctx.cfg.site.tagsAreSections.includes(item)) {
                     if (!this.article.articleSection) {
                         this.article.articleSection = [];
@@ -425,7 +429,7 @@ class ArticleParser extends BreadcrumbProcessor
         }
         
         if (this.ctx.cfg.site.tagsAreArticleTypes) {
-            for (let item of this.article.tags) {
+            for (let item of this.article.keywords) {
                 if (this.ctx.cfg.site.tagsAreArticleTypes.includes(item)) {
                     if (!this.article._articleTypes) {
                         this.article._articleTypes = [];
@@ -436,7 +440,7 @@ class ArticleParser extends BreadcrumbProcessor
             }
         }
         
-        this.article.tags = newTags;
+        this.article.keywords = newTags;
     }
 
     /**
@@ -1087,6 +1091,14 @@ class ArticleParser extends BreadcrumbProcessor
         if (data.mdate && !data.dateModified) {
             data.dateModified = data.mdate;
             delete data.mdate;
+        }
+        if (data.tags && !data.keywords) {
+            data.keywords = data.tags;
+            delete data.tags;
+        }
+        if (data.videos && !data._videoLinks) {
+            data._videoLinks = data.videos;
+            delete data.videos;
         }
         return data;
     }

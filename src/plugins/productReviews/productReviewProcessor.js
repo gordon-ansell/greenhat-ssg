@@ -185,6 +185,47 @@ class ProductReviewProcessor
 
         this.ctx.reviews[key] = rev; 
     }
+    
+    /**
+     * Process legacy field names.
+     *
+     * @param     {object}    prod    Product object.
+     * @return    {object}            Updated product.
+     */
+    _processLegacyFieldNamesProduct(prod)
+    {
+        if (prod.type == "SoftwareApplication") {
+            if (prod.os && !prod.operatingSystem) {
+                prod.operatingSystem = prod.os;
+                delete prod.os;
+            }
+            if (prod.category && !prod.applicationCategory) {
+                prod.applicationCategory = arr.makeArray(prod.category);
+                delete prod.category;
+            }
+            if (prod.brand && !prod.creator) {
+                prod.creator = prod.brand;
+                delete prod.brand;
+            }
+        } 
+        
+        if (prod.type == "Movie" || prod.type == "TVSeries") {
+            if (prod.category && !prod.genre) {
+                prod.genre = arr.makeArray(prod.category);
+                delete prod.category;
+            }
+            if (prod.brand && !prod.productionCompany) {
+                prod.productionCompany = prod.brand;
+                delete prod.brand;
+            }
+        }
+        
+        if (prod.category) {
+            prod.category = arr.makeArray(prod.category);
+        }
+        
+        return prod;
+    }
 
     /**
      * Do the processing.
@@ -204,7 +245,7 @@ class ProductReviewProcessor
             if (this.article[rr]) {
     
                 for (let prodKey in this.article[rr]) {
-                    let prod = this.article[rr][prodKey];
+                    let prod = this._processLegacyFieldNamesProduct(this.article[rr][prodKey]);
     
                     prod.key = prodKey;
    
@@ -248,37 +289,31 @@ class ProductReviewProcessor
                     if (prod.url) {
                         prod.urlStr = this.ctx.link("Product URL", prod.url);
                     }
-    
-                    // Brand.
-                    if (prod.brand) {
-                        if (prod.brand.url && prod.brand.name) {
-                            prod.brandLink = this.ctx.link(prod.brand.name, prod.brand.url);
-                        } else if (prod.brand.url) {
-                            prod.brandLink = this.ctx.link(prod.brand.url, prod.brand.url);
-                        } else if (prod.brand.name) {
-                            prod.brandLink = prod.brand.name;
-                        } else {
-                            prod.brandLink = prod.brand;
-                        }
-                    }
-    
-                    // Category.
-                    if (prod.category) {
-                        prod.category = arr.makeArray(prod.category);
-                        prod.categoryStr = prod.category.join(", ");
+                    
+                    // Brand, production company, creator.
+                    for (let ind of ['brand', 'creator', 'productionCompany']) {
+                        if (prod[ind]) {
+                            if (prod[ind].url && prod[ind].name) {
+                                prod._brandLink = this.ctx.link(prod[ind].name, prod[ind].url);
+                            } else if (prod[ind].url) {
+                                prod._brandLink = this.ctx.link(prod[ind].url, prod[ind].url);
+                            } else if (prod[ind].name) {
+                                prod._brandLink = prod[ind].name;
+                            } else {
+                                prod._brandLink = prod[ind];
+                            }
+                        }                                                    
                     }
     
                     // Software specific.
                     if (prod.type == 'SoftwareApplication') {
                         // OS.
-                        if (prod.os) {
-                            prod.os = arr.makeArray(prod.os);
-                            prod.osStr = prod.os.join(", ");
+                        if (prod.operatingSystem) {
+                            prod.operatingSystem = arr.makeArray(prod.operatingSystem);
                         }
                         // Version.
                         if (prod.version) {
                             prod.version = arr.makeArray(prod.version);
-                            prod.versionStr = prod.version.join(", ");
                         }
                     }
     
@@ -319,7 +354,7 @@ class ProductReviewProcessor
                                     str += this.ctx.link(item, item);
                                 }
                             }
-                            prod.sameAsStr = str;
+                            prod._sameAsStr = str;
                         }
                     }
     
