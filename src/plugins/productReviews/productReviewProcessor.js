@@ -200,7 +200,7 @@ class ProductReviewProcessor
                 delete prod.os;
             }
             if (prod.category && !prod.applicationCategory) {
-                prod.applicationCategory = arr.makeArray(prod.category);
+                prod.applicationCategory = prod.category;
                 delete prod.category;
             }
             if (prod.brand && !prod.creator) {
@@ -211,17 +211,34 @@ class ProductReviewProcessor
         
         if (prod.type == "Movie" || prod.type == "TVSeries") {
             if (prod.category && !prod.genre) {
-                prod.genre = arr.makeArray(prod.category);
+                prod.genre = prod.category;
                 delete prod.category;
             }
             if (prod.brand && !prod.productionCompany) {
                 prod.productionCompany = prod.brand;
                 delete prod.brand;
             }
+            if (prod.actors && !prod.actor) {
+                prod.actor = prod.actors;
+                delete prod.actors;
+            }
+            if (prod.directors && !prod.director) {
+                prod.director = prod.directors;
+                delete prod.directors;
+            }
         }
         
-        if (prod.category) {
-            prod.category = arr.makeArray(prod.category);
+        if (prod.date && !prod.dateCreated) {
+            prod.dateCreated = prod.date;
+            delete prod.date;
+        }
+        
+        let ma = ['operatingSystem', 'applicationCategory', 'genre', 'category', 'version', 
+            'actor', 'director', 'performer'];
+        for (let ind of ma) {
+            if (prod[ind]) {
+                prod[ind] = arr.makeArray(prod[ind]);
+            }
         }
         
         return prod;
@@ -305,57 +322,51 @@ class ProductReviewProcessor
                         }                                                    
                     }
     
-                    // Software specific.
-                    if (prod.type == 'SoftwareApplication') {
-                        // OS.
-                        if (prod.operatingSystem) {
-                            prod.operatingSystem = arr.makeArray(prod.operatingSystem);
-                        }
-                        // Version.
-                        if (prod.version) {
-                            prod.version = arr.makeArray(prod.version);
+                    // People: Actors, directors, performers.
+                    for (let arr of ['actor', 'director', 'performer']) {
+                        if (prod[arr]) {
+                            let fldName = '_' + arr + 'Str';
+                            let result = ''; 
+                            for (let item of prod[arr]) {
+                                if (typeof(item) !== "object") {
+                                    item = {name: item};
+                                }
+                                if (result != '') result += ', ';
+                                if (item.sameAs) {
+                                    result += this.ctx.link(item.name, item.sameAs);
+                                } else if (item.url) {
+                                    result += this.ctx.link(item.name, item.url);
+                                } else {
+                                    result += item.name;
+                                }
+                            }
+                            prod[fldName] = result;
                         }
                     }
-    
-                    // Movie/TVSeries specific.
-                    if (prod.type == 'Movie' || prod.type == 'TVSeries') {
-    
-                        // Actors & directors.
-                        for (let arr of ['actors', 'directors']) {
-                            if (prod[arr]) {
-                                let fldName = arr + 'Str';
-                                let result = ''; 
-                                    for (let item of prod[arr]) {
-                                    if (result != '') result += ', ';
-                                    result += this.ctx.link(item.name, item.sameAs);
-                                }
-                                prod[fldName] = result;
+
+                    // Duration.
+                    if (prod.duration) {
+                        prod._durationObj = new Duration(prod.duration);
+                        prod.duration = prod._durationObj.pt;
+                    }
+
+                    // Same as.
+                    if (prod.sameAs) {
+                        prod.sameAs = arr.makeArray(prod.sameAs);
+                        let str = '';
+                        for (let item of prod.sameAs) {
+                            if (item.includes('imdb.com')) {
+                                if (str != '') str += ', ';
+                                str += this.ctx.link('IMDB', item);
+                            } else if (item.includes('wikipedia.org')) {
+                                if (str != '') str += ', ';
+                                str += this.ctx.link('Wikipedia', item);
+                            } else {
+                                if (str != '') str += ', ';
+                                str += this.ctx.link(item, item);
                             }
                         }
-    
-                        // Duration.
-                        if (prod.duration) {
-                            prod.durationObj = new Duration(prod.duration);
-                        }
-    
-                        // Same as.
-                        if (prod.sameAs) {
-                            prod.sameAs = arr.makeArray(prod.sameAs);
-                            let str = '';
-                            for (let item of prod.sameAs) {
-                                if (item.includes('imdb.com')) {
-                                    if (str != '') str += ', ';
-                                    str += this.ctx.link('IMDB', item);
-                                } else if (item.includes('wikipedia.org')) {
-                                    if (str != '') str += ', ';
-                                    str += this.ctx.link('Wikipedia', item);
-                                } else {
-                                    if (str != '') str += ', ';
-                                    str += this.ctx.link(item, item);
-                                }
-                            }
-                            prod._sameAsStr = str;
-                        }
+                        prod._sameAsStr = str;
                     }
     
                     // Local business.

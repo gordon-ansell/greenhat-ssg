@@ -265,7 +265,7 @@ class ArticleSchema extends BreadcrumbProcessor
                 let simples = ['url', 'description', 'version', 'startDate', 'endDate',
                     'eventAttendanceMode', 'sameAs', 'address', 'email', 'telephone',
                     'priceRange', 'openingHours', 'applicationCategory', 'category', 'genre',
-                    'operatingSystem']
+                    'operatingSystem', 'dateCreated', 'duration']
 
                 for (let simp of simples) {
                     if (prod[simp]) {
@@ -276,12 +276,8 @@ class ArticleSchema extends BreadcrumbProcessor
                     }
                 }
 
-                if (prod.date) {
-                    schema.dateCreated(prod.date);
-                }
-
-                // Actors, directors.
-                let darr = ['actors', 'directors'];
+                // Actors, directors, performers.
+                let darr = ['actor', 'director', 'performer'];
                 for (let arr of darr) {
 
                     if (prod[arr]) {
@@ -289,26 +285,30 @@ class ArticleSchema extends BreadcrumbProcessor
                         let r = [];
 
                         for (let person of prod[arr]) {
+                            
+                            if (typeof(person) != "object") {
+                                person = {name: person};
+                            }
+                            
+                            let p = Schema.person();
+                            
+                            for (let fld in person) {
+                                p.setProp(fld, person[fld]);
+                            }
 
+                            /*
                             let p = Schema.person().name(person.name);
 
                             if (person.sameAs) {
                                 p.sameAs(person.sameAs);
                             }
-
+                            */
                             r.push(p);
                         }
 
-                        schema.setProp(arr.slice(0, -1), r)
+                        schema.setProp(arr, r)
                     }
                 }
-
-
-                // Duration.
-                if (prod.duration) {
-                    schema.duration(prod.durationObj.pt);
-                }
-
 
                 // Location.
                 if (prod.location) {
@@ -317,9 +317,9 @@ class ArticleSchema extends BreadcrumbProcessor
                 }
 
                 // Performer.
-                if (prod.performer) {
-                    schema.performer(Schema.person().name(prod.performer));
-                }
+                //if (prod.performer) {
+                //    schema.performer(Schema.person().name(prod.performer));
+                //}
 
                 // Organizer.
                 if (prod.organizer) {

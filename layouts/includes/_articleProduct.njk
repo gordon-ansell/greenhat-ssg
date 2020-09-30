@@ -74,14 +74,14 @@
     {%- endif -%}
 
     {%- if prod.type == 'Movie' or prod.type == 'TVSeries' -%}
-        {%- if prod.actors -%}
-            <dt>Actors:</dt><dd>{{prod.actorsStr}}</dd>
+        {%- if prod.actor -%}
+            <dt>Actors:</dt><dd>{{prod._actorStr}}</dd>
         {%- endif -%}
-        {%- if prod.directors -%}
-            <dt>Directors:</dt><dd>{{prod.directorsStr}}</dd>
+        {%- if prod.director -%}
+            <dt>Directors:</dt><dd>{{prod._directorStr}}</dd>
         {%- endif -%}
-        {%- if prod.duration -%}
-            <dt>Duration:</dt><dd>{{prod.durationObj.txt}}</dd>
+        {%- if prod._durationObj -%}
+            <dt>Duration:</dt><dd>{{prod._durationObj.txt}}</dd>
         {%- endif -%}
         {%- if prod.sameAs -%}
             <dt>More Info:</dt><dd>{{prod._sameAsStr}}</dd>
@@ -98,8 +98,8 @@
         {%- if prod.location -%}
             <dt>Location</dt><dd>{{prod.location}}</dd>
         {%- endif -%}
-        {%- if prod.performer -%}
-            <dt>Performer</dt><dd>{{prod.performer}}</dd>
+        {%- if prod._performerStr -%}
+            <dt>Performer</dt><dd>{{prod._performerStr}}</dd>
         {%- endif -%}
     {%- endif -%}
 
