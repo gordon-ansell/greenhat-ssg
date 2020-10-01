@@ -105,8 +105,8 @@
 
     {%- if ctx.reviews[prod.key] -%}
         {%- set rev = ctx.reviews[prod.key] -%}
-        {%- if rev.rating != null and rev.rating != undefined -%}
-            <dt>My Rating:</dt><dd>{{rev.ratingStr}}</dd>
+        {%- if rev.ratingValue != null and rev.ratingValue != undefined -%}
+            <dt>My Rating:</dt><dd>{{rev._ratingStr}}</dd>
         {%- endif -%}
         {%- if rev.description -%}
             <dt>My Opinion:</dt><dd>{{rev.description}}</dd>
@@ -118,6 +118,6 @@
     {%- endif -%}
 
     {%- if prod.offers -%}
-        <dt>Offers:</dt><dd>{{prod.offersStr}}</dd> 
+        <dt>Offers:</dt><dd>{{prod._offersStr}}</dd> 
     {%- endif -%}
 </dl>

@@ -576,7 +576,7 @@ class ArticleParser extends BreadcrumbProcessor
                 }
 
                 this.article.products[key] = this.ctx.cfg.products[key];
-                syslog.debug(`Successfully imported product '${key}' into ${this.article.relPath}.`);
+                //syslog.debug(`Successfully imported product '${key}' into ${this.article.relPath}.`);
 
                 if (this.article.products[key].review) {
                     if (this.article.reviews && this.article.reviews[key]) {
@@ -586,7 +586,7 @@ class ArticleParser extends BreadcrumbProcessor
                         this.article.reviews = {};
                     }
                     this.article.reviews[key] = this.article.products[key].review;
-                    syslog.debug(`Successfully imported review '${key}' into ${this.article.relPath}.`);
+                    //syslog.debug(`Successfully imported review '${key}' into ${this.article.relPath}.`);
                 }
             }
         }
@@ -607,7 +607,7 @@ class ArticleParser extends BreadcrumbProcessor
                 }
 
                 this.article.productRefs[key] = this.ctx.cfg.products[key];
-                syslog.debug(`Successfully imported product (ref) '${key}' into ${this.article.relPath}.`);
+                //syslog.debug(`Successfully imported product (ref) '${key}' into ${this.article.relPath}.`);
 
                 if (this.article.productRefs[key].review) {
                     if (this.article.reviewRefs && this.article.reviewRefs[key]) {
@@ -617,7 +617,7 @@ class ArticleParser extends BreadcrumbProcessor
                         this.article.reviewRefs = {};
                     }
                     this.article.reviewRefs[key] = this.article.productRefs[key].review;
-                    syslog.debug(`Successfully imported review (ref) '${key}' into ${this.article.relPath}.`);
+                    //syslog.debug(`Successfully imported review (ref) '${key}' into ${this.article.relPath}.`);
                 }
             }
         }

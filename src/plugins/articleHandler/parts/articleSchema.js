@@ -13,7 +13,7 @@ const path = require('path');
 const Duration = require("greenhat-util/duration");
 const { Schema, SchemaCollection, CreativeWork } = require("greenhat-schema");
 const str = require("greenhat-util/string");
-const arr = require("greenhat-util/array");
+const arrf = require("greenhat-util/array");
 const { merge } = require("greenhat-util/merge");
 const BreadcrumbProcessor = require("../breadcrumbProcessor");
 const GreenHatError = require("greenhat-util/error");
@@ -145,7 +145,7 @@ class ArticleSchema extends BreadcrumbProcessor
      */
     _getImageUrlsForTags(tags)
     {
-        tags = arr.makeArray(tags);
+        tags = arrf.makeArray(tags);
 
         let ret = [];
 
@@ -197,7 +197,7 @@ class ArticleSchema extends BreadcrumbProcessor
                     .isPartOf(Schema.ref(path.sep + '#' + 'article'))
                     .publisher(Schema.ref(path.sep + '#' + 'publisher'))
                     .reviewRating(Schema.rating()
-                        .ratingValue(rev.rating)
+                        .ratingValue(rev.ratingValue)
                         .bestRating(rev.bestRating || 5)
                         .worstRating(rev.worstRating || 0)
                     );
@@ -213,6 +213,150 @@ class ArticleSchema extends BreadcrumbProcessor
                 this.coll.add(id, schema);
             }
         }
+    }
+    
+    /**
+     * Process a single offer.
+     *
+     * @param     {object}    item     Offer item.
+     * @return    {object{             Schema object.
+     */
+    _processSingleOffer(item)
+    {
+        let off = Schema.offer()
+            .price(item.price)
+            .url(item.url);
+            
+        if (item.offeredBy) {
+            let org = Schema.organization();
+            for (let fk in item.offeredBy) {
+                org.setProp(fk, item.offeredBy[fk]);
+            }
+            off.offeredBy(org);
+        }
+
+        for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
+            if (item[bit]) {
+                off.setProp(bit, item[bit]);
+            }
+        }
+
+        if (item.availability) {
+            off.availability(Schema.itemAvailability(item.availability));
+        } else {
+            off.availability(Schema.itemAvailability('InStock'));
+        }
+
+        if (!off.hasProp('priceValidUntil')) {
+            let oneYear = new Date();
+            oneYear.setFullYear(oneYear.getFullYear() + 1);
+            off.setProp('priceValidUntil', oneYear.toISOString());
+        }
+
+        if (!off.hasProp('validFrom')) {
+            off.setProp('validFrom', this.article.datePublished.iso)               
+        } 
+        
+        return off;
+    }
+
+    /**
+     * Parse offer.
+     * 
+     * @param   {object}    offer       Offer to parse.
+     */
+    _parseOffer(offer)
+    {
+        let schema;
+
+        if (offer.priceSpecification) {
+            offer.type = 'AggregateOffer';
+        }
+
+        if (offer.type == 'AggregateOffer') {
+            schema = Schema.aggregateOffer();
+            if (!('lowPrice' in offer) || !('highPrice' in offer)) {
+                syslog.inspect(offer);
+                syslog.warning(`Aggregate offers require both 'lowPrice' and 'highPrice'.`, this.article.relPath);
+            }
+            if (!offer.priceCurrency) {
+                syslog.warning(`Aggregate offers require a 'priceCurrency'.`, this.article.relPath);
+            }
+        } else {
+            schema = Schema.offer();
+        }
+
+        delete offer.type;
+
+        if (offer.offeredBy) {
+            if (typeof(offer.offeredBy) != 'object') {
+                offer.offeredBy = {name: offer.offeredBy}
+            }
+            let org = Schema.organization();
+            for (let k in offer.offeredBy) {
+                org.setProp(k, offer.offeredBy[k])
+            }
+            schema.offeredBy(org);
+        }
+
+        if (offer.priceSpecification) {
+            offer.priceSpecification = arrf.makeArray(offer.priceSpecification);
+            let psArr = [];
+            for (let ps of offer.priceSpecification) {
+
+                if (!ps.url && offer.url) {
+                    ps.url = offer.url;
+                }
+
+                let psSchema = Schema.unitPriceSpecification();
+
+                delete ps.type;
+
+                if (ps.referenceQuantity) {
+                    let rq = Schema.quantitativeValue();
+                    delete ps.referenceQuantity.type;
+
+                    for (let k in ps.referenceQuantity) {
+                        rq.setProp(k, ps.referenceQuantity[k]);
+                    }
+
+                    psSchema.referenceQuantity(rq);
+                }
+
+                for (let k in ps) {
+                    if (k != 'referenceQuantity') {
+                        psSchema.setProp(k, ps[k]);
+                    }
+                }
+
+                psArr.push(psSchema);
+            }
+            schema.priceSpecification(psArr);
+        }
+
+        for (let k in offer) {
+            if (!k.startsWith('_')) {
+                if (!['offeredBy', 'priceSpecification'].includes(k)) {
+                    schema.setProp(k, offer[k]);
+                }
+            }
+        }
+
+        if (!schema.hasProp('itemAvailability')) {
+            schema.availability(Schema.itemAvailability('InStock'));
+        }
+
+        if (!schema.hasProp('priceValidUntil')) {
+            let oneYear = new Date();
+            oneYear.setFullYear(oneYear.getFullYear() + 1);
+            schema.priceValidUntil(oneYear.toISOString());
+        }
+
+        if (!schema.hasProp('validFrom')) {
+            schema.validFrom(this.article.datePublished.iso)               
+        } 
+
+        return schema;
     }
 
     /**
@@ -295,14 +439,6 @@ class ArticleSchema extends BreadcrumbProcessor
                             for (let fld in person) {
                                 p.setProp(fld, person[fld]);
                             }
-
-                            /*
-                            let p = Schema.person().name(person.name);
-
-                            if (person.sameAs) {
-                                p.sameAs(person.sameAs);
-                            }
-                            */
                             r.push(p);
                         }
 
@@ -315,11 +451,6 @@ class ArticleSchema extends BreadcrumbProcessor
                     schema.location(Schema.place().address(prod.location).name(prod.name));
 
                 }
-
-                // Performer.
-                //if (prod.performer) {
-                //    schema.performer(Schema.person().name(prod.performer));
-                //}
 
                 // Organizer.
                 if (prod.organizer) {
@@ -385,7 +516,7 @@ class ArticleSchema extends BreadcrumbProcessor
 
                     schema.aggregateRating(
                         Schema.aggregateRating()
-                            .ratingValue(rev.rating)
+                            .ratingValue(rev.ratingValue)
                             .bestRating(rev.bestRating)
                             .worstRating(rev.worstRating)
                             .reviewCount(rev.reviewCount)
@@ -405,77 +536,28 @@ class ArticleSchema extends BreadcrumbProcessor
                 }
                             
                 // Offers.
-                if (prod.offers) {
+                if (prod._offers) {
+                    prod._offers = arrf.makeArray(prod._offers);
+                    let offers = []
+                    for (let s of prod._offers) {
+                        let so = this._parseOffer(s);
+                        offers.push(so);
+                    }
+                    schema.offers(offers);
+                } else if (prod.offers) {
                     let offers = [];
 
-                    if (prod.offers.from || prod.offers.price || prod.offers.url) {
-
-                        let off = Schema.offer()
-                            .price(prod.offers.price)
-                            .url(prod.offers.url)
-                            .offeredBy(Schema.organization().name(prod.offers.from))
-
-                        for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
-                            if (prod.offers[bit]) {
-                                if (bit == 'priceCurrency') {
-                                    off.setProp(bit, prod.offers[bit].name);
-                                } else {
-                                    off.setProp(bit, prod.offers[bit]);
-                                }
-                            }
-                        }
-
-                        if (prod.offers.availability) {
-                            off.availability(Schema.itemAvailability(prod.offers.availability));
-                        } else {
-                            off.availability(Schema.itemAvailability('InStock'));
-                        }
-
-                        if (!off.hasProp('priceValidUntil')) {
-                            let oneYear = new Date();
-                            oneYear.setFullYear(oneYear.getFullYear() + 1);
-                            off.setProp('priceValidUntil', oneYear.toISOString());
-                        }
-
-                        if (!off.hasProp('validFrom')) {
-                            off.setProp('validFrom', this.article.datePublished.iso)               
-                        } 
+                    if (prod.offers.offeredBy || prod.offers.price || prod.offers.url) {
+                        
+                        let off = this._processSingleOffer(prod.offers);
 
                         offers.push(off);
 
                     } else {
                         for (let k in prod.offers) {
                             let item = prod.offers[k];
-                            let off = Schema.offer()
-                                .price(item.price)
-                                .url(item.url)
-                                .offeredBy(Schema.organization().name(item.from))
-
-                            for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
-                                if (item[bit]) {
-                                    if (bit = 'priceCurrency') {
-                                        off.setProp(bit, item[bit].name);
-                                    } else {
-                                        off.setProp(bit, item[bit]);
-                                    }
-                                }
-                            }
-
-                            if (item.availability) {
-                                off.availability(Schema.itemAvailability(item.availability));
-                            } else {
-                                off.availability(Schema.itemAvailability('InStock'));
-                            }
-
-                            if (!off.hasProp('priceValidUntil')) {
-                                let oneYear = new Date();
-                                oneYear.setFullYear(oneYear.getFullYear() + 1);
-                                off.setProp('priceValidUntil', oneYear.toISOString());
-                            }
-                                
-                            if (!off.hasProp('validFrom')) {
-                                off.setProp('validFrom', this.article.datePublished.iso)               
-                            }
+                            
+                            let off = this._processSingleOffer(item);
                                 
                             offers.push(off);
     

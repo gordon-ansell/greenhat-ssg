@@ -31,6 +31,145 @@ class ProductReviewProcessor
     }
 
     /**
+     * Process legacy field names for offers.
+     *
+     * @param     {object}    off     Off object.
+     * @return    {object}            Updated product.
+     */
+    _processLegacyFieldNamesOffer(off)
+    {
+        if (off.from && !off.offeredBy) {
+            off.offeredBy = off.from;
+            delete off.from;
+        }
+        
+        if (off.currency && !off.priceCurrency) {
+            off.priceCurrency = off.currency;
+            delete off.currency;
+        }
+        
+        if (off.subscription) {
+            off._subscription = off.subscription;
+            delete off.subscription;
+        }
+
+        return off;
+    }
+
+    /**
+     * Parse an offer.
+     * 
+     * @param   {object}    offer   Offer object.
+     * @param   {object}    prod    Product.
+     * @param   {string}    key     Offer key.
+     * @return  {string}            Offer string
+     */
+    _parseOffer(offer, prod)
+    {
+        offer = this._processLegacyFieldNamesOffer(offer);
+
+        // Do some sorting out, set defaults, form structures etc.
+        if (!offer.priceCurrency) {
+            offer.priceCurrency = this.ctx.cfg.reviewSpec.defaultCurrency;
+        }
+
+        if (!this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]) {
+            syslog.error(`No currency defined for '${offer.priceCurrency}', processing key '${prod.key}'.`, this.article.relPath);
+        } else {
+            offer._priceCurrencyObj = this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]; 
+        }
+
+        if (typeof(offer.offeredBy) != "object") {
+            offer.offeredBy = {name: offer.offeredBy};
+        }
+
+        let ids = ['mpn', 'sku'];
+        for (let item of ids) {
+            if (prod[item] && !offer[item]) {
+                offer[item] = prod[item];
+            }
+        }
+        
+        // Now set up the offer string.
+
+        let ret = '';
+
+        if (offer.offeredBy) {
+            if (!offer.offeredBy.url && offer.url) {
+                offer.offeredBy.url = offer.url;
+            }
+
+            if (!offer.offeredBy.url || offer.priceSpecification) {
+                ret += offer.offeredBy.name;
+            } else {
+                ret += this.ctx.link(offer.offeredBy.name, offer.offeredBy.url);
+            }
+        }
+
+        if (offer.priceSpecification) {
+
+            ret += '<ul class="ops">';
+
+            for (let ps of offer.priceSpecification) {
+
+                ret += '<li>';
+
+                if (!ps.url && offer.url) {
+                    ps.url = offer.url;
+                }
+
+                if (ps.url && ps.name) {
+                    ret += this.ctx.link(ps.name, ps.url);
+                } else if (ps.url) {
+                    ret += this.ctx.link('Offer', ps.url)
+                } else if (ps.name) {
+                    ret += ps.name;
+                }
+
+                if (!ps.priceCurrency) {
+                    ps.priceCurrency = offer.priceCurrency;
+                }
+
+                if (!this.ctx.cfg.reviewSpec.currencies[ps.priceCurrency]) {
+                    syslog.error(`No currency defined for '${ps.priceCurrency}', processing key '${prod.key}'.`, this.article.relPath);
+                } else {
+                    let ob = this.ctx.cfg.reviewSpec.currencies[ps.priceCurrency]; 
+                    if (ps.price == 0) {
+                        ret += ': Free';
+                    } else {
+                        ret += ': ' + ob.symbol + ps.price;
+                    }
+                }
+
+                if (ps.referenceQuantity && ps.referenceQuantity.unitCode) {
+                    let xl = {
+                        ANN: 'year',
+                        MON: 'month'
+                    }
+
+                    if (!(ps.referenceQuantity.unitCode in xl)) {
+                        syslog.warning(`Cannot deal with unitCode ${ps.referenceQuantity.unitCode} in offer.`, this.article.relPath);
+                    } else {
+                        ret += '/' + xl[ps.referenceQuantity.unitCode];
+                    }
+                }
+        
+                ret += '</li>';
+
+            }
+
+            ret += '</ul>';
+
+        } else {
+            if (offer.price) {
+                ret += ' ' + offer._priceCurrencyObj.symbol + offer.price;
+            }
+        }
+        
+        return ret;
+    }
+
+    /**
      * Process an offer.
      * 
      * @param   {object}    offer   Offer object.
@@ -40,6 +179,8 @@ class ProductReviewProcessor
      */
     _processOffer(offer, prod, key = null)
     {
+        offer = this._processLegacyFieldNamesOffer(offer);
+        
         let ret = '';
 
         if (key) {
@@ -53,12 +194,17 @@ class ProductReviewProcessor
             }
         }
 
-        if (offer.from) {
+        if (offer.offeredBy) {
+            
+            if (typeof(offer.offeredBy) != "object") {
+                offer.offeredBy = {name: offer.offeredBy};
+            }
+            
             if (!offer.url) {
-                syslog.advice("Offers with a 'from' should also have a 'url'.", this.article.relPath);
-                ret += offer.from;
+                syslog.advice("Offers with a 'offeredBy' should also have a 'url'.", this.article.relPath);
+                ret += offer.offeredBy;
             } else {
-                ret += this.ctx.link(offer.from, offer.url);
+                ret += this.ctx.link(offer.offeredBy.name, offer.url);
             }
         }
 
@@ -72,23 +218,44 @@ class ProductReviewProcessor
             offer.priceValidUntil = d.toISOString();
         }
 
-        if (!offer.currency) {
-            offer.currency = this.ctx.cfg.reviewSpec.defaultCurrency;
+        if (!offer.priceCurrency) {
+            offer.priceCurrency = this.ctx.cfg.reviewSpec.defaultCurrency;
         }
 
-        if (!this.ctx.cfg.reviewSpec.currencies[offer.currency]) {
-            syslog.error(`No currency defined for '${offer.currency}', processing key '${prod.key}'.`, this.article.relPath);
+        if (typeof(offer.priceCurrency) != 'object') {
+            if (!this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]) {
+                syslog.error(`No currency defined for '${offer.priceCurrency}', processing key '${prod.key}'.`, this.article.relPath);
+            } else {
+                offer._priceCurrencyObj = this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]; 
+            }
         } else {
-            offer.priceCurrency = this.ctx.cfg.reviewSpec.currencies[offer.currency]; 
+            offer._priceCurrencyObj = offer.priceCurrency;
+            offer.priceCurrency = offer._priceCurrencyObj.name;
         }
 
         if (offer.price) {
-            ret += ' ' + offer.priceCurrency.symbol + offer.price;
+            ret += ' ' + offer._priceCurrencyObj.symbol + offer.price;
         }
-
+        
         return ret;
     }
 
+    /**
+     * Process legacy field names for reviews.
+     *
+     * @param     {object}    rev     Review object.
+     * @return    {object}            Updated product.
+     */
+    _processLegacyFieldNamesReview(rev)
+    {
+        if ((rev.rating != null && rev.rating != undefined) && (rev.ratingValue == null || rev.ratingValue == undefined)) {
+            rev.ratingValue = rev.rating;
+            delete rev.rating;
+        }
+        
+        return rev;
+    }
+    
     /**
      * Process a review.
      * 
@@ -96,10 +263,10 @@ class ProductReviewProcessor
      */
     _processReview(key)
     {
-        let rev = this.article.reviews[key];
+        let rev = this._processLegacyFieldNamesReview(this.article.reviews[key], key);
 
-        if (rev.rating == null || rev.rating == undefined) {
-            syslog.warning(`Reviews should have a rating (${key}).`, this.article.relPath);
+        if (rev.ratingValue == null || rev.ratingValue == undefined) {
+            syslog.warning(`Reviews should have a ratingValue (${key}).`, this.article.relPath);
         }
         if (!rev.description) {
             syslog.advice(`Reviews are better with a description (${key}),`, this.article.relPath);
@@ -129,17 +296,17 @@ class ProductReviewProcessor
             rev.ratingCount = 1;
         }
 
-        if (rev.rating != null && rev.rating != undefined) {
+        if (rev.ratingValue != null && rev.ratingValue != undefined) {
 
-            rev.ratingStr = rev.rating + ' out of ' + rev.bestRating;
+            rev._ratingStr = rev.ratingValue + ' out of ' + rev.bestRating;
 
             if (this.ctx.cfg.reviewSpec.ratings.wantStars) {
                 let stars = '';
 
-                let intgr = Math.floor(rev.rating);
+                let intgr = Math.floor(rev.ratingValue);
                 let blanks = rev.bestRating - intgr;
                 let half = false;
-                if (rev.rating - intgr != 0) {
+                if (rev.ratingValue - intgr != 0) {
                     half = true;
                     blanks--;
                 }
@@ -148,34 +315,34 @@ class ProductReviewProcessor
                         url: this.ctx.cfg.reviewSpec.ratings.stars.full,
                         alt: "Rating star."
                     }
-                    stars += this.ctx.img(params, rev.ratingStr);
+                    stars += this.ctx.img(params, rev._ratingStr);
                 }
                 if (half) {
                     let params = {
                         url: this.ctx.cfg.reviewSpec.ratings.stars.half,
                         alt: "Rating half star."
                     }
-                    stars += this.ctx.img(params, rev.ratingStr);
+                    stars += this.ctx.img(params, rev._ratingStr);
                 }
                 for (let i = 0; i < blanks; i++) {
                     let params = {
                         url: this.ctx.cfg.reviewSpec.ratings.stars.none,
                         alt: "Rating star."
                     }
-                    stars += this.ctx.img(params, rev.ratingStr);
+                    stars += this.ctx.img(params, rev._ratingStr);
                 }
 
-                rev.ratingStars = stars;
+                rev._ratingStars = stars;
             }
 
-            if (this.ctx.cfg.reviewSpec.ratings.alts && this.ctx.cfg.reviewSpec.ratings.alts[rev.rating]) {
-                let rs = this.ctx.cfg.reviewSpec.ratings.alts[rev.rating];
+            if (this.ctx.cfg.reviewSpec.ratings.alts && this.ctx.cfg.reviewSpec.ratings.alts[rev.ratingValue]) {
+                let rs = this.ctx.cfg.reviewSpec.ratings.alts[rev.ratingValue];
                 let cls = 'rating-string ' + str.slugify(rs);
-                rev.ratingStr += ': <span class="' + cls + '">' + rs + '</span>';
+                rev._ratingStr += ': <span class="' + cls + '">' + rs + '</span>';
             }
 
-            if (rev.ratingStars && rev.ratingStars != '') {
-                rev.ratingStr += '&nbsp;&nbsp;&nbsp;<span class="stars">' + rev.ratingStars + '</span>';
+            if (rev._ratingStars && rev._ratingStars != '') {
+                rev._ratingStr += '&nbsp;&nbsp;&nbsp;<span class="stars">' + rev._ratingStars + '</span>';
             }
         }
 
@@ -187,7 +354,7 @@ class ProductReviewProcessor
     }
     
     /**
-     * Process legacy field names.
+     * Process legacy field names for products.
      *
      * @param     {object}    prod    Product object.
      * @return    {object}            Updated product.
@@ -268,8 +435,8 @@ class ProductReviewProcessor
    
                     // No review switch?
                     let noReview = false;
-                    if (this.article.noReview) {
-                        noReview = this.article.noReview;
+                    if (this.article._noReview) {
+                        noReview = this.article._noReview;
                     }
     
                     // Review?
@@ -396,7 +563,23 @@ class ProductReviewProcessor
                     }
     
                     // Offers.
-                    if (prod.offers) {
+                    if (prod._offers) {
+                        let offersArr = [];
+                        if (prod._offers.from || prod._offers.price || prod._offers.url) {
+                            let o = this._parseOffer(prod._offers, prod);
+                            offersArr.push(o);
+                        } else {
+                            for (let offerObj of prod._offers) {
+                                let o = this._parseOffer(offerObj, prod)
+                                offersArr.push(o);
+                            }
+                        }
+                        if (offersArr.length == 1) {
+                            prod._offersStr = offersArr[0];
+                        } else {
+                            prod._offersStr = '<div class="offerblock">' + offersArr.join('<br />') + '</div>';
+                        }
+                    } else if (prod.offers) {
                         let offersArr = [];
                         if (prod.offers.from || prod.offers.price || prod.offers.url) {
                             let o = this._processOffer(prod.offers, prod);
@@ -408,9 +591,9 @@ class ProductReviewProcessor
                             }
                         }
                         if (offersArr.length == 1) {
-                            prod.offersStr = offersArr[0];
+                            prod._offersStr = offersArr[0];
                         } else {
-                            prod.offersStr = '<div class="offerblock">' + offersArr.join('<br />') + '</div>';
+                            prod._offersStr = '<div class="offerblock">' + offersArr.join('<br />') + '</div>';
                         }
                     }
     

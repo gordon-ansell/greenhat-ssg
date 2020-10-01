@@ -7,8 +7,8 @@ wantEffort: true
 {%- block beforeArticleContent -%}
     {%- if article.reviews and site.reviews -%}
         {%- set rev = article.firstReview() -%}
-        {%- if rev.ratingStars and not article.noGlobalStars -%}
-            <div class="reviewStars" title="Review rating">{{rev.ratingStars}}</div>
+        {%- if rev._ratingStars and not article._noGlobalStars -%}
+            <div class="reviewStars" title="Review rating">{{rev._ratingStars}}</div>
         {%- endif -%}
     {%- endif -%}
     {%- if article._summary -%}

@@ -43,8 +43,8 @@ sitemap: true
             </header>
             {%- if post.reviews and site.reviews -%}
                 {%- set rev = post.firstReview() -%}
-                {%- if rev.ratingStars -%}
-                    <div class="reviewStars" title="Review rating.">{{rev.ratingStars}}</div>
+                {%- if rev._ratingStars and not post._noGlobalStars -%}
+                    <div class="reviewStars" title="Review rating.">{{rev._ratingStars}}</div>
                 {%- endif -%}
             {%- endif -%}
             {%- if post.layoutName == 'citation' or post.layoutName == 'briefly' -%}

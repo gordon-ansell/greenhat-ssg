@@ -29,8 +29,8 @@ sitemap: true
                         </header>
                         {%- if site.reviews and item.reviews -%}
                             {%- set rev = item.firstReview() -%}
-                            {%- if rev.ratingStars -%}
-                                <div class="reviewStars" title="Review rating.">{{rev.ratingStars}}</div>
+                            {%- if rev._ratingStars and not item._noGlobalStars -%}
+                                <div class="reviewStars" title="Review rating.">{{rev._ratingStars}}</div>
                             {%- endif -%}
                         {%- endif -%}
                         <div class="p-summary">
