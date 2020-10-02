@@ -1,6 +1,6 @@
 {
 	"name": "greenhat-ssg",
-	"version": "0.11.0",
+	"version": "0.12.0",
 	"description": "GreenHat Static Site Generator",
 	"homepage": "https://gordonansell.com/greenhat-ssg",
 	"license": "MIT",
@@ -22,7 +22,7 @@
 		"autoprefixer": "*",
 		"dateformat": "*",
 		"deasync": "*",
-		"greenhat-schema": "*",
+		"greenhat-schema": "^0.8.0",
 		"greenhat-util": "*",
 		"image-size": "*",
 		"js-beautify": "*",
