@@ -270,7 +270,7 @@ class ArticleSchema extends BreadcrumbProcessor
         let schema;
 
         if (offer.priceSpecification) {
-            offer.type = 'AggregateOffer';
+            //offer.type = 'AggregateOffer';
         }
 
         if (offer.type == 'AggregateOffer') {
@@ -308,7 +308,12 @@ class ArticleSchema extends BreadcrumbProcessor
                     ps.url = offer.url;
                 }
 
-                let psSchema = Schema.unitPriceSpecification();
+                let psSchema;
+                if (offer.type == 'AggregateOffer') {
+                    psSchema = Schema.unitPriceSpecification();
+                } else {
+                    psSchema = Schema.priceSpecification();
+                }
 
                 delete ps.type;
 
@@ -320,11 +325,15 @@ class ArticleSchema extends BreadcrumbProcessor
                         rq.setProp(k, ps.referenceQuantity[k]);
                     }
 
-                    psSchema.referenceQuantity(rq);
+                    if (offer.type == 'Offer') {
+                        psSchema.referenceQuantity(rq);
+                    } else {
+                        psSchema.eligibleQuantity(rq);
+                    }
                 }
 
                 for (let k in ps) {
-                    if (k != 'referenceQuantity') {
+                    if (k != 'referenceQuantity' && k != 'eligibleQuantity') {
                         psSchema.setProp(k, ps[k]);
                     }
                 }
@@ -334,9 +343,13 @@ class ArticleSchema extends BreadcrumbProcessor
             schema.priceSpecification(psArr);
         }
 
+        if (offer.availability) {
+            schema.availability(Schema.itemAvailability(offer.availability));
+        }
+
         for (let k in offer) {
             if (!k.startsWith('_')) {
-                if (!['offeredBy', 'priceSpecification'].includes(k)) {
+                if (!['offeredBy', 'priceSpecification', 'availability'].includes(k)) {
                     schema.setProp(k, offer[k]);
                 }
             }
@@ -344,7 +357,7 @@ class ArticleSchema extends BreadcrumbProcessor
 
         if (!schema.hasProp('itemAvailability')) {
             schema.availability(Schema.itemAvailability('InStock'));
-        }
+        } 
 
         if (!schema.hasProp('priceValidUntil')) {
             let oneYear = new Date();
@@ -407,7 +420,7 @@ class ArticleSchema extends BreadcrumbProcessor
 
                 // Simples
                 let simples = ['url', 'description', 'version', 'startDate', 'endDate',
-                    'eventAttendanceMode', 'sameAs', 'address', 'email', 'telephone',
+                    'sameAs', 'address', 'email', 'telephone',
                     'priceRange', 'openingHours', 'applicationCategory', 'category', 'genre',
                     'operatingSystem', 'dateCreated', 'duration']
 
@@ -466,6 +479,13 @@ class ArticleSchema extends BreadcrumbProcessor
                     schema.eventStatus(Schema.eventStatusType('Scheduled'));
                 }
                 
+                // Attendance mode.
+                if (prod.eventAttendanceMode) {
+                    schema.eventAttendanceMode(Schema.eventAttendanceMode(prod.eventAttendanceMode));
+                } else if (prod.type == 'Event') {
+                    schema.eventAttendanceMode(Schema.eventAttendanceMode('Offline'));
+                }
+
                 // Artist.
                 if (prod.artist) {
                     let tn = Schema.person();

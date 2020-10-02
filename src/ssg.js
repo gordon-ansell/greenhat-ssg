@@ -139,7 +139,7 @@ class SSG
             return;
         }
 
-        let loader = new ConfigLoader(configPath, this.ctx, this.ctx.sitePath);
+        let loader = new ConfigLoader(configPath, this.ctx, this.ctx.sitePath, {ignoreFilesFirst: ['.DS_Store']});
         let result = await loader.load();
 
         if (0 == result) {

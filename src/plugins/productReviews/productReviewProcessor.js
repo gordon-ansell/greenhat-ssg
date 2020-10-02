@@ -106,6 +106,14 @@ class ProductReviewProcessor
             }
         }
 
+        if (offer.name) {
+            if (offer.url) {
+                ret += ': ' + this.ctx.link(offer.name, offer.url);
+            } else {
+                ret = ': ' + offer.name;
+            }
+        }
+
         if (offer.priceSpecification) {
 
             ret += '<ul class="ops">';
@@ -135,9 +143,9 @@ class ProductReviewProcessor
                 } else {
                     let ob = this.ctx.cfg.reviewSpec.currencies[ps.priceCurrency]; 
                     if (ps.price == 0) {
-                        ret += ': Free';
+                        ret += ' Free';
                     } else {
-                        ret += ': ' + ob.symbol + ps.price;
+                        ret += ' ' + ob.symbol + ps.price;
                     }
                 }
 
@@ -161,8 +169,9 @@ class ProductReviewProcessor
             ret += '</ul>';
 
         } else {
-            if (offer.price) {
-                ret += ' ' + offer._priceCurrencyObj.symbol + offer.price;
+            if (offer.price != null && offer.price != undefined) {
+                let p = (offer.price == 0) ? 'Free' : offer._priceCurrencyObj.symbol + offer.price;
+                ret += ' ' + p;
             }
         }
         

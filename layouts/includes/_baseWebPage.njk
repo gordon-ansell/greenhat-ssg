@@ -183,10 +183,12 @@
     </div>
 </body>
 {%- block schema -%}
-    {%- if article.schema -%}
-    <script type="application/ld+json">
-        {{article.schema}}
-    </script>
-    {%- endif -%}
+{%- if article.schema -%}
+<script type="application/ld+json">
+/* beautify ignore:start */
+{{article.schema}}
+/* beautify ignore:end */
+</script>
+{%- endif -%}
 {%- endblock -%}
 </html>

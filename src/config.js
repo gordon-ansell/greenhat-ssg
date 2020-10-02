@@ -53,7 +53,7 @@ class Config
                 }
                 break;
             default:
-                syslog.warning(`No processor is defined for config files with extension '${ext}'. Get a grip.`);
+                syslog.warning(`No processor is defined for config files with extension '${ext}', file ${file}. Get a grip.`);
         }
 
         if (null !== data) {
