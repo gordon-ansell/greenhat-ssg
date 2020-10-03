@@ -487,13 +487,13 @@ class ArticleSchema extends BreadcrumbProcessor
                 }
 
                 // Artist.
-                if (prod.artist) {
+                if (prod.byArtist) {
                     let tn = Schema.person();
-                    if (prod.isGroup) {
+                    if (prod._isGroup) {
                         tn = Schema.musicGroup();
                     }
 
-                    schema.byArtist(tn.name(prod.artist));
+                    schema.byArtist(tn.name(prod.byArtist));
                 }
 
 

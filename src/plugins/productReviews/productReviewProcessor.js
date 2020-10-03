@@ -403,6 +403,13 @@ class ProductReviewProcessor
                 delete prod.directors;
             }
         }
+
+        if (prod.type == "MusicAlbum" || prod.type == "MusicRecording") {
+            if (prod.artist && !prod.byArtist) {
+                prod.byArtist = prod.artist;
+                delete prod.artist;
+            }
+        }
         
         if (prod.date && !prod.dateCreated) {
             prod.dateCreated = prod.date;

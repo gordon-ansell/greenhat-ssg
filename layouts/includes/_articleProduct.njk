@@ -47,8 +47,8 @@
     {%- endif -%}
 
     {%- if prod.type == 'MusicRecording' or prod.type == 'MusicAlbum' -%}
-        {%- if prod.artist -%}
-            <dt>Artist:</dt><dd>{{prod.artist}}</dd>
+        {%- if prod.byArtist -%}
+            <dt>Artist:</dt><dd>{{prod.byArtist}}</dd>
         {%- endif -%}
         {%- if prod.album -%}
             <dt>In Album:</dt><dd>{{prod.album}}</dd>

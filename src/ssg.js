@@ -85,7 +85,7 @@ class SSG
 
         this.ctx.counts = {};
 
-        this.ctx.cfg = new Config(require('./defaultConfig'));
+        this.ctx.cfg = new Config(require('./defaultConfig'), this.ctx);
 
         this.ctx.appPath = path.dirname(this.ctx.args['_'][1]);
         this.ctx.sitePath = path.resolve(this.ctx.args.input);
@@ -139,7 +139,7 @@ class SSG
             return;
         }
 
-        let loader = new ConfigLoader(configPath, this.ctx, this.ctx.sitePath, {ignoreFilesFirst: ['.DS_Store']});
+        let loader = new ConfigLoader(configPath, this.ctx, this.ctx.sitePath, {ignoreFiles: ['.']});
         let result = await loader.load();
 
         if (0 == result) {
