@@ -31,32 +31,6 @@ class ProductReviewProcessor
     }
 
     /**
-     * Process legacy field names for offers.
-     *
-     * @param     {object}    off     Off object.
-     * @return    {object}            Updated product.
-     */
-    _processLegacyFieldNamesOffer(off)
-    {
-        if (off.from && !off.offeredBy) {
-            off.offeredBy = off.from;
-            delete off.from;
-        }
-        
-        if (off.currency && !off.priceCurrency) {
-            off.priceCurrency = off.currency;
-            delete off.currency;
-        }
-        
-        if (off.subscription) {
-            off._subscription = off.subscription;
-            delete off.subscription;
-        }
-
-        return off;
-    }
-
-    /**
      * Parse an offer.
      * 
      * @param   {object}    offer   Offer object.
@@ -66,15 +40,13 @@ class ProductReviewProcessor
      */
     _parseOffer(offer, prod)
     {
-        offer = this._processLegacyFieldNamesOffer(offer);
-
         // Do some sorting out, set defaults, form structures etc.
         if (!offer.priceCurrency) {
             offer.priceCurrency = this.ctx.cfg.reviewSpec.defaultCurrency;
         }
 
         if (!this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]) {
-            syslog.error(`No currency defined for '${offer.priceCurrency}', processing key '${prod.key}'.`, this.article.relPath);
+            syslog.error(`No currency defined for '${offer.priceCurrency}', processing key '${prod._key}'.`, this.article.relPath);
         } else {
             offer._priceCurrencyObj = this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]; 
         }
@@ -139,7 +111,7 @@ class ProductReviewProcessor
                 }
 
                 if (!this.ctx.cfg.reviewSpec.currencies[ps.priceCurrency]) {
-                    syslog.error(`No currency defined for '${ps.priceCurrency}', processing key '${prod.key}'.`, this.article.relPath);
+                    syslog.error(`No currency defined for '${ps.priceCurrency}', processing key '${prod._key}'.`, this.article.relPath);
                 } else {
                     let ob = this.ctx.cfg.reviewSpec.currencies[ps.priceCurrency]; 
                     if (ps.price == 0) {
@@ -179,100 +151,13 @@ class ProductReviewProcessor
     }
 
     /**
-     * Process an offer.
-     * 
-     * @param   {object}    offer   Offer object.
-     * @param   {object}    prod    Product.
-     * @param   {string}    key     Offer key.
-     * @return  {string}            Offer string
-     */
-    _processOffer(offer, prod, key = null)
-    {
-        offer = this._processLegacyFieldNamesOffer(offer);
-        
-        let ret = '';
-
-        if (key) {
-            ret += key + ': ';
-        }
-
-        let ids = ['mpn', 'sku'];
-        for (let item of ids) {
-            if (prod[item] && !offer[item]) {
-                offer[item] = prod[item];
-            }
-        }
-
-        if (offer.offeredBy) {
-            
-            if (typeof(offer.offeredBy) != "object") {
-                offer.offeredBy = {name: offer.offeredBy};
-            }
-            
-            if (!offer.url) {
-                syslog.advice("Offers with a 'offeredBy' should also have a 'url'.", this.article.relPath);
-                ret += offer.offeredBy;
-            } else {
-                ret += this.ctx.link(offer.offeredBy.name, offer.url);
-            }
-        }
-
-        if (!offer.availability) {
-            offer.availability = "InStock";
-        }
-
-        if (!offer.priceValidUntil) {
-            let d = new Date();
-            d.setFullYear(d.getFullYear() + 1)
-            offer.priceValidUntil = d.toISOString();
-        }
-
-        if (!offer.priceCurrency) {
-            offer.priceCurrency = this.ctx.cfg.reviewSpec.defaultCurrency;
-        }
-
-        if (typeof(offer.priceCurrency) != 'object') {
-            if (!this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]) {
-                syslog.error(`No currency defined for '${offer.priceCurrency}', processing key '${prod.key}'.`, this.article.relPath);
-            } else {
-                offer._priceCurrencyObj = this.ctx.cfg.reviewSpec.currencies[offer.priceCurrency]; 
-            }
-        } else {
-            offer._priceCurrencyObj = offer.priceCurrency;
-            offer.priceCurrency = offer._priceCurrencyObj.name;
-        }
-
-        if (offer.price) {
-            ret += ' ' + offer._priceCurrencyObj.symbol + offer.price;
-        }
-        
-        return ret;
-    }
-
-    /**
-     * Process legacy field names for reviews.
-     *
-     * @param     {object}    rev     Review object.
-     * @return    {object}            Updated product.
-     */
-    _processLegacyFieldNamesReview(rev)
-    {
-        if ((rev.rating != null && rev.rating != undefined) && (rev.ratingValue == null || rev.ratingValue == undefined)) {
-            rev.ratingValue = rev.rating;
-            delete rev.rating;
-        }
-        
-        return rev;
-    }
-    
-    /**
      * Process a review.
      * 
      * @param   {string}    key         Review key.
      */
     _processReview(key)
     {
-        let rev = this._processLegacyFieldNamesReview(this.article.reviews[key], key);
+        let rev = this.article.reviews[key];
 
         if (rev.ratingValue == null || rev.ratingValue == undefined) {
             syslog.warning(`Reviews should have a ratingValue (${key}).`, this.article.relPath);
@@ -363,71 +248,6 @@ class ProductReviewProcessor
     }
     
     /**
-     * Process legacy field names for products.
-     *
-     * @param     {object}    prod    Product object.
-     * @return    {object}            Updated product.
-     */
-    _processLegacyFieldNamesProduct(prod)
-    {
-        if (prod.type == "SoftwareApplication") {
-            if (prod.os && !prod.operatingSystem) {
-                prod.operatingSystem = prod.os;
-                delete prod.os;
-            }
-            if (prod.category && !prod.applicationCategory) {
-                prod.applicationCategory = prod.category;
-                delete prod.category;
-            }
-            if (prod.brand && !prod.creator) {
-                prod.creator = prod.brand;
-                delete prod.brand;
-            }
-        } 
-        
-        if (prod.type == "Movie" || prod.type == "TVSeries") {
-            if (prod.category && !prod.genre) {
-                prod.genre = prod.category;
-                delete prod.category;
-            }
-            if (prod.brand && !prod.productionCompany) {
-                prod.productionCompany = prod.brand;
-                delete prod.brand;
-            }
-            if (prod.actors && !prod.actor) {
-                prod.actor = prod.actors;
-                delete prod.actors;
-            }
-            if (prod.directors && !prod.director) {
-                prod.director = prod.directors;
-                delete prod.directors;
-            }
-        }
-
-        if (prod.type == "MusicAlbum" || prod.type == "MusicRecording") {
-            if (prod.artist && !prod.byArtist) {
-                prod.byArtist = prod.artist;
-                delete prod.artist;
-            }
-        }
-        
-        if (prod.date && !prod.dateCreated) {
-            prod.dateCreated = prod.date;
-            delete prod.date;
-        }
-        
-        let ma = ['operatingSystem', 'applicationCategory', 'genre', 'category', 'version', 
-            'actor', 'director', 'performer'];
-        for (let ind of ma) {
-            if (prod[ind]) {
-                prod[ind] = arr.makeArray(prod[ind]);
-            }
-        }
-        
-        return prod;
-    }
-
-    /**
      * Do the processing.
      */
     process()
@@ -445,9 +265,17 @@ class ProductReviewProcessor
             if (this.article[rr]) {
     
                 for (let prodKey in this.article[rr]) {
-                    let prod = this._processLegacyFieldNamesProduct(this.article[rr][prodKey]);
+                    let prod = this.article[rr][prodKey];
     
-                    prod.key = prodKey;
+                    let ma = ['operatingSystem', 'applicationCategory', 'genre', 'category', 'version', 
+                        'actor', 'director', 'performer'];
+                    for (let ind of ma) {
+                        if (prod[ind]) {
+                            prod[ind] = arr.makeArray(prod[ind]);
+                        }
+                    }
+
+                    prod._key = prodKey;
    
                     // No review switch?
                     let noReview = false;
@@ -579,30 +407,14 @@ class ProductReviewProcessor
                     }
     
                     // Offers.
-                    if (prod._offers) {
+                    if (prod.offers) {
                         let offersArr = [];
-                        if (prod._offers.from || prod._offers.price || prod._offers.url) {
-                            let o = this._parseOffer(prod._offers, prod);
+                        if (prod.offers.offeredBy || prod.offers.price || prod.offers.url) {
+                            let o = this._parseOffer(prod.offers, prod);
                             offersArr.push(o);
                         } else {
-                            for (let offerObj of prod._offers) {
+                            for (let offerObj of prod.offers) {
                                 let o = this._parseOffer(offerObj, prod)
-                                offersArr.push(o);
-                            }
-                        }
-                        if (offersArr.length == 1) {
-                            prod._offersStr = offersArr[0];
-                        } else {
-                            prod._offersStr = '<div class="offerblock">' + offersArr.join('<br />') + '</div>';
-                        }
-                    } else if (prod.offers) {
-                        let offersArr = [];
-                        if (prod.offers.from || prod.offers.price || prod.offers.url) {
-                            let o = this._processOffer(prod.offers, prod);
-                            offersArr.push(o);
-                        } else {
-                            for (let offerKey in prod.offers) {
-                                let o = this._processOffer(prod.offers[offerKey], prod, offerKey)
                                 offersArr.push(o);
                             }
                         }

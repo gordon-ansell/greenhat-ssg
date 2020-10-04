@@ -48,7 +48,7 @@ class Config
                 ret[key] = this._parseIncludes(data[key]);
             } else if (typeof(data[key]) == "string" && data[key].startsWith("_include ")) {
                 let fn = data[key].substring(9);
-                let p = path.join(this.ctx.sitePath, '_config', '_includes', fn);
+                let p = path.join(this.ctx.sitePath, '_config', fn);
                 if (!fs.existsSync(p)) {
                     syslog.warning(`YAML include file ${p} cannot be found.`);
                 } else {

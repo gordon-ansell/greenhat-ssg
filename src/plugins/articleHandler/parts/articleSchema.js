@@ -216,51 +216,6 @@ class ArticleSchema extends BreadcrumbProcessor
     }
     
     /**
-     * Process a single offer.
-     *
-     * @param     {object}    item     Offer item.
-     * @return    {object{             Schema object.
-     */
-    _processSingleOffer(item)
-    {
-        let off = Schema.offer()
-            .price(item.price)
-            .url(item.url);
-            
-        if (item.offeredBy) {
-            let org = Schema.organization();
-            for (let fk in item.offeredBy) {
-                org.setProp(fk, item.offeredBy[fk]);
-            }
-            off.offeredBy(org);
-        }
-
-        for (let bit of ['priceCurrency', 'priceValidUntil', 'validFrom', 'mpn', 'sku']) {
-            if (item[bit]) {
-                off.setProp(bit, item[bit]);
-            }
-        }
-
-        if (item.availability) {
-            off.availability(Schema.itemAvailability(item.availability));
-        } else {
-            off.availability(Schema.itemAvailability('InStock'));
-        }
-
-        if (!off.hasProp('priceValidUntil')) {
-            let oneYear = new Date();
-            oneYear.setFullYear(oneYear.getFullYear() + 1);
-            off.setProp('priceValidUntil', oneYear.toISOString());
-        }
-
-        if (!off.hasProp('validFrom')) {
-            off.setProp('validFrom', this.article.datePublished.iso)               
-        } 
-        
-        return off;
-    }
-
-    /**
      * Parse offer.
      * 
      * @param   {object}    offer       Offer to parse.
@@ -556,34 +511,13 @@ class ArticleSchema extends BreadcrumbProcessor
                 }
                             
                 // Offers.
-                if (prod._offers) {
-                    prod._offers = arrf.makeArray(prod._offers);
+                if (prod.offers) {
+                    prod.offers = arrf.makeArray(prod.offers);
                     let offers = []
-                    for (let s of prod._offers) {
+                    for (let s of prod.offers) {
                         let so = this._parseOffer(s);
                         offers.push(so);
                     }
-                    schema.offers(offers);
-                } else if (prod.offers) {
-                    let offers = [];
-
-                    if (prod.offers.offeredBy || prod.offers.price || prod.offers.url) {
-                        
-                        let off = this._processSingleOffer(prod.offers);
-
-                        offers.push(off);
-
-                    } else {
-                        for (let k in prod.offers) {
-                            let item = prod.offers[k];
-                            
-                            let off = this._processSingleOffer(item);
-                                
-                            offers.push(off);
-    
-                        }
-                    }
-
                     schema.offers(offers);
                 }
 

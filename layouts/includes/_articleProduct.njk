@@ -50,8 +50,8 @@
         {%- if prod.byArtist -%}
             <dt>Artist:</dt><dd>{{prod.byArtist}}</dd>
         {%- endif -%}
-        {%- if prod.album -%}
-            <dt>In Album:</dt><dd>{{prod.album}}</dd>
+        {%- if prod.inAlbum -%}
+            <dt>In Album:</dt><dd>{{prod.inAlbum}}</dd>
         {%- endif -%}
     {%- endif -%}
 
@@ -103,8 +103,8 @@
         {%- endif -%}
     {%- endif -%}
 
-    {%- if ctx.reviews[prod.key] -%}
-        {%- set rev = ctx.reviews[prod.key] -%}
+    {%- if ctx.reviews[prod._key] -%}
+        {%- set rev = ctx.reviews[prod._key] -%}
         {%- if rev.ratingValue != null and rev.ratingValue != undefined -%}
             <dt>My Rating:</dt><dd>{{rev._ratingStr}}</dd>
         {%- endif -%}
