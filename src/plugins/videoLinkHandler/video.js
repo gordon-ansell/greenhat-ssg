@@ -30,6 +30,9 @@ class Video
     {
         this.spec = spec;
         this.ctx = ctx;
+        if (defs.title) {
+            syslog.warning('Got a title');
+        }
         for (let key in defs) {
             this[key] = defs[key];
         }

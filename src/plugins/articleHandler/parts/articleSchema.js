@@ -553,7 +553,7 @@ class ArticleSchema extends BreadcrumbProcessor
                 let vidObj = this.article._videoLinkObjs[key];
 
                 let schema = Schema.videoObject(id)
-                    .name(vidObj.title)
+                    .name(vidObj.name)
                     .contentUrl(vidObj.contentUrl)
                     .embedUrl(vidObj.embedUrl)
                     .thumbnailUrl(vidObj.thumbnailUrl)

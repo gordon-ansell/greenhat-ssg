@@ -321,8 +321,8 @@ class ArticleParser extends BreadcrumbProcessor
      */
     _processSingleCitation(citation)
     {
-        if (!citation.title) {
-            syslog.error("Citations must have a title.", this.article.relPath);
+        if (!citation.headline) {
+            syslog.error("Citations must have a headline.", this.article.relPath);
             return;
         }
 
@@ -333,9 +333,9 @@ class ArticleParser extends BreadcrumbProcessor
         let str = '';
 
         if (citation.url) {
-            str += this.ctx.link('<cite>' + citation.title + '</cite>', citation.url);
+            str += this.ctx.link('<cite>' + citation.headline + '</cite>', citation.url);
         } else {
-            str += '<cite>' + citation.title + '</cite>';
+            str += '<cite>' + citation.headline + '</cite>';
         }
 
         if (citation.author) {
@@ -1080,25 +1080,9 @@ class ArticleParser extends BreadcrumbProcessor
             data.name = data.title;
             delete data.title
         }
-        if (data.excerpt && !data.abstract) {
-            data.abstract = data.excerpt;
-            delete data.excerpt;
-        }
-        if (data.date && !data.datePublished) {
-            data.datePublished = data.date;
-            delete data.date;
-        }
-        if (data.mdate && !data.dateModified) {
-            data.dateModified = data.mdate;
-            delete data.mdate;
-        }
         if (data.tags && !data.keywords) {
             data.keywords = data.tags;
             delete data.tags;
-        }
-        if (data.videos && !data._videoLinks) {
-            data._videoLinks = data.videos;
-            delete data.videos;
         }
         return data;
     }
