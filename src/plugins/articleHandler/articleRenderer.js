@@ -92,23 +92,23 @@ class ArticleRenderer
      */
     async render(article)
     {
-        if (!article.layoutType) {
-            article.layoutType = 'njk';
+        if (!article._layoutType) {
+            article._layoutType = 'njk';
         }
 
-        if (!this.#templateHandlers[article.layoutType]) {
+        if (!this.#templateHandlers[article._layoutType]) {
 
-            switch (article.layoutType) {
+            switch (article._layoutType) {
                 case 'njk':
                     this.#templateHandlers.njk = new NunjucksTemplate(this.ctx);
                     this.#templateHandlers.njk.setThrowExceptions(true);
                     break;
                 default:
-                    syslog.error(`No support for rendering '${article.layoutType}' files.`)
+                    syslog.error(`No support for rendering '${article._layoutType}' files.`)
             }
         }
 
-        let output = await this.#templateHandlers[article.layoutType].renderArticle(article);
+        let output = await this.#templateHandlers[article._layoutType].renderArticle(article);
 
         // Copy the article to the output location.
         let opPath = path.join(this.ctx.sitePath, this.ctx.cfg.locations.site, article.outputFileName);

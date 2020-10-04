@@ -110,7 +110,7 @@
         {%- set isArticle = false %}
         {% if article.ogType %}
             <meta property="og:type" content="{{article.ogType}}" />
-        {% elif article.layout == 'home' %}
+        {% elif article._layout == 'home' %}
             <meta property="og:type" content="website" />
         {% else %}
             <meta property="og:type" content="article" />

@@ -60,30 +60,7 @@ class BaseTemplate
     {
         await this.ctx.emit('ARTICLE_PRERENDER', article);
 
-        /*
-        if (this.#data == null) {
-            this.#data = new Data();
-            let ctxTmp = {...this.ctx};
-            for (let key in ctxTmp.cfg) {
-                this.#data.add(key, ctxTmp.cfg[key]);
-            }
-            delete ctxTmp.cfg;
-            if (ctxTmp.data) {
-                for (let key in ctxTmp.data) {
-                    this.#data.add(key, ctxTmp.data[key]);
-                }
-                delete ctxTmp.data;
-            }
-            this.#data.add('ctx', this.ctx);
-        }
-        */
-
-        //this.#data.del('article');
-        //this.#data.add('article', article);
-
-        return this._renderArticleHere(article.layoutPath, {article: article}, article.relPath);
-
-        //syslog.inspect(this.#data);
+        return this._renderArticleHere(article._layoutPath, {article: article}, article.relPath);
     }
 
     /**

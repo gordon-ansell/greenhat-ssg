@@ -47,7 +47,7 @@
                 <guid isPermaLink="true">{{ctx.qualify(post.url)}}</guid>
                 <pubDate>{{post.datePublished.utc}}</pubDate>
                 <dc:creator>{{ctx.getFirstAuthor().name}}</dc:creator>
-                {%- if article.isFullFeed or post.layout == 'citation' or post.layout == 'briefly' -%}
+                {%- if article.isFullFeed or post._layout == 'citation' or post._layout == 'briefly' -%}
                     {%- if post.abstractRss %}
                         <description>
                             <![CDATA[{{post.abstractRss.html | safe}}]]>

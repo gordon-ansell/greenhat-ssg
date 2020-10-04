@@ -17,17 +17,17 @@ sitemap: true
     {%- for post in article.posts.page(page) -%}
 
         {%- set ac = 'h-entry' -%}
-        {%- if post.layout == 'briefly' -%}
+        {%- if post._layout == 'briefly' -%}
             {%- set ac = ac + ' briefly' -%}
         {%- endif -%}
         <article class="{{ac}}">
             <header>
                 <h2>
-                    {%- if post.layoutName == 'citation' -%}
+                    {%- if post._layoutName == 'citation' -%}
                         {{post.firstCitationLink()}}
                         <meta name="p-name" content="{{post.name}}" />
                         <meta name="u-url" content="{{post.url}}" />
-                    {%- elif post.layoutName == 'briefly' -%}
+                    {%- elif post._layoutName == 'briefly' -%}
                         <span class="briefly p-name">Briefly: {{post.name}}</span>
                         <meta name="u-url" content="{{post.url}}" />
                     {%- else -%}
@@ -36,7 +36,7 @@ sitemap: true
                         </a>
                     {%- endif -%}
                 </h2>
-                {%- if post.layoutName == "citation" -%}
+                {%- if post._layoutName == "citation" -%}
                     <p class="meta">Comments by me and a link to the external article (above).</p>
                 {%- endif -%}
                 {% include 'includes/_articleMeta.njk' %}
@@ -47,7 +47,7 @@ sitemap: true
                     <div class="reviewStars" title="Review rating.">{{rev._ratingStars}}</div>
                 {%- endif -%}
             {%- endif -%}
-            {%- if post.layoutName == 'citation' or post.layoutName == 'briefly' -%}
+            {%- if post._layoutName == 'citation' or post._layoutName == 'briefly' -%}
                 <div class="e-content">
                     {% if post.imageFuncs and post.imageFuncs.icon %}
                         <a href="{{post.url}}" title="Read this post.">

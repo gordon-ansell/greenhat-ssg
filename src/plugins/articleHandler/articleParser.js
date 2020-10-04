@@ -55,7 +55,7 @@ class ArticleParser extends BreadcrumbProcessor
 
         // Initialisation.
         let data = this._extractFrontMatter();
-        data = this._renameLegacyFieldNames(data);
+        //data = this._renameLegacyFieldNames(data);
         data = this._processType(data);
         data = this._processLayout(data);
         this._createArticle(data);
@@ -935,25 +935,25 @@ class ArticleParser extends BreadcrumbProcessor
             defCfg = as.types[data.type].defaultConfig;
         }
 
-        if (!data.layout) {
-            data.layout = data.type;
+        if (!data._layout) {
+            data._layout = data.type;
         }
 
-        data.layoutName = data.layout;
+        data._layoutName = data._layout;
 
-        if (!path.extname(data.layout)) {
+        if (!path.extname(data._layout)) {
             if (this.ctx.cfg.templateSpec && this.ctx.cfg.templateSpec.defaultType) {
-                data.layout += '.' + this.ctx.cfg.templateSpec.defaultType;
+                data._layout += '.' + this.ctx.cfg.templateSpec.defaultType;
             } else {
-                data.layout += '.njk';
+                data._layout += '.njk';
             }
         }
 
-        data.layoutType = path.extname(data.layout).slice(1);
+        data._layoutType = path.extname(data._layout).slice(1);
 
-        data.layoutPath = this._locateLayout(data.layout);
-        if (data.layoutPath == null) {
-            throw new GreenHatSSGArticleError(`Unable to locate layout '${data.layout}'.`, data.relPath);
+        data._layoutPath = this._locateLayout(data._layout);
+        if (data._layoutPath == null) {
+            throw new GreenHatSSGArticleError(`Unable to locate layout '${data._layout}'.`, data.relPath);
         }
 
         let ltd = false;
@@ -962,13 +962,11 @@ class ArticleParser extends BreadcrumbProcessor
         }
 
         // Grab the YAML from the layout.
-        let yamlParser = new YamlFile(data.layoutPath, {open: '<!--@', close: '@-->', partial: true, limited: ltd});
+        let yamlParser = new YamlFile(data._layoutPath, {open: '<!--@', close: '@-->', partial: true, limited: ltd});
         let layoutData = yamlParser.parse();
 
         // Merge all the data.
         let finalData = defCfg;
-        //finalData = Object.merge(finalData, layoutData);
-        //finalData = Object.merge(finalData, data);
         finalData = merge(finalData, layoutData);
         finalData = merge(finalData, data);
 
@@ -1065,25 +1063,6 @@ class ArticleParser extends BreadcrumbProcessor
             }
         }
 
-        return data;
-    }
-
-    /**
-     * Rename legacy field names.
-     * 
-     * @param   {object}    data    Current data.
-     * @return  {object}            Updared data. 
-     */
-    _renameLegacyFieldNames(data)
-    {
-        if (data.title && !data.name) {
-            data.name = data.title;
-            delete data.title
-        }
-        if (data.tags && !data.keywords) {
-            data.keywords = data.tags;
-            delete data.tags;
-        }
         return data;
     }
 
