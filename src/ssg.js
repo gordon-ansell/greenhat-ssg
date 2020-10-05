@@ -24,6 +24,8 @@ const XLator = require("greenhat-util/xlate");
 const os = require('os');
 const http = require('http');
 const Paginate = require("./paginate");
+const { Schema } = require("greenhat-schema");
+const Person = require("greenhat-schema/src/classes/person");
 
 /**
  * Main SSG class.
@@ -341,6 +343,17 @@ class SSG
         
         //syslog.inspect(this.ctx.pluginsLoaded);
 
+        let tv = {
+            name: 'Hello',
+            description: 'Goodbye',
+            author: {
+                name: 'Gordon Ansell',
+            }
+        }
+
+        let test = Schema.create('article', null, tv);
+        //syslog.inspect(test.dump());
+
         this._cleanDirectories();
         await this._parseFileSystem();
         await this._parseFiles();
@@ -348,7 +361,6 @@ class SSG
         await this._renderFiles();
         await this._processLeftovers();
         await this._cleanup();
-
 
         //this.ctx.articles.all.dump();
 

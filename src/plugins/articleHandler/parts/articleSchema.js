@@ -759,30 +759,18 @@ class ArticleSchema extends BreadcrumbProcessor
             schema = Schema.article();
         }
 
-        schema.id('article')
-        //schema.id(path.sep + '#article')
-            .name(this.article.name)
-            .headline(this.article.headline)
-            .url(this.article.url)
-            .datePublished(this.article.datePublished.iso)
-            .dateModified(this.article.dateModified.iso)
+        let filtered = schema.filterKeys(this.article, ['author']);
+        filtered.publisher = '#publisher';
+        //delete filtered.author;
+
+        schema.id('article').setProps(filtered)
             .mainEntityOfPage(Schema.ref('webpage'))
-            .wordCount(this.article.words)
-            .publisher(Schema.ref('publisher'));
-
-
-        if (this.article.description) {
-            schema.description(this.article.description);
-        }
+            .wordCount(this.article.words);
 
         if (this.article.abstract && this.article.abstractIsSpecified) {
             schema.abstract(this.article.abstract.text);
         }
         
-        if (this.article.articleSection) {
-            schema.articleSection(this.article.articleSection);
-        }
-
         if (this.article.author) {
             let auths = [];
             for (let key of this.article.author) {

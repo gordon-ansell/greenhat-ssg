@@ -14,8 +14,6 @@ const Article = require('./article');
 const YamlFile = require('greenhat-util/yaml');
 const path = require('path');
 const GreenHatSSGError = require('../../ssgError');
-const ArticleContent = require('./parts/articleContent');
-const ArticleDate = require('./parts/articleDate');
 const Html = require("greenhat-util/html");
 const ArticleCollection = require("./articleCollection");
 const TaxonomyType = require('../../taxonomyType');
@@ -24,6 +22,8 @@ const { merge } = require("greenhat-util/merge");
 const arr = require("greenhat-util/array");
 const str = require("greenhat-util/string");
 const BreadcrumbProcessor = require("./breadcrumbProcessor");
+const MultiDate = require("greenhat-util/multiDate");
+const MultiContent = require("greenhat-util/multiContent");
 
 class GreenHatSSGArticleError extends GreenHatSSGError {}
 
@@ -234,7 +234,7 @@ class ArticleParser extends BreadcrumbProcessor
         for (let item of this.article._faq) {
             result.push({
                 q: item.q,
-                a: new ArticleContent(item.a, this.article.relPath),
+                a: new MultiContent(item.a, this.article.relPath),
             });
         }
 
@@ -339,6 +339,9 @@ class ArticleParser extends BreadcrumbProcessor
         }
 
         if (citation.author) {
+            if (typeof(citation.author) == "string") {
+                citation.author = {name: citation.author};
+            }
             let author = '';
             if (!Array.isArray(citation.author)) {
                 let auth = citation.author;
@@ -383,16 +386,16 @@ class ArticleParser extends BreadcrumbProcessor
             }
         }
 
-        if (citation.site) {
+        if (citation._site) {
             let on = ' ' + this.ctx.x('on') + ' ';
-            if (citation.site.name || citation.site.url) {
-                str += on + this.ctx.link(citation.site.name, citation.site.url);
-            } else if (citation.site.name) {
-                str += on + citation.site.name;
-            } else if (citation.site.url) {
-                str += on + this.ctx.link(citation.site.url, citation.site.url)
+            if (citation._site.name || citation._site.url) {
+                str += on + this.ctx.link(citation._site.name, citation._site.url);
+            } else if (citation._site.name) {
+                str += on + citation._site.name;
+            } else if (citation._site.url) {
+                str += on + this.ctx.link(citation._site.url, citation._site.url)
             } else {
-                str += on + citation.site;
+                str += on + citation._site;
             }
         }
 
@@ -477,7 +480,7 @@ class ArticleParser extends BreadcrumbProcessor
         if (!this.article.abstract || this.article.abstract.text == '') {
             this.article.abstractIsSpecified = false;
             let as = this.ctx.cfg.articleSpec;
-            this.article.abstract = new ArticleContent(
+            this.article.abstract = new MultiContent(
                 str.truncate(this.article.content.text, as.abstractExtractLen), this.article.relPath);
         }
         if (!this.article.abstractRss || this.article.abstractRss.text == '') {
@@ -867,8 +870,12 @@ class ArticleParser extends BreadcrumbProcessor
             modified = stats.mtimeMs;
         }
 
-        let pub = new ArticleDate(published, 'published', as.dispDate, as.dispTime);
-        let mod = new ArticleDate(modified, 'modified', as.dispDate, as.dispTime);
+        if (modified == undefined) {
+            syslog.warning(`Modified date is undefined for ${this.article.relPath}.`);
+        }
+
+        let pub = new MultiDate(published, 'published', as.dispDate, as.dispTime);
+        let mod = new MultiDate(modified, 'modified', as.dispDate, as.dispTime);
 
         return [pub, mod];
 
@@ -910,9 +917,9 @@ class ArticleParser extends BreadcrumbProcessor
                         if (tmp != '') tmp += '\n';
                         tmp += '1. ' + item;
                     }
-                    this.article[key] = new ArticleContent(tmp, this.file)
+                    this.article[key] = new MultiContent(tmp, this.file)
                 } else {
-                    this.article[key] = new ArticleContent(data[key], this.file);
+                    this.article[key] = new MultiContent(data[key], this.file);
                 }
             } else {
                 this.article[key] = data[key];

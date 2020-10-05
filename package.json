@@ -22,7 +22,7 @@
 		"autoprefixer": "*",
 		"dateformat": "*",
 		"deasync": "*",
-		"greenhat-schema": "^0.8.0",
+		"greenhat-schema": "*",
 		"greenhat-util": "*",
 		"image-size": "*",
 		"js-beautify": "*",
@@ -33,9 +33,7 @@
 		"postcss": "*",
 		"sanitize-html": "*",
 		"send-webmention": "*",
-		"sharp": "*",
-		"showdown": "*",
-		"striptags": "*"
+		"sharp": "*"
 	},
 	"engines": {
 		"node": "*"
