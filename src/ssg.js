@@ -25,7 +25,6 @@ const os = require('os');
 const http = require('http');
 const Paginate = require("./paginate");
 const { Schema } = require("greenhat-schema");
-const Person = require("greenhat-schema/src/classes/person");
 
 /**
  * Main SSG class.

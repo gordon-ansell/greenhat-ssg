@@ -15,7 +15,7 @@ const { Schema, SchemaCollection, CreativeWork } = require("greenhat-schema");
 const str = require("greenhat-util/string");
 const arrf = require("greenhat-util/array");
 const { merge } = require("greenhat-util/merge");
-const BreadcrumbProcessor = require("../breadcrumbProcessor");
+const BreadcrumbProcessor = require("./breadcrumbProcessor");
 const GreenHatError = require("greenhat-util/error");
 
 /**
