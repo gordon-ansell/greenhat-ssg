@@ -1,0 +1,63 @@
+<!--@
+late: true
+sitemap: true
+@-->
+{% set bodyclass = 'archive' %}
+{% extends 'includes/_base.njk' %}
+{% block main %}
+<div class="h-entry">
+    {%- if article.breadcrumbs -%}
+        <div class="breadcrumbs">{{article.bcStr}}</div>
+    {%- endif -%}
+    <h1 class="p-name">{{article.name}}</h1>
+    <section class="e-content">
+        {{article.description}}
+    <section>
+    <section class="collection">
+        <ul>
+            {% set month = 0 %}
+            {% set year = 0 %}
+            {% set count = 1 %}
+            {% for item in ctx.articles.type.post.desc().items.values() %}
+                {% if item.datePublished.year != year %}
+                    {% set year = item.datePublished.year %}
+                    {% if count != 1 %}
+                        <br /><br /><br />
+                    {% endif %}
+                    <h2>{{year}}</h2>
+                {% endif %}
+                {% if item.datePublished.month != month %}
+                    {% set month = item.datePublished.month %}
+                    <h3>{{item.datePublished.monthName}} {{year}}</h3>
+                {% endif %}
+                <li>
+                    <article class="h-entry">
+                        <header>
+                            <h4>
+                                <a class="u-url" href="{{item.url}}" title="Read this post.">
+                                    <span class="p-name">{{item.name}}</span>
+                                </a>
+                            </h4>
+                            {%- set post = item -%}{% include 'includes/_articleMeta.njk' %}
+                        </header>
+                        {%- if site.reviews and item.reviews -%}
+                            {%- set rev = item.firstReview() -%}
+                            {%- if rev._ratingStars and not item._noGlobalStars -%}
+                                <div class="reviewStars" title="Review rating.">{{rev._ratingStars}}</div>
+                            {%- endif -%}
+                        {%- endif -%}
+                        <div class="p-summary">
+                            {% if item.description %}
+                                {{item.description}}
+                            {% else %}
+                                {{item.content.text | truncate(200)}}
+                            {% endif %}
+                        </div>
+                    </article>
+                </li>
+                {% set count = count + 1 %}
+            {% endfor %}
+        </ul>
+    </section>
+</div>
+{% endblock %}
