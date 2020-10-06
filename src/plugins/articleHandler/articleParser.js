@@ -116,7 +116,9 @@ class ArticleParser extends BreadcrumbProcessor
         }
 
         if (this.ctx.articles.all.has(this.article.url)) {
-            syslog.warning(`There is already and article filed under URL ${this.article.url}. It will be overwritten.`)
+            if (!this.ctx.silent) {
+                syslog.warning(`There is already an article filed under URL ${this.article.url}. It will be overwritten.`)
+            }
         }
         this.ctx.articles.all.set(this.article.url, this.article);
 

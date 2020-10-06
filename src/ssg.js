@@ -25,6 +25,7 @@ const os = require('os');
 const http = require('http');
 const Paginate = require("./paginate");
 const { Schema } = require("greenhat-schema");
+const arr = require("greenhat-util/array");
 
 /**
  * Main SSG class.
@@ -353,6 +354,8 @@ class SSG
         let test = Schema.create('article', null, tv);
         //syslog.inspect(test.dump());
 
+        this.ctx.silent = false;
+
         this._cleanDirectories();
         await this._parseFileSystem();
         await this._parseFiles();
@@ -381,10 +384,42 @@ class SSG
         if (this.ctx.args.serve) {
             this.serve(path.join(this.ctx.sitePath, this.ctx.cfg.locations.site), 
                 this.ctx.cfg.site.dev.addr, this.ctx.cfg.site.dev.port);
+
+            if (this.ctx.args.watch) {
+                syslog.notice('Watching for changes ...');
+                fs.watch(this.ctx.sitePath, {recursive: true}, async (eventType, fileName) => {
+                    if (fileName) {
+                        await this.watchChange(eventType, fileName);
+                    }
+                });
+            }
         }
 
 
         return 0;
+    }
+
+    /**
+     * A file has changed.
+     * 
+     * @param   {string}    eventType   Type of event.
+     * @param   {string}    fileName    File name. 
+     */
+    async watchChange(eventType, fileName)
+    {
+        //syslog.debug(`File ${fileName} has receieved event '${eventType}'.`);
+        let full = path.join(this.ctx.sitePath, fileName);
+        let ext = path.extname(full);
+        if (ext == '.md') {
+            this.ctx.renderQueue = [];
+            this.ctx.silent = true;
+            syslog.notice(`Reparsing file ${fileName}.`);
+            let article = await this.ctx.cfg.parsers['md'].call(this.ctx, fileName);
+            await this.ctx.cfg.renderers['njk'].call(this.ctx, article);
+        } else if (ext == '.scss') {
+            syslog.notice(`Reparsing file ${fileName}.`);
+            await this.ctx.cfg.parsers['scss'].call(this.ctx, fileName);
+        }
     }
 
     /**
@@ -420,31 +455,47 @@ class SSG
 
     /**
      * Parse files.
+     * 
+     * @param   {string[]}  filesToProcess  The files to process.
      */
-    async _parseFiles()
+    async _parseFiles(filesToProcess = null)
     {
+        let selective = false;
+        if (filesToProcess) {
+            filesToProcess = arr.makeArray(filesToProcess);
+            selective = true;
+        } else {
+            filesToProcess = this.ctx.filesToProcess;
+        }
+
+        let saved;
+
         let earlyParsers = [];
         let lateParsers = [];
 
         if (this.ctx.cfg.earlyParse && this.ctx.cfg.earlyParse.length > 0) {
-            earlyParsers = this.ctx.filesToProcess.filter(f => {
+            earlyParsers = filesToProcess.filter(f => {
                 return this.ctx.cfg.earlyParse.includes(path.extname(f).slice(1));
             });
-            lateParsers = this.ctx.filesToProcess.filter(f => {
+            lateParsers = filesToProcess.filter(f => {
                 return !this.ctx.cfg.earlyParse.includes(path.extname(f).slice(1));
             });
         } else {
-            lateParsers = this.ctx.filesToProcess;
+            lateParsers = filesToProcess;
         }
 
         let count = 0;
         for (let arr of [earlyParsers, lateParsers]) {
         
             if (count == 0) {
-                syslog.notice(`Parsing files (early).`);
+                if (!selective) {
+                    syslog.notice(`Parsing files (early).`);
+                }
                 await this.ctx.emit('BEFORE_PARSE_EARLY');
             } else {
-                syslog.notice(`Parsing files (late).`);
+                if (!selective) {
+                    syslog.notice(`Parsing files (late).`);
+                }
                 await this.ctx.emit('BEFORE_PARSE_LATE');
             }
 
@@ -455,7 +506,7 @@ class SSG
                 syslog.trace('SSG:_parseFiles', `File parser ext: ${ext}, for file ${file}.`);
                 if (this.ctx.cfg.parsers[ext]) {
                     try {
-                        await this.ctx.cfg.parsers[ext].call(this.ctx, file);
+                        saved = await this.ctx.cfg.parsers[ext].call(this.ctx, file);
                     } catch (err) {
                         if (this.ctx.cfg.site.errorControl.exitOnFirst) {
                             syslog.fatal(`Error parsing ${file}. Error message: ${err.message}`);
@@ -492,6 +543,8 @@ class SSG
 
             count++;
         }
+
+        return saved;
     }
 
     /**
@@ -526,6 +579,38 @@ class SSG
     }
 
     /**
+     * Render a single item.
+     * 
+     * @param   {object}    item    Item to render. 
+     */
+    async _renderSingleItem(item)
+    {
+        let errs = [];
+        let ext = item.renderExt;
+        syslog.trace('SSG:_renderFiles', `File render ext: ${ext}, for item ${item.obj}.`);
+        if (this.ctx.cfg.renderers[ext]) {
+            try {
+                await this.ctx.cfg.renderers[ext].call(this.ctx, item.obj);
+            } catch (err) {
+                if (this.ctx.cfg.site.errorControl.exitOnFirst) {
+                    syslog.fatal(`Error rendering ${item.relPath}. Error message: ${err.message}`);
+                    if (this.ctx.cfg.site.errorControl.printStack) {
+                        console.log(' ');
+                        syslog.error(`STACK TRACE: ${err.stack}`)
+                    }     
+                    process.exit(1);                  
+                } else {
+                    errs.push([err, item.relPath]);
+                }
+            }
+        } else {
+            syslog.warning(`No renderer found for extenstion '${ext}'.`);
+        }
+
+        return errs;
+    }
+
+    /**
      * Render files.
      */
     async _renderFiles()
@@ -535,25 +620,11 @@ class SSG
         let errs = [];
 
         await Promise.all(this.ctx.renderQueue.map(async item => {
-            let ext = item.renderExt;
-            syslog.trace('SSG:_renderFiles', `File render ext: ${ext}, for item ${item.obj}.`);
-            if (this.ctx.cfg.renderers[ext]) {
-                try {
-                    await this.ctx.cfg.renderers[ext].call(this.ctx, item.obj);
-                } catch (err) {
-                    if (this.ctx.cfg.site.errorControl.exitOnFirst) {
-                        syslog.fatal(`Error rendering ${item.relPath}. Error message: ${err.message}`);
-                        if (this.ctx.cfg.site.errorControl.printStack) {
-                            console.log(' ');
-                            syslog.error(`STACK TRACE: ${err.stack}`)
-                        }     
-                        process.exit(1);                  
-                    } else {
-                        errs.push([err, item.relPath]);
-                    }
+            let e = await this._renderSingleItem(item);
+            if (e && e.length > 0) {
+                for (let eadd of e) {
+                    errs.push(eadd);
                 }
-            } else {
-                syslog.warning(`No renderer found for extenstion '${ext}'.`);
             }
         }));
 
