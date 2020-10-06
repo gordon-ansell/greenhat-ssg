@@ -413,11 +413,11 @@ class SSG
         if (ext == '.md') {
             this.ctx.renderQueue = [];
             this.ctx.silent = true;
-            syslog.notice(`Reparsing file ${fileName}.`);
+            syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}).`);
             let article = await this.ctx.cfg.parsers['md'].call(this.ctx, fileName);
             await this.ctx.cfg.renderers['njk'].call(this.ctx, article);
         } else if (ext == '.scss') {
-            syslog.notice(`Reparsing file ${fileName}.`);
+            syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}).`);
             await this.ctx.cfg.parsers['scss'].call(this.ctx, fileName);
         }
     }
