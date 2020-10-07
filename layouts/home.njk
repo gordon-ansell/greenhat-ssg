@@ -71,6 +71,16 @@ sitemap: true
                     {{ctx.link(rmimg, post.url, 'Read this post in full.', 'readmore')}}
                 </div>
             {%- endif -%}
+            {%- if post._layoutName == "citation" and post.citation -%}
+                <aside class="citation">
+                    <h6>Citations</h6>
+                    <ul>
+                        {%- for cite in post.citationList -%}
+                            <li>{{cite.txt}}</li>
+                        {%- endfor -%}
+                    </ul>
+                </aside>
+            {%- endif -%}    
             <footer>
                 {%- if ctx.hasPlugin('socialShares') -%}
                     <div class="share-links">

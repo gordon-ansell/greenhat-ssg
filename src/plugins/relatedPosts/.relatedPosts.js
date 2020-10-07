@@ -28,8 +28,8 @@ async function afterParseLate()
     for (let articleKey of this.articles.type.post.keys()) {
         let article = this.articles.type.post.get(articleKey);
         let newTags = [];
-        if (article.tags) {
-            let tags = arr.makeArray(article.tags);
+        if (article.keywords) {
+            let tags = arr.makeArray(article.keywords);
             for (let tag of tags) {
                 if (!spec.excludeTaxonomies.includes(tag)) {
                     newTags.push(tag);

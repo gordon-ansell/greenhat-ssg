@@ -419,6 +419,11 @@ class SSG
         } else if (ext == '.scss') {
             syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}).`);
             await this.ctx.cfg.parsers['scss'].call(this.ctx, fileName);
+        } else if (ext == '.njk') {
+            syslog.notice(`Change to template file ${fileName} (event detected: ${eventType}).`);
+            await this._renderFiles().then( _ => {
+                syslog.notice(`Rerender complete.`);
+            });
         }
     }
 
@@ -729,6 +734,7 @@ class SSG
             let dispTypes = {
                 '.png': 'inline',
                 '.jpg': 'inline',
+                '.jpeg': 'inline',
                 '.gif': 'inline',
                 '.svg': 'inline'
             };
