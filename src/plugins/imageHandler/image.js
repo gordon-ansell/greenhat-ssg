@@ -12,6 +12,7 @@ const sizeOf = require('image-size');
 const fs = require('fs');
 const GreenHatError = require('greenhat-util/error')
 const Html = require("greenhat-util/html");
+const syslog = require('greenhat-util/syslog');
 
 class GreenHatSSGImageError extends GreenHatError {}
 
@@ -240,6 +241,53 @@ class Image
             }
 
             capt += 'Copyright &copy; ' + adata.copyright;
+        }
+
+        if (adata.attr) {
+
+            let attrStr = '';
+
+            if (capt != '') {
+                capt += '<br />';
+            }
+
+            if (typeof(adata.attr) == "string") {
+                adata.attr.author = {
+                    name: adata.attr
+                }
+            }
+
+            if (adata.attr.author) {
+                if (adata.attr.author.url) {
+                    let h = new Html('a');
+                    h.addParam('href', adata.attr.author.url);
+                    attrStr += h.resolve(adata.attr.author.name);
+                    //attrStr += this.ctx.link(adata.attr.author.url, adata.attr.author.name);
+                } else {
+                    attrStr += adata.attr.author.name;
+                }
+            }
+
+            if (adata.attr.license) {
+                if (typeof(adata.attr.license) == "string") {
+                    adata.attr.license = {
+                        name: adata.attr.license
+                    }
+                }
+                if (attrStr != '') {
+                    attrStr += ', ';
+                }
+                if (adata.attr.license.url) {
+                    let h = new Html('a');
+                    h.addParam('href', adata.attr.license.url);
+                    attrStr += h.resolve(adata.attr.license.name);
+                    //attrStr += this.ctx.link(adata.attr.license.url, adata.attr.license.name);
+                } else {
+                    attrStr += adata.attr.license.name;
+                }
+            }
+
+            capt += 'Attribution: ' + attrStr;
         }
 
         this.caption = capt;

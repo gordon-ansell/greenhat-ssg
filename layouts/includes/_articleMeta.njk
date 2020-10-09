@@ -1,16 +1,16 @@
 {% import 'macros/meta.njk' as meta %}
-<div class="meta">
+<div class="article__meta">
     {% if post.author %}
-        {{meta.authors(post.authorObjs)}}<span class="dot"></span>
+        {{meta.authors(post.authorObjs)}}<span class="article__dot"></span>
     {% endif %}
     <time class="dt-published" datetime="{{post.datePublished.iso}}">{{post.datePublished.dispDt}}</time>
     <meta name="dt-modified" content="{{post.dateModified.iso}}" />
     {% if post.keywords %}
-        <span class="dot"></span><span class="taxlinks">{{post.getTaxonomies(['articleSection', 'keywords', '_articleTypes'], true, false)}}</span>
+        <span class="article__dot"></span><span class="article__taxlinks">{{post.getTaxonomies(['articleSection', 'keywords', '_articleTypes'], true, false)}}</span>
     {% endif %}
     {% if post.wantEffort %}
         {% if post.words and post.words > 0 %}
-            <span class="dot"></span><span class="effort">{{post.words}} words.</span>
+            <span class="article__dot"></span><span class="effort">{{post.words}} words.</span>
         {% endif %}
     {% endif %}
 </div>

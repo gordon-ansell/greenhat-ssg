@@ -18,7 +18,7 @@ sitemap: true
         <ul>
             {% for item in ctx.getTaxonomy(article.taxonomyType, article.taxonomy).sortArticlesByDate().getArticles() %}
                 <li>
-                    <article class="h-entry">
+                    <article class="h-entry article">
                         <header>
                             <h2>
                                 <a class="u-url" href="{{item.url}}" title="Read this post.">
@@ -30,7 +30,7 @@ sitemap: true
                         {%- if site.reviews and item.reviews -%}
                             {%- set rev = item.firstReview() -%}
                             {%- if rev._ratingStars and not item._noGlobalStars -%}
-                                <div class="reviewStars" title="Review rating.">{{rev._ratingStars}}</div>
+                                <div class="article__review-stars article__review-stars--small" title="Review rating.">{{rev._ratingStars}}</div>
                             {%- endif -%}
                         {%- endif -%}
                         <div class="p-summary">

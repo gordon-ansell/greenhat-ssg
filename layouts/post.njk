@@ -8,11 +8,11 @@ wantEffort: true
     {%- if article.reviews and site.reviews -%}
         {%- set rev = article.firstReview() -%}
         {%- if rev._ratingStars and not article._noGlobalStars -%}
-            <div class="reviewStars" title="Review rating">{{rev._ratingStars}}</div>
+            <div class="article__review-stars" title="Review rating">{{rev._ratingStars}}</div>
         {%- endif -%}
     {%- endif -%}
     {%- if article._summary -%}
-        <section class="summary" title="Summary.">
+        <section class="article__summary" title="Summary.">
             {%- if article.imageFuncs and article.imageFuncs.summary -%}
                 {{ctx.img({src: article.imageFuncs.summary})}}
             {%- endif -%}
@@ -22,7 +22,7 @@ wantEffort: true
 {%- endblock -%}
 {%- block afterArticleContent -%}
     {%- if article._faq -%}
-        <div class="faq">
+        <div class="article__faq">
             <h2>Frequently Asked Questions</h2>
             {%- for faq in article._faq -%}
                 {%- include 'includes/_faq.njk' -%}
@@ -32,7 +32,7 @@ wantEffort: true
 {%- endblock -%}
 {%- block articleAside -%}
     {%- if article.citation -%}
-        <aside class="citation">
+        <aside class="article__citation">
             <h6>Citations</h6>
             <ul>
                 {%- for cite in article.citationList -%}
@@ -43,7 +43,7 @@ wantEffort: true
     {%- endif -%}    
     {%- if article.products and site.products -%}
         {%- for id,prod in article.products -%}
-            <aside class="product">
+            <aside class="article__product">
                 {% set isRef = false %}
                 {%- include 'includes/_articleProduct.njk' -%}
             </aside>
@@ -51,7 +51,7 @@ wantEffort: true
     {%- endif -%}
     {%- if article.productRefs and site.products -%}
         {%- for id,prod in article.productRefs -%}
-            <aside class="product">
+            <aside class="article__product">
                 {% set isRef = true %}
                 {%- include 'includes/_articleProduct.njk' -%}
             </aside>
@@ -79,7 +79,7 @@ wantEffort: true
             </div>
         {%- endif -%}
         {%- if article.relatedPosts -%}
-            <div class="related-posts">
+            <div class="article__related-posts">
                 <h6>You might also be interested in:</h6>
                 <ul>
                     {%- for item in article.relatedPosts -%}

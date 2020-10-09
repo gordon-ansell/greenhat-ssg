@@ -20,7 +20,7 @@ sitemap: true
         {%- if post._layout == 'briefly' -%}
             {%- set ac = ac + ' briefly' -%}
         {%- endif -%}
-        <article class="{{ac}}">
+        <article class="{{ac}} article">
             <header>
                 <h2>
                     {%- if post._layoutName == 'citation' -%}
@@ -37,14 +37,14 @@ sitemap: true
                     {%- endif -%}
                 </h2>
                 {%- if post._layoutName == "citation" -%}
-                    <p class="meta">Comments by me and a link to the external article (above).</p>
+                    <p class="article__meta">Comments by me and a link to the external article (above).</p>
                 {%- endif -%}
                 {% include 'includes/_articleMeta.njk' %}
             </header>
             {%- if post.reviews and site.reviews -%}
                 {%- set rev = post.firstReview() -%}
                 {%- if rev._ratingStars and not post._noGlobalStars -%}
-                    <div class="reviewStars" title="Review rating.">{{rev._ratingStars}}</div>
+                    <div class="article__review-stars article__review-stars--small" title="Review rating.">{{rev._ratingStars}}</div>
                 {%- endif -%}
             {%- endif -%}
             {%- if post._layoutName == 'citation' or post._layoutName == 'briefly' -%}
