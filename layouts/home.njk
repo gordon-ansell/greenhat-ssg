@@ -20,7 +20,7 @@ sitemap: true
         {%- if post._layout == 'briefly' -%}
             {%- set ac = ac + ' briefly' -%}
         {%- endif -%}
-        <article class="{{ac}} article">
+        <article class="{{ac}} article article--home">
             <header>
                 <h2>
                     {%- if post._layoutName == 'citation' -%}
@@ -83,7 +83,7 @@ sitemap: true
             {%- endif -%}    
             <footer>
                 {%- if ctx.hasPlugin('socialShares') -%}
-                    <div class="share-links">
+                    <div class="sharelinks">
                         {{ctx.plugins.socialShares.getSocialShareLinks(ctx, post)}}
                     </div>
                 {%- endif -%}

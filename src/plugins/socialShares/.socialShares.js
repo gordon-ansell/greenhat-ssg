@@ -66,7 +66,7 @@ function getSocialShareLinks(ctx, article)
             a.addParam('title', "Share on " + item + ".");
         }
 
-        ret += '<span class="sharelink">' + a.resolve(img) + '</span>';
+        ret += '<span class="sharelinks__link">' + a.resolve(img) + '</span>';
     } 
 
     return ret;

@@ -58,12 +58,12 @@ wantEffort: true
         {%- endfor -%}
     {%- endif -%}
     {% if article.wmentions %}
-        <div class="webmentions">
+        <div class="article__webmentions">
             <h6>Webmentions:</h6>
-            <ol id="webmentions">
+            <ol id="webmentions" class="article_webmentions-list">
                 {% for mention in article.wmentions %}
                     {% set wmention = mention %}
-                    <li class="webmention-item" id="webmention-{{wmention['wm-id']}}">
+                    <li class="article__webmentions-item" id="webmention-{{wmention['wm-id']}}">
                         {% include 'includes/_webMention.njk' %}
                     </li>
                 {% endfor %}
@@ -74,7 +74,7 @@ wantEffort: true
 {%- block articleFooter -%}
     <footer>
         {%- if ctx.hasPlugin('socialShares') -%}
-            <div class="share-links">
+            <div class="sharelinks">
                 {{ctx.plugins.socialShares.getSocialShareLinks(ctx, article)}}
             </div>
         {%- endif -%}
@@ -89,13 +89,13 @@ wantEffort: true
             </div>
         {%- endif -%}
         {%- if article.prev or article.next -%}
-            <nav class="prevnext">
-                <span class="prev">
+            <nav class="article__prevnext">
+                <span class="article__prev">
                     {%- if article.prev -%}
                         &larr; {{ctx.link(article.prev.name, article.prev.url, "Go to the previous (older) post.")}}
                     {%- endif -%}
                 </span>
-                <span class="next">
+                <span class="article__next">
                     {%- if article.next -%}
                         {{ctx.link(article.next.name, article.next.url, "Go to the next (newer) post.")}} &rarr;
                     {%- endif -%}
