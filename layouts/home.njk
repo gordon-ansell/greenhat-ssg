@@ -20,7 +20,7 @@ sitemap: true
         {%- if post._layout == 'briefly' -%}
             {%- set ac = ac + ' briefly' -%}
         {%- endif -%}
-        <article class="{{ac}} article article--home">
+        <article class="{{ac}} article--home">
             <header>
                 <h2>
                     {%- if post._layoutName == 'citation' -%}
@@ -37,14 +37,14 @@ sitemap: true
                     {%- endif -%}
                 </h2>
                 {%- if post._layoutName == "citation" -%}
-                    <p class="article__meta">Comments by me and a link to the external article (above).</p>
+                    <p class="article-meta">Comments by me and a link to the external article (above).</p>
                 {%- endif -%}
-                {% include 'includes/_articleMeta.njk' %}
+                {% include 'includes/article/_articleMeta.njk' %}
             </header>
             {%- if post.reviews and site.reviews -%}
                 {%- set rev = post.firstReview() -%}
                 {%- if rev._ratingStars and not post._noGlobalStars -%}
-                    <div class="article__review-stars article__review-stars--small" title="Review rating.">{{rev._ratingStars}}</div>
+                    <div class="article-review-stars article-review-stars--small" title="Review rating.">{{rev._ratingStars}}</div>
                 {%- endif -%}
             {%- endif -%}
             {%- if post._layoutName == 'citation' or post._layoutName == 'briefly' -%}
@@ -72,7 +72,7 @@ sitemap: true
                 </div>
             {%- endif -%}
             {%- if post._layoutName == "citation" and post.citation -%}
-                <aside class="citation">
+                <aside class="article-citation">
                     <h6>Citations</h6>
                     <ul>
                         {%- for cite in post.citationList -%}
@@ -96,12 +96,12 @@ sitemap: true
     <nav class="pager">
         {%- for i in range(1, article.posts.totalPages + 1) -%}
             {%- if i == page -%}
-                <span class="pager-item current">{{i}}</span>
+                <span class="pager__item current">{{i}}</span>
             {%- else -%}
                     {%- if i == 1 -%}
-                        <a href="/" title="Go to page {{i}}."><span class="pager-item">{{i}}</span></a>
+                        <a href="/" title="Go to page {{i}}."><span class="pager__item">{{i}}</span></a>
                     {%- else -%}
-                        <a href="/{{i}}/" title="Go to page {{i}}."><span class="pager-item">{{i}}</span></a>
+                        <a href="/{{i}}/" title="Go to page {{i}}."><span class="pager__item">{{i}}</span></a>
                     {%- endif -%}
                 </span>
             {%- endif -%}

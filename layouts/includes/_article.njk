@@ -1,6 +1,6 @@
 {% extends 'includes/_base.njk' %}
 {%- block main -%}
-    <article class="article h-entry">
+    <article class="h-entry">
         {%- block breadcrumbs -%}
             {%- if article.bcStr -%}
                 <div class="breadcrumbs">{{article.bcStr}}</div>
@@ -12,7 +12,7 @@
                     <h1 class="p-name">{{article.name}}</h1>
                 {%- endblock -%}
                 {%- block articleHeaderMeta -%}
-                    {%- set post = article -%}{%- include 'includes/_articleMeta.njk' -%}
+                    {%- set post = article -%}{%- include 'includes/article/_articleMeta.njk' -%}
                 {%- endblock -%}
             </header>
         {%- endblock -%}

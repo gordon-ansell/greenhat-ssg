@@ -8,11 +8,11 @@ wantEffort: true
     {%- if article.reviews and site.reviews -%}
         {%- set rev = article.firstReview() -%}
         {%- if rev._ratingStars and not article._noGlobalStars -%}
-            <div class="article__review-stars" title="Review rating">{{rev._ratingStars}}</div>
+            <div class="article-review-stars" title="Review rating">{{rev._ratingStars}}</div>
         {%- endif -%}
     {%- endif -%}
     {%- if article._summary -%}
-        <section class="article__summary" title="Summary.">
+        <section class="article-summary" title="Summary.">
             {%- if article.imageFuncs and article.imageFuncs.summary -%}
                 {{ctx.img({src: article.imageFuncs.summary})}}
             {%- endif -%}
@@ -22,17 +22,17 @@ wantEffort: true
 {%- endblock -%}
 {%- block afterArticleContent -%}
     {%- if article._faq -%}
-        <div class="article__faq">
+        <div class="article-faq">
             <h2>Frequently Asked Questions</h2>
             {%- for faq in article._faq -%}
-                {%- include 'includes/_faq.njk' -%}
+                {%- include 'includes/article/_articleFaq.njk' -%}
             {%- endfor -%}
         </div>
     {%- endif -%}
 {%- endblock -%}
 {%- block articleAside -%}
     {%- if article.citation -%}
-        <aside class="article__citation">
+        <aside class="article-citation">
             <h6>Citations</h6>
             <ul>
                 {%- for cite in article.citationList -%}
@@ -43,28 +43,28 @@ wantEffort: true
     {%- endif -%}    
     {%- if article.products and site.products -%}
         {%- for id,prod in article.products -%}
-            <aside class="article__product">
+            <aside class="article-product">
                 {% set isRef = false %}
-                {%- include 'includes/_articleProduct.njk' -%}
+                {%- include 'includes/article/_articleProduct.njk' -%}
             </aside>
         {%- endfor -%}
     {%- endif -%}
     {%- if article.productRefs and site.products -%}
         {%- for id,prod in article.productRefs -%}
-            <aside class="article__product">
+            <aside class="article-product">
                 {% set isRef = true %}
-                {%- include 'includes/_articleProduct.njk' -%}
+                {%- include 'includes/article/_articleProduct.njk' -%}
             </aside>
         {%- endfor -%}
     {%- endif -%}
     {% if article.wmentions %}
-        <div class="article__webmentions">
+        <div class="article-webmentions">
             <h6>Webmentions:</h6>
-            <ol id="webmentions" class="article_webmentions-list">
+            <ol id="webmentions" class="article-webmentions__list">
                 {% for mention in article.wmentions %}
                     {% set wmention = mention %}
-                    <li class="article__webmentions-item" id="webmention-{{wmention['wm-id']}}">
-                        {% include 'includes/_webMention.njk' %}
+                    <li class="article-webmentions__item" id="webmention-{{wmention['wm-id']}}">
+                        {% include 'includes/article/_articleWebMention.njk' %}
                     </li>
                 {% endfor %}
             </ol>
@@ -79,7 +79,7 @@ wantEffort: true
             </div>
         {%- endif -%}
         {%- if article.relatedPosts -%}
-            <div class="article__related-posts">
+            <div class="article-related-posts">
                 <h6>You might also be interested in:</h6>
                 <ul>
                     {%- for item in article.relatedPosts -%}
@@ -89,13 +89,13 @@ wantEffort: true
             </div>
         {%- endif -%}
         {%- if article.prev or article.next -%}
-            <nav class="article__prevnext">
-                <span class="article__prev">
+            <nav class="article-prevnext">
+                <span class="article-prevnext__prev">
                     {%- if article.prev -%}
                         &larr; {{ctx.link(article.prev.name, article.prev.url, "Go to the previous (older) post.")}}
                     {%- endif -%}
                 </span>
-                <span class="article__next">
+                <span class="article-prevnext__next">
                     {%- if article.next -%}
                         {{ctx.link(article.next.name, article.next.url, "Go to the next (newer) post.")}} &rarr;
                     {%- endif -%}

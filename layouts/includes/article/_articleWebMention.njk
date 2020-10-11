@@ -1,5 +1,5 @@
 {% if wmention.author.photo %}
-    <div class="webmention__authorphoto">
+    <div class="article-webmentions__authorphoto">
         {% if site.lazyload %}
             <img class="u-photo {{site.lazyclass}}" data-src="{{wmention.author.photo}}" alt="" />
         {% else %}
@@ -7,8 +7,8 @@
         {% endif %}
     </div>
 {% endif %}
-<div class="webmention__data{% if ctx.isOwnWebmention(wmention) %} webmention-own{% endif %}">
-    <span class="webmention__meta">
+<div class="article-webmentions__data{% if ctx.isOwnWebmention(wmention) %} webmention-own{% endif %}">
+    <span class="article-webmentions__meta">
         {% if wmention.author %}
             <a class="h-card u-url"{% if wmention.url %} href="{{wmention.url}}" {% endif %}target="_blank" 
                 rel="noopener noreferer">
@@ -23,16 +23,16 @@
             </time>    
         {% endif %}
     </span>
-    <span class="webmention__content p-content">
+    <span class="article-webmentions__content p-content">
         {{wmention.content.value | safe}}
     </span>
 </div>
 {% if cfg.webmentionsSpec.typeIcons %}
-    <div class="webmention__typeicon">
+    <div class="article-webmentions__typeicon">
         {% set ticon = '/images/webmention/' + wmention['wm-property'] + '.png' %}
         {% if ws.lazyload %}
             <img data-src="{{ctx.asset(ticon)}}" alt="{{wmention['wm-property']}}" 
-                title="{{wmention['wm-property']}}" class="webmention__typeicon-img {{ws.imagesSpec.lazyClass}}" />
+                title="{{wmention['wm-property']}}" class="article-webmentions__typeicon-img {{ws.imagesSpec.lazyClass}}" />
         {% else %}
             <img src="{{ctx.asset(ticon)}}" alt="{{wmention['wm-property']}}" title="{{wmention['wm-property']}}" 
                 class="webmention__typeicon-img" />

@@ -33,19 +33,19 @@ sitemap: true
                     <h3>{{item.datePublished.monthName}} {{year}}</h3>
                 {% endif %}
                 <li>
-                    <article class="h-entry article">
+                    <article class="h-entry">
                         <header>
                             <h4>
                                 <a class="u-url" href="{{item.url}}" title="Read this post.">
                                     <span class="p-name">{{item.name}}</span>
                                 </a>
                             </h4>
-                            {%- set post = item -%}{% include 'includes/_articleMeta.njk' %}
+                            {%- set post = item -%}{% include 'includes/article/_articleMeta.njk' %}
                         </header>
                         {%- if site.reviews and item.reviews -%}
                             {%- set rev = item.firstReview() -%}
                             {%- if rev._ratingStars and not item._noGlobalStars -%}
-                                <div class="article__review-stars article__review-stars--small" title="Review rating.">{{rev._ratingStars}}</div>
+                                <div class="article-review-stars article-review-stars--small" title="Review rating.">{{rev._ratingStars}}</div>
                             {%- endif -%}
                         {%- endif -%}
                         <div class="p-summary">
