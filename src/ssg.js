@@ -410,13 +410,14 @@ class SSG
         //syslog.debug(`File ${fileName} has receieved event '${eventType}'.`);
         let full = path.join(this.ctx.sitePath, fileName);
         let ext = path.extname(full);
+        let base = path.basename(full);
         if (ext == '.md') {
             this.ctx.renderQueue = [];
             this.ctx.silent = true;
             syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}).`);
             let article = await this.ctx.cfg.parsers['md'].call(this.ctx, fileName);
             await this.ctx.cfg.renderers['njk'].call(this.ctx, article);
-        } else if (ext == '.scss') {
+        } else if (ext == '.scss' && !base.startsWith('_')) {
             syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}).`);
             await this.ctx.cfg.parsers['scss'].call(this.ctx, fileName);
         } else if (ext == '.njk') {

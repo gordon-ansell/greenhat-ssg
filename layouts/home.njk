@@ -60,7 +60,7 @@ sitemap: true
                 <div class="p-summary">
                     {% if post.imageFuncs and post.imageFuncs.icon %}
                         <a href="{{post.url}}" title="Read this post.">
-                            {{ctx.img({src: post.imageFuncs.icon, alt: 'Icon for this post.', class: 'icon'})}}
+                            {{ctx.img({src: post.imageFuncs.icon, alt: 'Icon for this post.', class: 'article-icon'})}}
                         </a>
                     {% endif %}
                     {% if post.abstract %}
