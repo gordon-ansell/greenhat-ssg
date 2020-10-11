@@ -420,7 +420,7 @@ class SSG
         } else if (ext == '.scss' && !base.startsWith('_')) {
             syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}).`);
             await this.ctx.cfg.parsers['scss'].call(this.ctx, fileName);
-        } else if (ext == '.njk') {
+        } else if (ext == '.njk' && !base.startsWith('_')) {
             syslog.notice(`Change to template file ${fileName} (event detected: ${eventType}).`);
             await this._renderFiles().then( _ => {
                 syslog.notice(`Rerender complete.`);
