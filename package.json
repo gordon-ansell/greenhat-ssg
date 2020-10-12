@@ -17,6 +17,11 @@
 			"url": "https://gordonansell.com"
 		}
 	],
+	"files": [
+		"index.js",
+		"layouts/",
+		"scss/"
+	],
 	"bin": "./index.js",
 	"dependencies": {
 		"autoprefixer": "*",
@@ -31,7 +36,7 @@
 		"node-sass": "*",
 		"nunjucks": "*",
 		"postcss": "*",
-		"sanitize-html": "^2.1.0",
+		"sanitize-html": "*",
 		"send-webmention": "*",
 		"sharp": "*"
 	},
