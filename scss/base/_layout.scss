@@ -1,0 +1,14 @@
+// ==============================================================
+// Base layout allocations.
+// ==============================================================
+
+// Wrapper.
+.wrapper {
+    margin: $wrapper-margin;
+}
+
+// Main.
+main {
+    margin: 0 auto;
+    max-width: $main-max-width;
+}

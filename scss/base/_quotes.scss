@@ -1,0 +1,27 @@
+// ==============================================================
+// Quote stuff.
+// ==============================================================
+
+blockquote {
+    width: $bq-width;
+    margin: $bq-margin;
+    font-style: $bq-font-style;
+    padding: $bq-padding;
+    border-left: $bq-border-left;
+    line-height: $bq-line-height;
+    position: relative;
+    z-index: -1;
+}
+  
+blockquote::before {
+    font-family: $bq-before-font;
+    content: $bq-before-content;
+    font-size: $bq-before-font-size;
+    position: absolute;
+    left: 10px;
+    top:-10px;
+}
+  
+blockquote::after{
+    content: '';
+}

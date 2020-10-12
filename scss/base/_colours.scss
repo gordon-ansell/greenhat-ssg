@@ -1,0 +1,74 @@
+// ==============================================================
+// Base colour allocations.
+// ==============================================================
+
+* {
+    border-color: var(--col-border);
+}
+
+body {
+    color: var(--col-text-primary);
+    background-color: var(--col-bg-primary);
+}
+
+a {
+    color: var(--col-text-secondary);
+
+    &:link {
+        color: var(--col-text-secondary);
+    }
+
+    &:visited {
+        color: var(--col-text-secondary);
+    }
+
+    &:hover {
+        color: var(--col-text-secondary-offset);
+    }
+
+    &:active {
+        color: var(--col-text-secondary);
+    }
+}
+
+// --------------
+// Headings.
+// --------------
+
+h2, .h2 {
+    color: var(--col-text-secondary-offset);
+}
+
+// --------------
+// Pre/code.
+// --------------
+
+pre,
+code {
+    background-color: var(--col-code-bg);
+    color: var(--col-code-text);
+    border-color: var(--col-text-secondary);
+}
+
+// ---------------------
+// Figcaption.
+// ---------------------
+
+figcaption {
+    color: var(--col-text-secondary-offset);
+}
+
+// ---------------------
+// Quotes.
+// ---------------------
+
+blockquote {
+    color: var(--col-bq-text);
+    background: var(--col-muted);
+    border-left-color: var(--col-text-secondary);
+}
+
+
+blockquote::before {
+    color: var(--col-text-secondary);
+}

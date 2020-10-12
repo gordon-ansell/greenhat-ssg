@@ -292,7 +292,7 @@ class Image
 
         this.caption = capt;
 
-        html.getInner().setData(capt).addParam('class', 'respimg__caption');
+        html.getInner().setData(capt);
 
         return html;
     }
@@ -326,7 +326,7 @@ class Image
 
         html.addParam('href', url);
         html.addParam('title', "See fullscreen version of this image.");
-        html.addParam('class', 'respimg__link');
+        html.addParam('class', 'respimg-link');
 
         return html;
     }
@@ -364,16 +364,8 @@ class Image
 
         let sizeClass = null;
         if (adata.class) {
+            respClasses.push(adata.class);
             sizeClass = this._extractSizeClass(adata.class);
-            let tmp = '';
-            let sp = adata.class.split(' ');
-            for (let c of sp) {
-                if (tmp != '') {
-                    tmp += ' ';
-                }
-                tmp += 'respimg--' + c;
-            }
-            respClasses.push(tmp); 
         }
 
         if (this.hasSubimages()) {

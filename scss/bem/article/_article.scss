@@ -1,0 +1,15 @@
+.collection article header h2 a, 
+article header h1 a,
+article header h1 a:link,
+article header h1 a:visited,
+article header h1 a:active {
+    border-bottom: none;
+
+    &:hover {
+        border-bottom: $link-border-bottom-hover;
+    }
+}
+
+.taxonomy .collection h2, .taxonomy .collection .h2 {
+    font-size: 100%;
+}

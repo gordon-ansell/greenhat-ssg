@@ -1,0 +1,59 @@
+// ==============================================================
+// Base mixins.
+// ==============================================================
+
+// Go completely across the screen, regardless of the container's dimenstions.
+
+@mixin full-vw {
+    width: 100vw;
+    max-width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+}
+
+// Breakpoints.
+
+@mixin bp($breakpoint, $feat, $med: screen) {
+    @media #{$med} and ($feat: $breakpoint) {
+        @content;
+    }
+}
+
+@mixin bpmin($breakpoint, $med: screen) {
+    @media #{$med} and (min-width: $breakpoint) {
+        @content;
+    }
+}
+
+@mixin bpmax($breakpoint, $med: screen) {
+    @media #{$med} and (max-width: $breakpoint) {
+        @content;
+    }
+}
+
+@mixin bp1($med: screen) {
+    @media #{$med} and (min-width: $bp1) {
+        @content;
+    }
+}
+
+@mixin bp2($med: screen) {
+    @media #{$med} and (min-width: $bp2) {
+        @content;
+    }
+}
+
+// Good old clearfix.
+
+@mixin clearfix() {
+    &::after {
+        display: block;
+        content: "";
+        clear: both;
+    }
+}
+
+

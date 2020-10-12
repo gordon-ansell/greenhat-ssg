@@ -1,0 +1,27 @@
+// ==============================================================
+// Base pre/code allocations.
+// ==============================================================
+
+pre,
+code {
+    font-family: $precode-font-family;
+    line-height: $precode-line-height;
+    border: $precode-border;
+    border-radius: 3px;
+}
+
+code {
+    font-size: $precode-font-size;
+    padding: $precode-code-padding;
+}
+
+pre {
+    padding: $precode-pre-padding;
+    overflow-x: auto;
+
+    > code {
+        border: 0;
+        padding-right: 0;
+        padding-left: 0;
+    }
+}

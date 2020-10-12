@@ -1,0 +1,17 @@
+.sharelinks {
+    text-align: center;
+    margin: 0 auto;
+
+    &__link {
+        margin-right: 0.5em;
+
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+
+    a, a:link, a:visited, a:hover, a:active {
+        text-decoration: none;
+        border-bottom: none;
+    }
+}

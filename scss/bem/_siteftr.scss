@@ -1,0 +1,15 @@
+$site-footer-padding: 1em 1em 0.5em 1em !default;
+$site-footer-font-size: 70% !default;
+$site-footer-border-style: solid none none none !default; 
+$site-footer-border-width: 0.5px !default; 
+$site-footer-margin: 3em 0 0 0 !default;
+
+.siteftr {
+    margin: $site-footer-margin;
+    padding: $site-footer-padding;
+    border-style: $site-footer-border-style;
+    border-width: $site-footer-border-width;
+    font-size: $site-footer-font-size;
+    text-align: center;
+    @include full-vw;
+}

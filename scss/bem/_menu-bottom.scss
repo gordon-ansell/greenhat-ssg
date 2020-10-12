@@ -1,0 +1,24 @@
+$menu-bottom-padding: 0 1em 0 0 !default;
+
+.menu-bottom {
+
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+
+    &__items {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    &__item {
+        display: inline;
+        margin: 0;
+        padding: $menu-bottom-padding;
+
+        &:last-child {
+            padding-right: 0;
+        }
+    }
+}

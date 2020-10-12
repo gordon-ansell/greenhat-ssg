@@ -1,0 +1,33 @@
+$article-meta-font-size: 70% !default;
+$article-meta-font-style: normal !default;
+$article-meta-font-weight: 200 !default;
+$article-meta-taxlinks-font-variant: none !default;
+
+// From theme.
+$article-meta-dot-bg-col: var(--col-text-secondary-offset) !default;
+
+.article-meta {
+    margin-top: -1em;
+    font-size: $article-meta-font-size;
+    font-style: $article-meta-font-style;
+    font-weight: $article-meta-font-weight;   
+
+    &__taxlinks {
+        font-variant: $article-meta-taxlinks-font-variant;
+
+        &--keywords {
+            font-style: italic;
+        }
+    }
+
+    &__dot {        
+        height: 0.5em;
+        width: 0.5em;
+        margin-left: 0.5em;
+        margin-right: 0.5em;
+        margin-bottom: 0.15em;
+        border-radius: 50%;
+        display: inline-block;
+        background-color: $article-meta-dot-bg-col;
+    }
+}

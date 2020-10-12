@@ -1,0 +1,27 @@
+.article--home {
+    // Home page modifiers.
+
+    margin-bottom: 3em;
+
+    .p-summary {
+        @include clearfix;
+    }
+
+    h2 .briefly.p-name {
+        color: var(--col-text-primary);
+    }
+
+    .e-content h2 {
+        font-size: 100%;
+    }
+    
+    a.readmore {
+        border-bottom: none;
+        float: right;
+        img {
+            width: 150px;
+            height: auto;
+        }
+    }
+}
+

@@ -1,0 +1,143 @@
+$menu-bp: 768px;
+
+$menu-bg-col: inherit !default;
+$menu-font-family: $font-family-primary !default;
+
+$menu-icon-padding: 28px 20px !default;
+$menu-icon-width: 18px !default;
+
+$menu-small-font-size: 100% !default;
+$menu-small-item-padding: 20px 20px !default;
+$menu-small-max-height: 480px !default;
+
+$menu-big-font-size: 80% !default;
+$menu-big-item-padding: 15px 20px !default;
+$menu-big-item-border-style: none solid none none !default;
+$menu-big-item-border-width: 0 1px 0 0 !default;
+
+.menu-top {
+    display: inline;
+
+    &__input {
+        display: none;
+
+        &:checked ~ .menu-top__items {
+            max-height: $menu-small-max-height;
+        }
+  
+        &:checked ~ .menu-top__label .menu-top__icon {
+            background: transparent;
+        }
+  
+        &:checked ~ .menu-top__label .menu-top__icon:before {
+            transform: rotate(-45deg);
+        }
+  
+        &:checked ~ .menu-top__label .menu-top__icon:after {
+            transform: rotate(45deg);
+        }
+  
+        &:checked ~ .menu-top__label:not(.steps) .menu-top__icon:before,
+        &:checked ~ .menu-top__label:not(.steps) .menu-top__icon:after {
+            top: 0;
+        }
+    
+        &:hover {
+            background-color: var(--col-muted);
+        }
+    }
+
+    &__label {
+        cursor: pointer;
+        float: right;
+        padding: $menu-icon-padding;
+        position: relative;
+        user-select: none;
+    }
+
+    &__icon {
+        display: block;
+        height: 2px;
+        position: relative;
+        transition: background .2s ease-out;
+        width: $menu-icon-width;
+        background: var(--col-text-secondary-offset);       // The stripes on the hamburger menu.
+
+        &:before,
+        &:after {
+            content: '';
+            display: block;
+            height: 100%;
+            position: absolute;
+            transition: all .2s ease-out;
+            width: 100%;
+            background: var(--col-text-secondary-offset);       // The stripes on the hamburger menu.
+        }
+  
+        &:before {
+            top: 5px;
+        }
+  
+        &:after {
+            top: -5px;
+        }
+    }
+
+    &__items {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        overflow: hidden;
+
+        clear: both;
+        max-height: 0;
+        transition: max-height .2s ease-out;
+
+        font-family: $menu-font-family;
+        font-size: $menu-small-font-size;
+
+        background-color: $menu-bg-col;
+    }
+
+    &__link {
+        display: block;
+        padding: $menu-small-item-padding;
+        text-decoration: none;
+        border-color: var(--col-muted);
+
+        &, &:link, &:visited, &:hover, &:active {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background-color: var(--col-muted);
+        }
+    }
+
+
+    /* Breakpoint. */
+    @include bpmin($menu-bp) {
+        float: right;
+
+        &__label {
+            display: none;
+        }
+
+        &__items {
+            clear: none;
+            float: right;
+            max-height: none;
+            font-size: $menu-big-font-size;
+        }
+
+        &__item {
+            float: left;
+        }
+
+        &__link {
+            padding: $menu-big-item-padding;
+            border-style: $menu-big-item-border-style;
+            border-width: $menu-big-item-border-width;
+        }
+    }
+}

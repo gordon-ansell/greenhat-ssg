@@ -1,0 +1,20 @@
+$article-prevnext-font-size: 70% !default;
+
+.article-prevnext {
+    @include clearfix;
+    font-size: $article-prevnext-font-size;
+    
+    &__prev {
+        width: 50%;
+        float: left;
+        padding-right: 1em;
+    }
+    
+    &__next {
+        width: 50%;
+        float: right;
+        padding-left: 1em;
+        text-align: right;
+    }
+}
+

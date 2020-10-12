@@ -1,0 +1,13 @@
+$article-review-stars-margin: 1em 0 0 0 !default;
+
+.article-review-stars {
+    margin: $article-review-stars-margin;
+
+    &--small {
+        margin-top: 0.5em;
+        margin-bottom: 0;
+        img {
+            max-height: 1em;
+        }        
+    }
+}
