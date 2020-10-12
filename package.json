@@ -1,6 +1,6 @@
 {
 	"name": "greenhat-ssg",
-	"version": "0.14.0",
+	"version": "0.14.1",
 	"description": "GreenHat Static Site Generator",
 	"homepage": "https://gordonansell.com/greenhat-ssg",
 	"license": "MIT",
@@ -20,7 +20,8 @@
 	"files": [
 		"index.js",
 		"layouts/",
-		"scss/"
+		"scss/",
+		"src/"
 	],
 	"bin": "./index.js",
 	"dependencies": {
