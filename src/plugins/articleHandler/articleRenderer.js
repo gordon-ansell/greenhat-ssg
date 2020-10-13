@@ -114,7 +114,6 @@ class ArticleRenderer
         let opPath = path.join(this.ctx.sitePath, this.ctx.cfg.locations.site, article.outputFileName);
         mkdirRecurse(path.dirname(opPath));
         fs.writeFileSync(opPath, output);
-
     }
 }
 
