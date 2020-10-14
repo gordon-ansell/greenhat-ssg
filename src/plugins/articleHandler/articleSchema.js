@@ -582,12 +582,12 @@ class ArticleSchema extends BreadcrumbProcessor
     _extractArticleImages(article)
     {
         if (!this.ctx.hasCallable('getImage')) {
-            syslog.error(`No 'getImage()' callable defined.`);
+            //syslog.error(`No 'getImage()' callable defined.`);
             return;
         }
 
         if (!this.ctx.hasCallable('extractArticleImages')) {
-            syslog.error(`No 'extractArticleImages()' callable defined.`);
+            //syslog.error(`No 'extractArticleImages()' callable defined.`);
             return;
         }
 

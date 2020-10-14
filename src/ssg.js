@@ -118,6 +118,8 @@ class SSG
         await this._loadUserPlugins();
         await this._loadData();
 
+        //syslog.inspect(this.ctx.cfg.articleSpec);
+
         if (this.ctx.cfg.cfgChk) {
             this._checkConfig(this.ctx.cfg.cfgChk, this.ctx.cfg, []);
         }
@@ -382,7 +384,7 @@ class SSG
 
 
         if (this.ctx.args.serve) {
-            this.serve(path.join(this.ctx.sitePath, this.ctx.cfg.locations.site), 
+            this.server = this.serve(path.join(this.ctx.sitePath, this.ctx.cfg.locations.site), 
                 this.ctx.cfg.site.dev.addr, this.ctx.cfg.site.dev.port);
 
             if (this.ctx.args.watch) {
@@ -417,6 +419,7 @@ class SSG
             syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}).`);
             let article = await this.ctx.cfg.parsers['md'].call(this.ctx, fileName);
             await this.ctx.cfg.renderers['njk'].call(this.ctx, article);
+            await this._processPagination();
         } else if (ext == '.scss' && !base.startsWith('_')) {
             syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}).`);
             await this.ctx.cfg.parsers['scss'].call(this.ctx, fileName);
@@ -565,7 +568,9 @@ class SSG
         syslog.notice("Processing pagination.");
 
         await Promise.all(Object.keys(this.ctx.paginate).map(async articleKey => {
-            syslog.info(`Creating paging for ${articleKey}`);
+            if (!this.ctx.silent) {
+                syslog.info(`Creating paging for ${articleKey}`);
+            }
             let pobj = this.ctx.paginate[articleKey];
             if (!pobj.data) {
                 throw new GreenHatSSGError("pagination objects need a 'data' field.");
@@ -577,7 +582,8 @@ class SSG
                 throw new GreenHatSSGError("pagination objects need a 'dummy' field.");
             }
             let data = eval(`this.ctx.${pobj.data}.getData()`);
-            let pc = new Paginate(data, this.ctx, pobj.alias, 'homePlus.html', (pobj.perPage) ? pobj.perPage : null);
+            let pc = new Paginate(data, this.ctx, pobj.alias, 'homePlus.html', 
+                (pobj.perPage) ? pobj.perPage : null);
             let art = this.ctx.articles.all.get(articleKey);
             art[pobj.alias] = pc;
             this.ctx.articles.all.set(articleKey, art);
@@ -685,12 +691,13 @@ class SSG
      * @param   {string}    sitePath    Path to site to serve.
      * @param   {string}    addr        Address.
      * @param   {number}    port        Port.
+     * @return  {object}                Server object.
      */
     serve (sitePath, addr, port)
     {
         syslog.notice("Attempting to start serving from: " + sitePath);
 
-        http.createServer(function (request, response) {
+        let server = http.createServer(function (request, response) {
         
             let filePath = sitePath + request.url;
 
@@ -771,7 +778,9 @@ class SSG
         
         }).listen(port);
 
-        syslog.notice("Server running at: " + "http://" + addr + ":" + port);        
+        syslog.notice("Server running at: " + "http://" + addr + ":" + port);    
+        
+        return server;
     }
 }
 

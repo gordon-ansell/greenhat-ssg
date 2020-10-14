@@ -74,9 +74,6 @@ module.exports.init = ctx => {
                             url: '/'
                         },
                         2: {
-                            calc: 'articleSection#0'
-                        },
-                        3: {
                             calc: 'self'
                         },
                     },
@@ -123,7 +120,7 @@ module.exports.init = ctx => {
         outputMode: 'directory',
         abstractExtractLen: 200,
         descriptionExtractLen: 160,
-        taxonomyTypes: ['keywords', 'articleSection', '_articleTypes'],
+        taxonomyTypes: ['keywords'],
         multiFormat: ['content', 'contentRss', 'abstract', '_summary'],
         terminateUrl: '/',
         homePageType: 'post',

@@ -34,7 +34,7 @@ class Paginate
      * @param   {string}    dummy               Dummy layout name.
      * @param   {number}    articlesPerPage     Number of articles per page.
      */
-    constructor(map, ctx, alias, dummy, articlesPerPage = null)
+    constructor(map, ctx, alias, dummy, articlesPerPage)
     {
         this.map = map;
         this.ctx = ctx;
