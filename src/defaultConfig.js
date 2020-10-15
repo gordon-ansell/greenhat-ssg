@@ -44,7 +44,7 @@ module.exports = {
     fileSystemParser: {
         allowPaths: ['/_posts'],
         ignorePaths: ['/node_modules', '_', '.'],
-        ignoreFiles: ['.', '_'],
+        ignoreFiles: ['.', '_', 'README.md'],
         ignoreExts: ['sh', 'json', 'code-workspace'],
     },
 
