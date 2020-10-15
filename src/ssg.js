@@ -19,7 +19,7 @@ const PluginLoader = require("./loaders/pluginLoader")
 const ghfs = require("greenhat-util/fs");
 const Config = require("./config");
 const GreenHatSSGError = require("./ssgError")
-const { deleteFolderRecursive, cleanDir, copyFile } = require('greenhat-util/fs');
+const { deleteFolderRecursive, cleanDir, copyFile, copyDir } = require('greenhat-util/fs');
 const XLator = require("greenhat-util/xlate");
 const os = require('os');
 const http = require('http');
@@ -364,6 +364,7 @@ class SSG
         await this._processPagination();
         await this._renderFiles();
         await this._processLeftovers();
+        await this._copyLayouts();
         await this._cleanup();
 
         //this.ctx.articles.all.dump();
@@ -673,6 +674,20 @@ class SSG
                 this.ctx.counts['simple copies']++;
             }
         }));
+    }
+
+    /**
+     * Copy the latest templates.
+     */
+    async _copyLayouts()
+    {
+        syslog.notice("Copying layouts.");
+
+        let from = path.join(this.ctx.appPath, this.ctx.cfg.locations.sysLayouts);
+        let to = path.join(this.ctx.sitePath, '_layouts.system');
+
+        cleanDir(to);
+        copyDir(from, to);
     }
 
     /**
