@@ -48,6 +48,12 @@ module.exports = {
         ignoreExts: ['sh', 'json', 'code-workspace'],
     },
 
+    // Just copy?
+    justCopy: {
+        files: [],
+        dirs: []
+    },
+
     // Image spec.
     imageSpec: {
         imageExts: ['gif', 'ico', 'jpg', 'jpeg', 'png', 'svg', 'webp'],

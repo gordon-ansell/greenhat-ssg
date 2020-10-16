@@ -364,6 +364,7 @@ class SSG
         await this._processPagination();
         await this._renderFiles();
         await this._processLeftovers();
+        await this._justCopy();
         await this._copyLayouts();
         await this._cleanup();
 
@@ -412,6 +413,16 @@ class SSG
     {
         //syslog.debug(`File ${fileName} has receieved event '${eventType}'.`);
         let full = path.join(this.ctx.sitePath, fileName);
+
+        let jc = this.ctx.cfg.justCopy;
+        if (jc.dirs && jc.dirs.length > 0) {
+            for (let d of jc.dirs) {
+                if (fileName.startsWith(d)) {
+                    return;
+                }
+            }
+        }
+
         let ext = path.extname(full);
         let base = path.basename(full);
         if (ext == '.md') {
@@ -674,6 +685,35 @@ class SSG
                 this.ctx.counts['simple copies']++;
             }
         }));
+    }
+
+    /**
+     * The stuff we just copy.
+     */
+    async _justCopy()
+    {
+        syslog.notice("Dealing with stuff we've just been instructed to copy as-is.");
+        let jc = this.ctx.cfg.justCopy;
+        if (jc.dirs && jc.dirs.length > 0) {
+            await Promise.all(Object.values(jc.dirs).map(async jcd => {
+                let from = path.join(this.ctx.sitePath, jcd);
+                if (fs.existsSync(from)) {
+                    syslog.info(`Copying directory ${from}.`);
+                    let to = path.join(this.ctx.sitePath, this.ctx.cfg.locations.site, jcd)
+                    copyDir(from, to);
+                }
+            }));                
+        }
+        if (jc.files && jc.files.length > 0) {
+            await Promise.all(Object.values(jc.files).map(async jcf => {
+                let from = path.join(this.ctx.sitePath, jcf);
+                if (fs.existsSync(from)) {
+                    syslog.info(`Copying file ${from}.`);
+                    let to = path.join(this.ctx.sitePath, this.ctx.cfg.locations.site, jcf)
+                    copyFile(from, to);
+                }
+            }));    
+        }
     }
 
     /**
