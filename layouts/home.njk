@@ -28,7 +28,7 @@ sitemap: true
                         <meta name="p-name" content="{{post.name}}" />
                         <meta name="u-url" content="{{post.url}}" />
                     {%- elif post._layoutName == 'briefly' -%}
-                        <span class="briefly p-name">Briefly: {{post.name}}</span>
+                        <span class="briefly p-name">{{post.name}}</span>
                         <meta name="u-url" content="{{post.url}}" />
                     {%- else -%}
                         <a class="u-url" href="{{post.url}}" title="Read this post.">
