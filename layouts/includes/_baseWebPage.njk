@@ -67,7 +67,11 @@
 
     {% block headStyleSheets %}
         <!-- Stylesheets. --> 
-        <link rel="stylesheet" href="{{ctx.asset('/assets/scss/main.css')}}" />
+        {% if ctx.mode == 'dev' %}
+            <link rel="stylesheet" href="{{ctx.asset('/assets/scss/maindev.css')}}" />
+        {% else %}
+            <link rel="stylesheet" href="{{ctx.asset('/assets/scss/main.css')}}" />
+        {% endif %}
     {% endblock %}
 
     {% block headRobots %}

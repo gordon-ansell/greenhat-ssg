@@ -87,3 +87,10 @@ figure.respimg {
     }
 }
 
+figure.respimg.respimg--left {
+    margin-right: $respimg-margin-vertical;
+}
+
+figure.respimg.respimg--right {
+    margin-left: $respimg-margin-vertical;
+}
