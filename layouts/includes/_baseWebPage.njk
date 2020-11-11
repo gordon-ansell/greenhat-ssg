@@ -67,7 +67,7 @@
 
     {% block headStyleSheets %}
         <!-- Stylesheets. --> 
-        {% if ctx.mode == 'dev' %}
+        {% if ctx.mode == 'dev' or site.forceDevScss == true %}
             <link rel="stylesheet" href="{{ctx.asset('/assets/scss/maindev.css')}}" />
         {% else %}
             <link rel="stylesheet" href="{{ctx.asset('/assets/scss/main.css')}}" />
