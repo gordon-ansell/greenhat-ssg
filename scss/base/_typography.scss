@@ -64,3 +64,19 @@ a.plain {
     border-bottom: none;
     text-decoration: none;
 }
+
+// -----------------
+// Footnote links.
+// -----------------
+a[href^="#footnote-"], 
+a[href^="#footnote-"]:link, 
+a[href^="#footnote-"]:visited, 
+a[href^="#footnote-"]:hover, 
+a[href^="#footnote-"]:active {
+    border-bottom: none;
+} 
+
+.footnote a, .footnote a:link, .footnote a:visited, .footnote a:hover, .footnote a:active {
+    border-bottom: none;
+}
+
