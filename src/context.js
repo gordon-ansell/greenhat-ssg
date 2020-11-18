@@ -519,6 +519,50 @@ class Context extends EventManager
     }
 
     /**
+     * Generate rating stars.
+     * 
+     * @param   {number}    rating      Rating.
+     * @param   {number}    bestRating  Maximum rating.
+     * @return  {string}                Star string.
+     */
+    ratingStars(rating, bestRating = 5)
+    {
+        let stars = '';
+
+        let intgr = Math.floor(rating);
+        let blanks = bestRating - intgr;
+        let half = false;
+        if (rating - intgr != 0) {
+            half = true;
+            blanks--;
+        }
+        for (let i = 0; i < intgr; i++) {
+            let params = {
+                url: this.cfg.reviewSpec.ratings.stars.full,
+                alt: "Rating star."
+            }
+            stars += this.img(params, rating);
+        }
+        if (half) {
+            let params = {
+                url: this.cfg.reviewSpec.ratings.stars.half,
+                alt: "Rating half star."
+            }
+            stars += this.img(params, rating);
+        }
+        for (let i = 0; i < blanks; i++) {
+            let params = {
+                url: this.cfg.reviewSpec.ratings.stars.none,
+                alt: "Rating star."
+            }
+            stars += this.img(params, rating);
+        }
+
+        return '<span class="stars">' + stars + '</span>';
+
+    }
+
+    /**
      * Log.
      * 
      * @param   {string}    str     String to log.

@@ -87,6 +87,11 @@ figure.respimg {
     }
 }
 
+figure.respimg.respimg--full
+{
+    @include full-vw;
+}
+
 figure.respimg.respimg--left {
     margin-right: $respimg-margin-vertical;
 }
