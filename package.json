@@ -25,21 +25,21 @@
 	],
 	"bin": "./index.js",
 	"dependencies": {
-		"autoprefixer": "*",
-		"dateformat": "*",
+		"autoprefixer": "^10.0.4",
+		"dateformat": "^4.2.2",
 		"deasync": "*",
 		"greenhat-schema": "*",
-		"greenhat-util": "*",
+		"greenhat-util": "^0.8.0",
 		"image-size": "*",
 		"js-beautify": "*",
 		"md5": "*",
 		"minimist": "*",
 		"node-sass": "*",
 		"nunjucks": "*",
-		"postcss": "*",
-		"sanitize-html": "*",
+		"postcss": "^8.1.14",
+		"sanitize-html": "^2.2.0",
 		"send-webmention": "*",
-		"sharp": "*"
+		"sharp": "^0.26.3"
 	},
 	"engines": {
 		"node": "*"

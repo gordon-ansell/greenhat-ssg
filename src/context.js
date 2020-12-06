@@ -344,7 +344,7 @@ class Context extends EventManager
             }
             let ext = path.extname(href);
             let aspec = this.cfg.articleSpec;
-            if (aspec.terminateUrl && !ext) {
+            if (aspec.terminateUrl && !ext && !href.includes('#')) {
                 if (href.substr(-1) != aspec.terminateUrl) {
                     href += aspec.terminateUrl;
                 }
