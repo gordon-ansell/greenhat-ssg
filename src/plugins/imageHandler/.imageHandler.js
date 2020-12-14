@@ -51,9 +51,13 @@ async function beforeParseEarly()
     let cacheChk = (this.args.noImageCacheCheck === true) ? false : true;
 
     if (cacheChk) {
-        syslog.notice("Parsing images.");
+        if (!this.watch) {
+            syslog.notice("Parsing images.");
+        }
     } else {
-        syslog.notice("Parsing images (no cache check).");
+        if (!this.watch) {
+            syslog.notice("Parsing images (no cache check).");
+        }
     }
 
     if (cacheChk) {
@@ -89,7 +93,9 @@ async function afterParseEarly()
     }
 
     // Copy the images.
-    syslog.info("Copying images to target.");
+    if (!this.watch) {
+        syslog.info("Copying images to target.");
+    }
     const opts = {fileNotBeginsWith: ['.'], fileNotExt: ['.orig']};
     let from = path.join(this.sitePath, this.cfg.locations.cache, 
         this.cfg.imageSpec.cacheImages);

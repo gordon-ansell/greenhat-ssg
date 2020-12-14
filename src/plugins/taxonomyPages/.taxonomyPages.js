@@ -16,7 +16,9 @@ const str = require("greenhat-util/string");
  */
 async function afterParseLate()
 {
-    syslog.notice("Processing taxonomy pages.");
+    if (!this.watch) {
+        syslog.notice("Processing taxonomy pages.");
+    }
 
     // Grab the opts.
     let articleSpec = this.cfg.articleSpec;

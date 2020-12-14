@@ -44,6 +44,9 @@ class Context extends EventManager
     // Dummy paths.
     tplDummies = null;
 
+    // Watch?
+    watch = null;
+
     /**
      * Constructor.
      */

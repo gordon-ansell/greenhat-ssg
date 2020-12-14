@@ -345,28 +345,9 @@ class SSG
         
         //syslog.inspect(this.ctx.pluginsLoaded);
 
-        let tv = {
-            name: 'Hello',
-            description: 'Goodbye',
-            author: {
-                name: 'Gordon Ansell',
-            }
-        }
-
-        let test = Schema.create('article', null, tv);
-        //syslog.inspect(test.dump());
-
         this.ctx.silent = false;
 
-        this._cleanDirectories();
-        await this._parseFileSystem();
-        await this._parseFiles();
-        await this._processPagination();
-        await this._renderFiles();
-        await this._processLeftovers();
-        await this._justCopy();
-        await this._copyLayouts();
-        await this._cleanup();
+        await this._mainLoop();
 
         //this.ctx.articles.all.dump();
 
@@ -404,6 +385,29 @@ class SSG
     }
 
     /**
+     * The main SSG loop.
+     */
+    async _mainLoop()
+    {
+        this._cleanDirectories(this.ctx.watch);
+
+        if (this.ctx.watch) {
+            this.ctx.filesProcessed = [];
+            this.ctx.filesToProcess = [this.ctx.watch];
+        } else {
+            await this._parseFileSystem();
+        }
+
+        await this._parseFiles();
+        await this._processPagination();
+        await this._renderFiles();
+        await this._processLeftovers();
+        await this._justCopy();
+        await this._copyLayouts();
+        await this._cleanup();
+    }
+
+    /**
      * A file has changed.
      * 
      * @param   {string}    eventType   Type of event.
@@ -414,15 +418,41 @@ class SSG
         //syslog.debug(`File ${fileName} has receieved event '${eventType}'.`);
         let full = path.join(this.ctx.sitePath, fileName);
 
+        // Ignore temp files.
+        let tmpFiles = [
+            this.ctx.cfg.locations.temp,
+            this.ctx.cfg.locations.site,
+            this.ctx.cfg.locations.cache,
+        ];
+
+        for (let t of tmpFiles) {
+            if (fileName.startsWith(t)) {
+                return;
+            }
+        }
+
         let jc = this.ctx.cfg.justCopy;
         if (jc.dirs && jc.dirs.length > 0) {
             for (let d of jc.dirs) {
                 if (fileName.startsWith(d)) {
+                    syslog.debug(`Ignoring justCopy file: ${fileName}.`);
                     return;
                 }
             }
         }
 
+        if (eventType == 'change') {
+            syslog.notice(`Reparsing file ${fileName} (event detected: ${eventType}), wait ...`);
+            let ssaved = this.ctx.silent;
+            this.ctx.silent = true;
+            this.ctx.watch = full;
+            await this._mainLoop();
+            this.ctx.watch = null;
+            this.ctx.silent = ssaved;
+            syslog.notice(`Reparse complete.`);
+        }
+
+        /*
         let ext = path.extname(full);
         let base = path.basename(full);
         if (ext == '.md') {
@@ -441,6 +471,7 @@ class SSG
                 syslog.notice(`Rerender complete.`);
             });
         }
+        */
     }
 
     /**
@@ -448,15 +479,25 @@ class SSG
      */
     _cleanDirectories()
     {
-        if (deleteFolderRecursive(path.join(this.ctx.sitePath, this.ctx.cfg.locations.site))) {
-            syslog.notice("Cleaned out site directory.");
+        let watch = this.ctx.watch;
+
+        if (!watch) {
+            if (deleteFolderRecursive(path.join(this.ctx.sitePath, this.ctx.cfg.locations.site))) {
+                if (!watch) {
+                    syslog.notice("Cleaned out site directory.");
+                }
+            }
         }
         if (cleanDir(path.join(this.ctx.sitePath, this.ctx.cfg.locations.temp))) {
-            syslog.notice("Cleaned out temp directory.");
+            if (!watch) {
+                syslog.notice("Cleaned out temp directory.");
+            }
         }
         if (this.ctx.args.clearCache && 
             cleanDir(path.join(this.ctx.sitePath, this.ctx.cfg.locations.cache))) {
-            syslog.notice("Cleaned out cache directory.");
+            if (!watch) {
+                syslog.notice("Cleaned out cache directory.");
+            }
         }
     }
 
@@ -481,6 +522,7 @@ class SSG
      */
     async _parseFiles(filesToProcess = null)
     {
+        let watch = this.ctx.watch;
         let selective = false;
         if (filesToProcess) {
             filesToProcess = arr.makeArray(filesToProcess);
@@ -510,12 +552,16 @@ class SSG
         
             if (count == 0) {
                 if (!selective) {
-                    syslog.notice(`Parsing files (early).`);
+                    if (!watch) {
+                        syslog.notice(`Parsing files (early).`);
+                    }
                 }
                 await this.ctx.emit('BEFORE_PARSE_EARLY');
             } else {
                 if (!selective) {
-                    syslog.notice(`Parsing files (late).`);
+                    if (!watch) {
+                        syslog.notice(`Parsing files (late).`);
+                    }
                 }
                 await this.ctx.emit('BEFORE_PARSE_LATE');
             }
@@ -573,11 +619,15 @@ class SSG
      */
     async _processPagination()
     {
+        let watch = this.ctx.watch;
+
         if (!this.ctx.paginate) {
             return;
         }
 
-        syslog.notice("Processing pagination.");
+        if (!watch) {
+            syslog.notice("Processing pagination.");
+        }
 
         await Promise.all(Object.keys(this.ctx.paginate).map(async articleKey => {
             if (!this.ctx.silent) {
@@ -639,7 +689,11 @@ class SSG
      */
     async _renderFiles()
     {
-        syslog.notice(`Rendering files.`);
+        let watch = this.ctx.watch;
+
+        if (!watch) {
+            syslog.notice(`Rendering files.`);
+        }
 
         let errs = [];
 
@@ -671,7 +725,10 @@ class SSG
      */
     async _processLeftovers()
     {
-        syslog.notice("Processing (just copying) leftover files.")
+        let watch = this.ctx.watch;
+        if (!watch) {
+            syslog.notice("Processing (just copying) leftover files.")
+        }
         this.ctx.counts['simple copies'] = 0;
         
         let difference = this.ctx.filesToProcess.filter(x => !this.ctx.filesProcessed.includes(x));
@@ -692,13 +749,18 @@ class SSG
      */
     async _justCopy()
     {
-        syslog.notice("Dealing with stuff we've just been instructed to copy as-is.");
+        let watch = this.ctx.watch;
+        if (!watch) {
+            syslog.notice("Dealing with stuff we've just been instructed to copy as-is.");
+        }
         let jc = this.ctx.cfg.justCopy;
         if (jc.dirs && jc.dirs.length > 0) {
             await Promise.all(Object.values(jc.dirs).map(async jcd => {
                 let from = path.join(this.ctx.sitePath, jcd);
                 if (fs.existsSync(from)) {
-                    syslog.info(`Copying directory ${from}.`);
+                    if (!this.ctx.watch) {
+                        syslog.info(`Copying directory ${from}.`);
+                    }
                     let to = path.join(this.ctx.sitePath, this.ctx.cfg.locations.site, jcd)
                     copyDir(from, to);
                 }
@@ -708,7 +770,9 @@ class SSG
             await Promise.all(Object.values(jc.files).map(async jcf => {
                 let from = path.join(this.ctx.sitePath, jcf);
                 if (fs.existsSync(from)) {
-                    syslog.info(`Copying file ${from}.`);
+                    if (!this.ctx.watch) {
+                        syslog.info(`Copying file ${from}.`);
+                    }
                     let to = path.join(this.ctx.sitePath, this.ctx.cfg.locations.site, jcf)
                     copyFile(from, to);
                 }
@@ -717,11 +781,14 @@ class SSG
     }
 
     /**
-     * Copy the latest templates.
+     * Copy the latest templates.     
      */
     async _copyLayouts()
     {
-        syslog.notice("Copying layouts.");
+        let watch = this.ctx.watch;
+        if (!watch) {
+            syslog.notice("Copying layouts.");
+        }
 
         let from = path.join(this.ctx.appPath, this.ctx.cfg.locations.sysLayouts);
         let to = path.join(this.ctx.sitePath, '_layouts.system');
@@ -735,8 +802,11 @@ class SSG
      */
     async _cleanup()
     {
+        let watch = this.ctx.watch;
         if (cleanDir(path.join(this.ctx.sitePath, this.ctx.cfg.locations.temp))) {
-            syslog.notice("Cleaned out temp directory.");
+            if (!watch) {
+                syslog.notice("Cleaned out temp directory.");
+            }
         }
     }
 
