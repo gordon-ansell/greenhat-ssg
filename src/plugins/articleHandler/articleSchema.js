@@ -489,13 +489,18 @@ class ArticleSchema extends BreadcrumbProcessor
                         syslog.warning(`No function 'aggregateRating' in ${schema.constructor.name}.`);
                     }
 
-                    schema.aggregateRating(
-                        Schema.aggregateRating()
-                            .ratingValue(rev.ratingValue)
-                            .bestRating(rev.bestRating)
-                            .worstRating(rev.worstRating)
-                            .reviewCount(rev.reviewCount)
-                    );
+                    /*
+                    if (prod.type != "product") {
+                        schema.aggregateRating(
+                            Schema.aggregateRating()
+                                .name(prod.name)
+                                .ratingValue(rev.ratingValue)
+                                .bestRating(rev.bestRating)
+                                .worstRating(rev.worstRating)
+                                .reviewCount(rev.reviewCount)
+                        );
+                    }
+                    */
 
                     schema.review(Schema.ref('review-' + key));
                 }
