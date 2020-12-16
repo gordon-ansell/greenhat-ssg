@@ -71,15 +71,20 @@ class ArticleSchema extends BreadcrumbProcessor
 
         let mainEntity = [];
 
-        let count = 1;
-        for (let item of this.article._faq) {
-            let tmp = Schema.question()
-                .url(this.article.url + '#faq-' + count)
-                .name(item.q)
-                .acceptedAnswer(Schema.answer().text(item.a.text));
+        if (this.article._faq.name) {
+            schema.name(this.article._faq.name);
+        }
+        if (this.article._faq.faqs) {
+            let count = 1;
+            for (let item of this.article._faq.faqs) {
+                let tmp = Schema.question()
+                    .url(this.article.url + '#faq-' + count)
+                    .name(item.q)
+                    .acceptedAnswer(Schema.answer().text(item.a.text));
 
-            mainEntity.push(tmp);
-            count++;
+                mainEntity.push(tmp);
+                count++;
+            }
         }
 
         schema.mainEntity(mainEntity);
@@ -200,7 +205,13 @@ class ArticleSchema extends BreadcrumbProcessor
                         .ratingValue(rev.ratingValue)
                         .bestRating(rev.bestRating || 5)
                         .worstRating(rev.worstRating || 0)
-                    );
+                    )
+                    .reviewBody(rev.description + " " + this.article.contentRss.text);
+
+
+                if (this.cfg.reviewSpec.reviewStandsAlone == true) {
+                    schema.itemReviewed(Schema.ref('product-' + key));
+                }
 
                 if (this.article.author) {
                     let auths = [];
@@ -489,8 +500,7 @@ class ArticleSchema extends BreadcrumbProcessor
                         syslog.warning(`No function 'aggregateRating' in ${schema.constructor.name}.`);
                     }
 
-                    /*
-                    if (prod.type != "product") {
+                    if (this.cfg.reviewSpec.wantAggregateRating == true) {
                         schema.aggregateRating(
                             Schema.aggregateRating()
                                 .name(prod.name)
@@ -500,7 +510,6 @@ class ArticleSchema extends BreadcrumbProcessor
                                 .reviewCount(rev.reviewCount)
                         );
                     }
-                    */
 
                     schema.review(Schema.ref('review-' + key));
                 }

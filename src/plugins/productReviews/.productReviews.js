@@ -70,6 +70,8 @@ module.exports.init = ctx => {
             }
         },
         defaultCurrency: 'GBP',
+        wantAggregateRating: true,
+        reviewStandsAlone: true,
     };
 
 

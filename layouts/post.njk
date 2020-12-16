@@ -23,8 +23,12 @@ wantEffort: true
 {%- block afterArticleContent -%}
     {%- if article._faq -%}
         <div class="article-faq">
-            <h2>Frequently Asked Questions</h2>
-            {%- for faq in article._faq -%}
+            {% if article._faq.name %}
+                <h2>{{article._faq.name}}</h2>
+            {% else %}
+                <h2>Frequently Asked Questions</h2>
+            {% endif %}
+            {%- for faq in article._faq.faqs -%}
                 {%- include 'includes/article/_articleFaq.njk' -%}
             {%- endfor -%}
         </div>

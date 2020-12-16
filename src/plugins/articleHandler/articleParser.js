@@ -205,7 +205,7 @@ class ArticleParser extends BreadcrumbProcessor
         }
         
         if (this.article._faq) {
-            for (let item of this.article._faq) {
+            for (let item of this.article._faq.faqs) {
                 words += str.countWords(item.q) + str.countWords(item.a.text);
             }            
         }
@@ -233,14 +233,30 @@ class ArticleParser extends BreadcrumbProcessor
 
         let result = [];
 
-        for (let item of this.article._faq) {
-            result.push({
-                q: item.q,
-                a: new MultiContent(item.a, this.article.relPath),
-            });
+        if (!this.article._faq.name) {
+            for (let item of this.article._faq) {
+                result.push({
+                    q: item.q,
+                    a: new MultiContent(item.a, this.article.relPath),
+                });
+            }
+        } else if (this.article._faq.faqs) {
+            for (let item of this.article._faq.faqs) {
+                result.push({
+                    q: item.q,
+                    a: new MultiContent(item.a, this.article.relPath),
+                });
+            }
         }
 
-        this.article._faq = result;
+        let final = {
+            faqs: result
+        };
+        if (this.article._faq.name) {
+            final.name = this.article._faq.name;
+        }
+
+        this.article._faq = final;
     }
 
     /**
