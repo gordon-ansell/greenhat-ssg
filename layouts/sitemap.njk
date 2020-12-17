@@ -1,10 +1,18 @@
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
-    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" 
+    xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 {%- for item in ctx.articles.all.values() -%}
     {% if (item.published) and (item.sitemap) -%}
     <url>
         <loc>{{ ctx.qualify(item.url) }}</loc>
         <lastmod>{{ item.dateModified.iso }}</lastmod>
+        {% if item._smi %}
+            {% for im in item._smi %}
+                <image:image>
+                    <image:loc>{{im.url}}</image:loc>
+                </image:image>
+            {% endfor %}
+        {% endif %}
     </url>
     {%- endif %}
 {%- endfor -%}

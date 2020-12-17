@@ -71,6 +71,12 @@ class Image
     caption = null;
 
     /**
+     * Modified date/time.
+     * @var {string}
+     */
+    modified = null;
+
+    /**
      * Constructor.
      * 
      * @constructor
@@ -106,6 +112,10 @@ class Image
         let dims = sizeOf(toTest);
         this.width = dims.width;
         this.height = dims.height;
+
+        let stats = fs.statSync(toTest, true);
+        let d = new Date(stats.mtimeMs);
+        this.modified = this.iso = d.toISOString();
     }
 
     /**

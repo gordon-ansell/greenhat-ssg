@@ -175,6 +175,21 @@ async function afterArticleParserRun(article)
     
             let simg = this.images.get(aurl);
     
+            // Image sitemap?
+            let u = null;
+            if (simg.hasSubimages()) {
+                u = simg.biggest.relPath;
+            } else {
+                u = simg.relPath;
+            }
+
+            if (!article._smi) {
+                article._smi = [];
+            }
+
+            article._smi.push({url: this.qualify(u), mod: simg.modified, tag: tag});
+                        
+            // Get ready for imagefuncs.
             if (simg.hasSubimages() && firstResizable === null) {
                 firstResizable = simg;
                 firstAny = simg;
@@ -183,7 +198,9 @@ async function afterArticleParserRun(article)
             if (!simg.hasSubimages() && firstAny === null) {
                 firstAny = simg;
             }
-    
+
+
+            // Image funcs.
             for (let func of Object.keys(imageFuncs)) {
                 let key = func + 'Image';
     
