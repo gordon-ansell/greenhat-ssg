@@ -417,6 +417,8 @@ class SSG
     {
         //syslog.debug(`File ${fileName} has receieved event '${eventType}'.`);
         let full = path.join(this.ctx.sitePath, fileName);
+        let ext = path.extname(full);
+        let base = path.basename(full);
 
         // Ignore temp files.
         let tmpFiles = [
@@ -431,6 +433,7 @@ class SSG
             }
         }
 
+        // Ignore just copies.
         let jc = this.ctx.cfg.justCopy;
         if (jc.dirs && jc.dirs.length > 0) {
             for (let d of jc.dirs) {
@@ -439,6 +442,11 @@ class SSG
                     return;
                 }
             }
+        }
+
+        // Ignore some files beginning with a dot.
+        if (base.startsWith('.DS_Store')) {
+            return;
         }
 
         if (eventType == 'change') {
