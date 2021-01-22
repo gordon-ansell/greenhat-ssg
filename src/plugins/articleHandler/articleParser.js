@@ -912,6 +912,7 @@ class ArticleParser extends BreadcrumbProcessor
 
         this.article.datePublished = published;
         this.article.dateModified = modified;
+        this.article.dateNow = new MultiDate(Date.now(), 'current', as.dispDate, as.dispTime);
 
     }
 

@@ -36,7 +36,7 @@
         <webfeeds:analytics id="{{site.googleAnalytics}}" engine="GoogleAnalytics"/>
     {%- endif %}
     <webfeeds:related layout="card" target="browser"/>
-	<lastBuildDate>{{article.dateModified.utc}}</lastBuildDate>
+	<lastBuildDate>{{article.dateNow.utc}}</lastBuildDate>
     <sy:updatePeriod>hourly</sy:updatePeriod>
     <sy:updateFrequency>1</sy:updateFrequency>
 	{%- for post in ctx.articles.type.post.desc().values() -%}
