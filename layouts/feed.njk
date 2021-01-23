@@ -47,18 +47,22 @@
                 <guid isPermaLink="true">{{ctx.qualify(post.url)}}</guid>
                 <pubDate>{{post.datePublished.utc}}</pubDate>
                 <dc:creator>{{ctx.getFirstAuthor().name}}</dc:creator>
-                {%- if article.isFullFeed or post._layout == 'citation' or post._layout == 'briefly' -%}
-                    {%- if post.abstractRss %}
-                        <description>
-                            <![CDATA[{{post.abstractRss.html | safe}}]]>
-                        </description>
-                    {%- elif post.abstract %}
-                        <description>
-                            <![CDATA[{{post.abstract.html | safe}}]]>
-                        </description>
-                    {%- else %}
+                {%- if article.isFullFeed or post._layoutName == 'citation' or post._layoutName == 'briefly' -%}
+                    {%- if post._layoutName == 'citation' or post._layoutName == 'briefly' or "srcset=" in post.abstractRss -%}
                         <description>{{post.description}}</description>
-                    {%- endif %}
+                    {%- else -%}
+                        {%- if post.abstractRss %}
+                            <description>
+                                <![CDATA[{{post.abstractRss.html | safe}}]]>
+                            </description>
+                        {%- elif post.abstract %}
+                            <description>
+                                <![CDATA[{{post.abstract.html | safe}}]]>
+                            </description>
+                        {%- else %}
+                            <description>{{post.description}}</description>
+                        {%- endif %}
+                    {%- endif -%}
                     <content:encoded>
                         <![CDATA[{{post.contentRss.html | safe}}]]>
                     </content:encoded>
