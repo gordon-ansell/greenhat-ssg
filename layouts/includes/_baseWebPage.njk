@@ -46,7 +46,7 @@
     {% block headFeeds %}
         <!-- Feeds -->
         <link rel="alternate" type="application/rss+xml" title="{{site.name}} - Standard Feed" 
-            href="{{ctx.qualify('/feed.xml')}}" />        
+            href="{{ctx.qualify('/feed.xml')}}?xray=bob" />        
     {% endblock %}
 
     <!-- Canonical URL. -->
