@@ -1,6 +1,6 @@
 {
 	"name": "greenhat-ssg",
-	"version": "0.21.0",
+	"version": "0.22.0",
 	"description": "GreenHat Static Site Generator",
 	"homepage": "https://gordonansell.com/greenhat-ssg",
 	"license": "MIT",
@@ -25,7 +25,8 @@
 	],
 	"bin": "./index.js",
 	"dependencies": {
-		"autoprefixer": "*",
+		"autoprefixer": "^*",
+		"basic-ftp": "*",
 		"dateformat": "*",
 		"deasync": "*",
 		"greenhat-schema": "*",

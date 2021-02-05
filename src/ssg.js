@@ -24,6 +24,7 @@ const XLator = require("greenhat-util/xlate");
 const os = require('os');
 const http = require('http');
 const Paginate = require("./paginate");
+const bftp = require("basic-ftp");
 const { Schema } = require("greenhat-schema");
 const arr = require("greenhat-util/array");
 
@@ -38,6 +39,11 @@ class SSG
      * Start time.
      */
     #startTime = 0;
+
+    /**
+     * FTP files.
+     */
+    #ftpFiles = [];
 
     /**
      * Constructor.
@@ -100,6 +106,7 @@ class SSG
     {
         syslog.notice("*** Initialising. ***");
         await this._loadConfigs();
+
         //syslog.inspect(this.ctx.cfg);
 
         if (this.ctx.cfg.site.traceKeys) {
@@ -114,17 +121,22 @@ class SSG
             syslog.setExceptionTraces(this.ctx.cfg.site.exceptionTraces);
         }
 
-        await this._loadSystemPlugins();
-        await this._loadUserPlugins();
-        await this._loadData();
+        if (this.ctx.args.ftpOnly) {
+            return 0;
+        } else {
 
-        //syslog.inspect(this.ctx.cfg.articleSpec);
+            await this._loadSystemPlugins();
+            await this._loadUserPlugins();
+            await this._loadData();
 
-        if (this.ctx.cfg.cfgChk) {
-            this._checkConfig(this.ctx.cfg.cfgChk, this.ctx.cfg, []);
+            //syslog.inspect(this.ctx.cfg.articleSpec);
+
+            if (this.ctx.cfg.cfgChk) {
+                this._checkConfig(this.ctx.cfg.cfgChk, this.ctx.cfg, []);
+            }
+
+            this._loadTranslations();
         }
-
-        this._loadTranslations();
 
     }
 
@@ -347,36 +359,42 @@ class SSG
 
         this.ctx.silent = false;
 
-        await this._mainLoop();
+        if (this.ctx.args.ftpOnly) {
+            await this._ftp();
+            return 0;
+        } else {
 
-        //this.ctx.articles.all.dump();
+            await this._mainLoop();
 
-        let countsMsg = '';
-        if (this.ctx.counts) {
-            for (let key in this.ctx.counts) {
-                if (countsMsg != '') countsMsg += ', ';
-                countsMsg += key + ': ' + this.ctx.counts[key]; 
-            } 
-        }
+            //this.ctx.articles.all.dump();
 
-        syslog.notice(`GreenHat SSG completed in ${(Date.now() - this.#startTime) / 1000} seconds.`);
-        if (countsMsg != '') {
-            syslog.info('Counts - ' + countsMsg);
-        }
-        syslog.notice("=".repeat(50));
+            let countsMsg = '';
+            if (this.ctx.counts) {
+                for (let key in this.ctx.counts) {
+                    if (countsMsg != '') countsMsg += ', ';
+                    countsMsg += key + ': ' + this.ctx.counts[key]; 
+                } 
+            }
+
+            syslog.notice(`GreenHat SSG completed in ${(Date.now() - this.#startTime) / 1000} seconds.`);
+            if (countsMsg != '') {
+                syslog.info('Counts - ' + countsMsg);
+            }
+            syslog.notice("=".repeat(50));
 
 
-        if (this.ctx.args.serve) {
-            this.server = this.serve(path.join(this.ctx.sitePath, this.ctx.cfg.locations.site), 
-                this.ctx.cfg.site.dev.addr, this.ctx.cfg.site.dev.port);
+            if (this.ctx.args.serve) {
+                this.server = this.serve(path.join(this.ctx.sitePath, this.ctx.cfg.locations.site), 
+                    this.ctx.cfg.site.dev.addr, this.ctx.cfg.site.dev.port);
 
-            if (this.ctx.args.watch) {
-                syslog.notice('Watching for changes ...');
-                fs.watch(this.ctx.sitePath, {recursive: true}, async (eventType, fileName) => {
-                    if (fileName) {
-                        await this.watchChange(eventType, fileName);
-                    }
-                });
+                if (this.ctx.args.watch) {
+                    syslog.notice('Watching for changes ...');
+                    fs.watch(this.ctx.sitePath, {recursive: true}, async (eventType, fileName) => {
+                        if (fileName) {
+                            await this.watchChange(eventType, fileName);
+                        }
+                    });
+                }
             }
         }
 
@@ -480,6 +498,148 @@ class SSG
             });
         }
         */
+    }
+
+    /**
+     * FTP?
+     */
+    async _ftp()
+    {
+        if (this.ctx.args.ftpTest) {
+            syslog.notice("FTP running in test mode.")
+        } else {
+            syslog.notice("Will attempt to FTP the necessary files.");
+        }
+
+        if (!this.ctx.cfg.site.ftp) {
+            syslog.error("FTP has been requested but no definitions are present in the configs.");
+            return;
+        }
+
+        let ftpSpecs = this.ctx.cfg.site.ftp;
+
+        if (ftpSpecs.sources.length == 0) {
+            syslog.error("FTP has been requested but no sources are specified.");
+            return;
+        }
+
+        if (ftpSpecs.sources.length != ftpSpecs.dests.length) {
+            syslog.error("FTP needs the same number of 'dests' as 'sources'. Check your config.");
+            return;
+        }
+
+        for (let test of ['host', 'user', 'password']) {
+            if (!test in ftpSpecs) {
+                syslog.error("FTP specification needs the '" + test + "' key.");
+                return;
+            }
+        }
+
+        // Get todays date.
+        let now = new Date();
+
+        // Subtract hours.
+        if (!ftpSpecs.hours) {
+            ftpSpecs.hours = 24;
+        }
+        now.setHours(now.getHours() - ftpSpecs.hours);
+        syslog.notice("Will FTP source files changed in the last " + ftpSpecs.hours + " hours, since: " + now.toISOString());
+
+        // Start the loop.
+        let count = 0;
+        for (let dir of ftpSpecs.sources) {
+            syslog.info("FTP is reading directory: " + dir);
+            await this._parseFTPDir(dir, now, count);
+            count = count + 1;
+        }
+
+        // Count the files.
+        count = 0;
+        for (let idx in this.#ftpFiles) {
+            count = count + this.#ftpFiles[idx].length;
+        }
+        if (count == 0) {
+            syslog.notice("No files to FTP.");
+            return;
+        } else {
+            syslog.notice(count + " files to FTP.");
+        }
+
+        // Set up the FTP client.
+        const client = new bftp.Client();
+        if (ftpSpecs.verbose) {
+            client.ftp.verbose = ftpSpecs.verbose;
+        }
+
+        // Connect.
+        let dets = {
+            host: ftpSpecs.host,
+            user: ftpSpecs.user,
+            password: ftpSpecs.password,
+        }
+        for (let poss of ['secure', 'port']) {
+            if (ftpSpecs[poss]) {
+                dets[poss] = ftpSpecs[poss];
+            }
+        }
+
+
+        try {
+            await client.access(dets)
+        } catch (err) {
+            syslog.error("FTP connection error: " + err);
+            return 0;
+        }
+
+        for (let count in this.#ftpFiles) {
+            let files = this.#ftpFiles[count];
+            let destDir = ftpSpecs.dests[count];
+            for (let file of files) {
+                let destFile = path.join(destDir, path.basename(file));
+                if (this.ctx.args.ftpTest) {
+                    syslog.notice(file + " ==> " + destFile);
+                } else {
+                    try {
+                        syslog.info("Uploading " + file + " to " + destFile);
+                        await client.uploadFrom(file, destFile);
+                    } catch (err) {
+                        syslog.error("FTP transfer error: " + err);
+                    }
+                }
+            }
+        }
+
+        client.close();
+
+    }
+
+    /**
+     * Parse and FTP directory.
+     * 
+     * @param   string  dir         Directory. 
+     * @param   Date    dt          Date time.
+     */
+    async _parseFTPDir(dir, dt, count)
+    {
+        let entries = fs.readdirSync(dir);
+        this.#ftpFiles[count] = [];
+
+        await Promise.all(entries.map(async entry => {
+
+            let filePath = path.join(dir, entry);
+            let stats = fs.statSync(filePath);
+
+            if (stats.isFile()) {
+                if (!entry.startsWith('.')) {
+                    if (stats.mtimeMs > dt.getTime()) {
+                        this.#ftpFiles[count].push(filePath);
+                    }
+                }
+            } else if (stats.isDirectory()) {
+                await this._parseFTPDir(filePath);
+            }
+
+        }));
     }
 
     /**
