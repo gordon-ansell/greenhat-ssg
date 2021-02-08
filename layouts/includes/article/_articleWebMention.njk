@@ -24,7 +24,7 @@
         {% endif %}
     </span>
     <span class="article-webmentions__content p-content">
-        {{wmention.content.value | safe}}
+        {{wmention.content.html | safe}}
     </span>
 </div>
 {% if cfg.webmentionsSpec.typeIcons %}
