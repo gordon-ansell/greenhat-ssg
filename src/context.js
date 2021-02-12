@@ -319,9 +319,10 @@ class Context extends EventManager
      * @param   {string|object}     url     Link URL or object with all fields.
      * @param   {string}            title   Link title (optional).
      * @param   {string}            cls     Class (optional).
+     * @param   {string}            target  URL target (optional).
      * @return  {string}                    Link HTML. 
      */
-    link(txt, url, title, cls)
+    link(txt, url, title, cls, target)
     {
         let html = new Html('a');
 
@@ -367,6 +368,9 @@ class Context extends EventManager
         }
         if (cls) {
             html.addParam('class', cls);
+        }
+        if (target) {
+            html.addParam('target', target);
         }
         return html.resolve(txt);
     }
