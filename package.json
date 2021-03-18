@@ -20,7 +20,6 @@
 	"files": [
 		"index.js",
 		"layouts/",
-		"scss/",
 		"src/"
 	],
 	"bin": "./index.js",
