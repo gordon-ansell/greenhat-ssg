@@ -58,6 +58,7 @@ class ArticleSchema extends BreadcrumbProcessor
         }
         return url;
     }
+
     /**
      * Process FAQs.
      */
@@ -90,6 +91,65 @@ class ArticleSchema extends BreadcrumbProcessor
         schema.mainEntity(mainEntity);
 
         this.coll.add('faq', schema);
+    }
+
+    /**
+     * Process FAQs.
+     */
+    _processQAPage()
+    {
+        if (!this.article._qa) {
+            return;
+        }
+
+        let schema = Schema.qaPage();
+
+        let mainEntity = [];
+
+        if (this.article._qa.name) {
+            schema.name(this.article._qa.name);
+        }
+
+        let auths = [];
+        if (this.article.author) {
+            for (let key of this.article.author) {
+                auths.push(Schema.ref('author-' + key));
+            }
+        }
+
+        let q = Schema.question()
+            .name(this.article.name)
+            .text(this.article.name)
+            .dateCreated(this.article.datePublished.iso)
+            .author(auths)
+            .answerCount(1);
+    
+        if (this.article._qa.question) {
+            let qq = this.article._qa.question;
+
+            if (qq.name) {
+                q.name(qq.name);
+            }
+
+            if (qq.text) {
+                q.text(qq.text);
+            }
+        }
+
+        let a = Schema.answer()
+            .text(this.article.content.html)
+            .dateCreated(this.article.datePublished.iso)
+            .author(auths)
+            .upvoteCount(1)
+            .url(this.article.url);
+
+        q.suggestedAnswer(a);
+
+        mainEntity.push(q);
+
+        schema.mainEntity(mainEntity);
+
+        this.coll.add('qaPage', schema);
     }
 
     /**
@@ -971,6 +1031,7 @@ class ArticleSchema extends BreadcrumbProcessor
         this._processReviews();
         this._processHowTos();
         this._processFAQ();
+        this._processQAPage();
     }
 }
 
