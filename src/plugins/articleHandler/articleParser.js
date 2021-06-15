@@ -117,7 +117,10 @@ class ArticleParser extends BreadcrumbProcessor
 
         if (this.ctx.articles.all.has(this.article.url)) {
             if (!this.ctx.silent) {
+                let rogue = this.ctx.articles.all.get(this.article.url);
                 syslog.warning(`There is already an article filed under URL ${this.article.url}. It will be overwritten.`)
+                syslog.warning(`Rogue article was published on ${rogue.datePublished.utc} from relpath ${rogue.relPath}.`);
+                syslog.warning(`This article is being published on ${this.article.datePublished.utc} from relPath ${this.article.relPath}.`);
             }
         }
         this.ctx.articles.all.set(this.article.url, this.article);
