@@ -1,6 +1,4 @@
 Options +MultiViews
-Options +FollowSymlinks
-
 {% if site.redirect301 %}
 	{% for fromf,tof in site.redirect301 %}
 Redirect 301 {{fromf}} {{ctx.qualify(tof)}}
@@ -11,10 +9,8 @@ RewriteEngine On
 RewriteBase /
 
 {% if ctx.mode == 'prod' %}
-RewriteCond %{HTTPS} !=on
-RewriteRule ^ - [env=proto:https]
-RewriteCond %{HTTPS} !=on
-RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+RewriteCond %{HTTP_HOST} ^www.{{site.prodDomain}}$ [NC]
+RewriteRule ^(.*)$ https://{{site.prodDomain}}/$1 [R=301,L]
 
 RewriteCond %{REQUEST_URI} !^/[0-9]+\..+\.cpaneldcv$
 RewriteCond %{REQUEST_URI} !^/\.well-known/cpanel-dcv/[0-9a-zA-Z_-]+$
